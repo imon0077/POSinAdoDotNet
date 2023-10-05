@@ -1,0 +1,258 @@
+﻿@{
+    ViewBag.Title = "Item Wise Sales Statement";
+}
+<!-- start:  List page -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    <div class="panel-body">
+        <header class="p-xs mr-lg">
+            <div class="row mb-md">
+                <div class="col-md-3">
+                    @Html.Label("From Date", htmlAttributes: new { @class = "control-label" })
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="fa fa-calendar"></i>
+                        </span>
+                        <input type="text" name="dtFrom" id="" class="form-control" required="required" autocomplete="off" ng-model="dtFrom" datepicker />
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    @Html.Label("To Date", htmlAttributes: new { @class = "control-label" })
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="fa fa-calendar"></i>
+                        </span>
+                        <input type="text" name="dtTo" id="" class="form-control" autocomplete="off" required="required" ng-model="dtTo" datepicker />
+                    </div>
+                </div>
+
+
+                <div class="col-sm-2 p-none mt-md pl-md pull-left">
+                    <button type="button" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger"
+                            ng-click="DataLoad()">
+                        <i class="fa fa-refresh" aria-hidden="true"></i> Load List
+                    </button>
+                </div>
+
+                <div class="col-sm-3 p-none mt-xlg pull-left">
+                    <span class="checkbox-custom checkbox-text-dark checkbox-default">
+                        <input type="checkbox" id="IsCheckAll" ng-model="IsCheckAll" name="IsCheckAll" ng-checked="IsCheckAll" value="false" ng-change="DataLoad()">
+                        <label for="IsCheckAll" style="font-weight:bold">Show All</label>
+                    </span>
+                </div>
+
+            </div>
+        </header>
+
+        <div class="row">
+            <div class="col-md-12">
+                <!-- : loading..... -->
+                <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                    <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                </div>
+                <!--    UI-GRID    -->
+                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;height:65vh;" class="grid"></div>
+            </div>
+        </div>
+
+
+        @*<div class="row mt-md">
+            <div class="col-md-3 text-right">
+                <label class="control-label text-bold" style="color:red">Total Sold Qty: {{fncTotalQty()|currency:"":2}} </label>
+            </div>
+            <div class="col-md-4 text-center">
+                <label class="control-label text-bold" style="color:red">Total Sold Value: {{fncTotalAmount()|currency:" Tk ":2}} </label>
+            </div>
+            <div class="col-md-4">
+                <label class="control-label text-bold" style="color:red">Total Profit Value: {{fncTotalProfit()|currency:" Tk ":2}} </label>
+            </div>
+        </div>*@
+        
+    </div>
+
+</section>
+
+
+<script type="text/javascript">
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', 'uiGridConstants', '$interval', function ($scope, $http, $log, $filter, $timeout, uiGridConstants, $interval) {
+
+        $scope.showLoader = false;
+
+        $scope.dtFrom = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.dtTo = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.IsCheckAll = false;
+
+        /* START : GRID Settings */
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10,10] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+            // Default : start
+            expandableRowTemplate: "../Partial/expandableRowTemplate.html",
+            expandableRowHeight: 150,
+            expandableRowScope: {
+                subGridVariable: 'subGridScopeVariable'
+            },
+            enableFiltering: true,
+            showGridFooter: true,
+            showColumnFooter: true,
+            enableColumnMenus: false,
+            // Default: End
+        }
+        /* END : GRID Settings */
+
+
+        /*   START : grid Column */
+        $scope.gridOptions.columnDefs = [
+            //{ name: 'Model', field: 'ModelNo', width: 90 },
+            { name: 'ProductName', field: 'ProductName', width: 180 },
+            { name: 'Date', field: 'dtInvoice', width: 90 },
+            { name: 'ChallanNo', field: 'LotNo', width: 80 },
+            //{
+            //    name: 'Code', field: 'ProductCode', width: 70
+            //},
+            {
+                name: 'PurchasePrice', field: 'PurchasePrice', width: 80
+            },
+
+            {
+                name: 'SellingPrice', field: 'SellingPrice', width: 80
+                , footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: red; font-weight: bold;">Total : </div>'
+            },
+
+            {
+                name: 'Qty', field: 'Qty', width: 80,
+                aggregationType: uiGridConstants.aggregationTypes.sum
+                , footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: red">{{col.getAggregationValue() | number:0 }}</div>'
+            },
+            
+            {
+                name: 'ReturnQty', field: 'ReturnQty', width: 80,
+                aggregationType: uiGridConstants.aggregationTypes.sum
+                , footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: red">{{col.getAggregationValue() | number:0 }}</div>'
+            },
+
+            {
+                name: 'Sold Tk', field: 'Amount', width: 80,
+                aggregationType: uiGridConstants.aggregationTypes.sum
+                , footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: red">{{col.getAggregationValue() | number:0 }}</div>'
+            },
+            
+            {
+                name: 'UnitProfit', field: 'UnitProfit', width: 80,
+            },
+
+            {
+                name: 'TotalProfit', field: 'TotalProfit', width: 80
+                , aggregationType: uiGridConstants.aggregationTypes.sum
+                , footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: black">{{col.getAggregationValue() | number:0 }}</div>'
+                //, aggregationHideLabel: true
+            },
+
+
+             //{
+             //   name: 'TotalProfit', enableFiltering: true, width: 60, headerCellTemplate:
+             //           "<label class='ml-sm mt-xs text-bold'>Total <br/> Profit</label>",
+             //   cellTemplate:
+             //           '<div>' +
+             //               ' <label class="ml-sm mt-xs text-bold"> {{row.entity.TotalProfit}} </label>' +
+             //           '</div>'
+             //},
+
+            { name: 'ClientName', field: 'ClientName', width: 120 },
+            { name: 'Invoice No', field: 'InvoiceNo', width: 120 },
+            { name: 'Supplier', field: 'SupplierName', width: 120 },
+
+            {
+                name: 'Action', enableFiltering: false, width: 70, headerCellTemplate:
+                        "<label class='ml-sm mt-xs text-bold'>Action</label>",
+                cellTemplate:
+                        '<div>' +
+                            ' <a href="../POS/RptSalesInvoice/{{row.entity.InvoiceId}}" class="black ml-sm" data-toggle="tooltip" data-trigger="hover" onclick="window.open(this.href,\'popUpWindow\',\'height=500,width=700,left=10,top=10,scrollbars=yes,menubar=no\'); return false;">' +
+                            '  <i class="fa fa-print black" aria-hidden="true"  data-placement="top" data-delay="500" data-toggle="tooltip"></i><small></small>' +
+                            '  </a>' +
+                        ' </div>'
+            }
+        ];
+        /*   END : grid Column */
+
+        
+        $scope.fncTotalAmount = function () {
+            var total = 0;
+            angular.forEach($scope.gridOptions.data, function (item) {
+                total += item.Amount;
+            });
+            return Math.round(total);
+        }
+
+
+        $scope.fncTotalQty = function () {
+            var totalQty = 0;
+            angular.forEach($scope.gridOptions.data, function (item) {
+                totalQty += item.Qty;
+            });
+            return Math.round(totalQty);
+        }
+
+
+        $scope.fncTotalProfit = function () {
+            var TotalProfit = 0;
+            angular.forEach($scope.gridOptions.data, function (item) {
+                TotalProfit += item.TotalProfit;
+            });
+            return Math.round(TotalProfit);
+        }
+
+
+
+        /* START : GRID Data Load */
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $scope.gridOptions.data = [];
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetItemWiseSalesList", "InvRptProductLedger")',
+                data: JSON.stringify({ dtFrom: $scope.dtFrom, dtTo: $scope.dtTo, IsCheckAll: $scope.IsCheckAll })
+            }).then(function (res) {
+                $scope.gridOptions.data = res.data.Table;
+                $scope.showLoader = false;
+            }, function (error) {
+                alert(error);
+            });
+        }
+        $scope.DataLoad();
+        /* END : GRID Data Load */
+
+
+    }]);
+
+
+
+</script>

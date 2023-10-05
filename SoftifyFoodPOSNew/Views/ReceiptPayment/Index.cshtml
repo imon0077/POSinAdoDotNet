@@ -1,0 +1,200 @@
+﻿@using System.Data
+@{
+    ViewBag.Title = "Collection / Payment";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+<section ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    @using (Html.BeginForm())
+    {
+        <section class="panel">
+
+            <header class="p-xs mr-lg">
+                <div class="row mb-md">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            @Html.Label("From Date", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.Editor("dtFrom", new { htmlAttributes = new { @class = "form-control", @id = "date", datepicker = "", ng_model = "dtFrom", @autocomplete = "off", @required = "required"  } })
+                        </div>
+
+                        <div class="col-md-3">
+                            @Html.Label("To Date", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.Editor("dtTo", new { htmlAttributes = new { @class = "form-control", @id = "date1", ng_model = "dtTo", @autocomplete = "off", datepicker = "", @required = "required" } })
+                        </div>
+
+                        <div class="col-sm-3 p-none mt-md pl-md">
+
+                            <button type="button" class="mb-xs mt-xs mr-xs mt-sm btn  btn-info" value="Load List" ng-click="loadData(dtFrom, dtTo)">
+                                <i class="fa fa-refresh" aria-hidden="true"></i> Load List
+                            </button>
+
+                            <a href="@Url.Action("Create", "ReceiptPayment")" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger ">
+                                <i class="fa fa-plus" aria-hidden="true"></i> Add New
+                            </a>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </header>
+            <div class="panel-body">
+                <!--    UI-GRID    -->
+                <div ui-grid="gridOptions" ui-grid-pinning ui-grid-exporter ui-grid-resize-columns class="grid"
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: black;width: 100%;height: 100%;"></div>
+
+            </div>
+            <div class="col-md-4">
+                <label class="control-label text-bold" style="color:red">Total Collection Amount: {{fncCollectiontotal()|currency:" Tk ":2}} </label>
+            </div>
+            <div class="col-lg-offset-9">
+                <label class="control-label text-bold" style="color:red">Total Payment Amount: {{fncPaymenttotal()|currency:" Tk ":2}} </label>
+            </div>
+        </section>
+    }
+</section>
+
+
+
+
+<script type="text/javascript">
+
+
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', function ($scope, $http, $log, $filter, $timeout) {
+        $scope.showLoader = false;
+        $scope.dtFrom = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.dtTo = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+
+
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10, 10] },
+            exporterPdfTableHeaderStyle: { fontSize: 7, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Voucher List", style: 'headerStyle', fontSize: 9, bold: false },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { fontSize: 15, bold: true };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: true };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : ENND
+            enableFiltering: true,
+            showGridFooter: false,
+            // Default: End
+        }
+
+        $scope.gridOptions.columnDefs = [
+            , { name: 'Type', field: 'RecvPayType', width: 100, enableColumnMenu: false }
+           , { name: 'Client / Supplier Name', field: 'Name', width: 170, enableColumnMenu: false }
+            , {
+                name: 'Action', enableFiltering: false, enableColumnMenu: false, width: 120,
+                cellTemplate:
+                    ' <div class="ml-sm">' +
+                        ' <a href="../ReceiptPayment/Edit/{{row.entity.RecvPayId}}" class="ml-xs black mr-md"><i class="fa fa-pencil fa-lg" aria-hidden="true"  title="Update Job" data-placement="top" data-delay="500" data-toggle="tooltip"></i></a></span>' +
+                        ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(row.entity)"><i class="fa fa-trash fa-lg" aria-hidden="true" title="delete item !!"></i></a>' +
+                        ' <a href="../ReceiptPayment/RptMonyReceipt/{{row.entity.RecvPayId}}?rptFormat={{grid.appScope.rptFormat}}" class="text-info black ml-sm" data-toggle="tooltip" data-trigger="hover" onclick="window.open(this.href,\'popUpWindow\',\'height=500,width=700,left=10,top=10,scrollbars=yes,menubar=no\'); return false;">' +
+                                    '  <i class="fa fa-print fa-lg mr-md black" aria-hidden="true"  data-placement="top" data-delay="500" data-toggle="tooltip"></i><small></small>' +
+                                    '  </a>' +
+                        '    </div>'
+            }
+            , { name: 'Date', field: 'dtRecv', width: 100, enableColumnMenu: false }
+            , { name: 'Payment Mode', field: 'HeadType', width: 130, enableColumnMenu: false }
+            , { name: 'Account Name', field: 'HeadName', width: 140, enableColumnMenu: false }
+            , { name: 'Cheque No', field: 'ChequeNo', width: 120, enableColumnMenu: false }
+            , { name: 'Cheque Date', field: 'ChequeDate', width: 110, enableColumnMenu: false }
+            , { name: 'Amount', field: 'Amount', width: 100, enableColumnMenu: false }
+        ];
+
+        $scope.fncPaymenttotal = function () {
+            var total = 0;
+            angular.forEach($scope.gridOptions.data, function (item) {
+                console.log(item.RecvPayType);
+                if (item.RecvPayType == 'Payment') 
+                    total += item.Amount;
+            });
+            return Math.round(total);
+        }
+
+        $scope.fncCollectiontotal = function () {
+            var total = 0;
+            angular.forEach($scope.gridOptions.data, function (item) {
+                console.log(item.RecvPayType);
+                if (item.RecvPayType == 'Collection')
+                    total += item.Amount;
+            });
+            return Math.round(total);
+        }
+
+        $scope.loadData = function (dtFrom, dtTo) {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../ReceiptPayment/GetRecvList',
+                data: JSON.stringify({ dtFrom: $scope.dtFrom, dtTo: $scope.dtTo })
+            }).then(function (data) {
+                $scope.gridOptions.data = data.data;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+
+
+        $scope.DeleteItem = function (rowEntity) {
+            console.log(rowEntity);
+            $scope.showLoader = true;
+            if (confirm('Do you want to Delete  ?')) {
+                $http.post("prcDeleteData/ReceiptPayment", { ItemId: rowEntity.RecvPayId, SupplierId: rowEntity.SupplierId, ClientId: rowEntity.ClientId })
+                    .then(function (data) {
+                        if (data.data == 'Data Deleted Successfully.') {
+                            new PNotify({
+                                title: 'Notification',
+                                text: 'Data Deleted Successfully.',
+                                type: 'custom',
+                                addclass: 'notification-success',
+                                icon: 'fa fa-check'
+                            });
+                            $scope.showLoader = false;
+                            $scope.loadData();
+                        }
+                        else {
+                            $scope.showLoader = false;
+                            new PNotify({
+                                title: 'Notification',
+                                text: '!! Failure : ' + data.data,
+                                type: 'custom',
+                                addclass: 'notification-danger',
+                                icon: 'fa fa-exclamation-triangle'
+                            });
+                            $scope.loadData();
+                        }
+                    });
+            }
+        }
+
+
+        $scope.loadData($scope.dtFrom, $scope.dtTo);
+
+
+    }]);
+
+
+
+</script>
+

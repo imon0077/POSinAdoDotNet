@@ -1,0 +1,323 @@
+﻿@model SoftifyFoodPOSNew.Models.Expenses
+@{
+    ViewBag.Title = "Edit Expenses Data";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    @using (Html.BeginForm("Edit", "Expenses", FormMethod.Post, new { @class = "", name = "frmExpense" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="panel-body">
+
+            <div class="form-group">
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.dtExp, "Date", htmlAttributes: new { @class = "control-label text-bold" })
+                    @Html.EditorFor(model => model.dtExp, new { htmlAttributes = new { @class = "form-control", @Disabled="", @placeholder = "", @Required = "required", ng_model = "model.dtExp", datepicker = "frmData." } })
+                    @Html.ValidationMessageFor(model => model.dtExp, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.ExpType, "Expense Type", htmlAttributes: new { @class = "control-label text-bold" })
+                    <select ng-model="model.ExpType"
+                            select2=""
+                            required=""
+                            ng-init="model.ExpType='Bank'"
+                            data-ng-options="d.ExpType as d.ExpType for d in TypeList"
+                            style="width: 100%"
+                            class="form-control"></select>
+                </div>
+
+                <div class="col-md-3">
+                    @Html.LabelFor(model => model.HeadId, "Payment Source", htmlAttributes: new { @class = "control-label text-bold" })
+                    <select ng-model="model.HeadId"
+                            select2=""
+                            required=""
+                            ng-if="model.ExpType=='Bank'"
+                            ng-change="GetAccAmount(model.HeadId)"
+                            data-ng-options="d.HeadId as d.HeadName for d in BankList"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                    <select ng-model="model.HeadId"
+                            select2=""
+                            ng-if="model.ExpType=='Cash'"
+                            required=""
+                            data-ng-options="d.HeadId as d.HeadName for d in CashList"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <div style="font-weight:bold; color:black;position:absolute;top:30px; text-align:center;" ng-model="TotalAmout">
+                        <label style="font-weight:bold; color:black">Total Amount:</label><strong style="color:red">{{TotalAmount |currency:" Tk ":2}}</strong>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.ChequeNo, "Cheque No", htmlAttributes: new { @class = "control-label  text-bold" })
+                    @Html.EditorFor(model => model.ChequeNo, new { htmlAttributes = new { @class = "form-control ", ng_model = "model.ChequeNo", @ng_disabled = "model.ExpType!='Bank'" } })
+                    @Html.ValidationMessageFor(model => model.ChequeNo, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.ChequeDate, "Cheque Date", htmlAttributes: new { @class = "control-label text-bold" })
+                    @Html.EditorFor(model => model.ChequeDate, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.ChequeDate", datepicker = "", @ng_disabled = "model.ExpType!='Bank'" } })
+                    @Html.ValidationMessageFor(model => model.ChequeDate, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-4">
+                    @Html.LabelFor(model => model.Description, "Remarks", new { @class = "control-label text-bold" })
+                    @Html.EditorFor(model => model.Description, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.Description" } })
+                    @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <!-- end : row-->
+
+
+            <div class="row">
+                <div class="col-md-12">
+                    <button class="mb-xs mt-xs mr-xs mt-md btn btn-sm btn-primary pull-right" type="button" ng-click="addItem()">
+                        Add <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+            </div> <!---Add Item -->
+
+            <div class="row">
+                <!-- : loading..... -->
+                <div ng-show="showLoader" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(102, 102, 102); z-index: 30001; opacity: 0.8;">
+                    <img src="~/Content/assets/images/demo_wait.gif" alt="loading" style="position: absolute; top: 50%; left: 45%;" /> Loading..
+                </div>
+
+                <div class="col-md-12">
+                    <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                         style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 35vh;" class="grid">
+                    </div>
+                    <div class="col-md-12 mt-md">
+
+                        <div class="row pull-right">
+                            <div class="col-md-12" readonly="" ng-model="Total">
+                                <label style="font-weight:bold; color:black">Total Amount:</label><strong style="color:red">{{GetSum() |currency:" Tk ":2}}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+        <!---Grid Option-->
+
+        <footer class="panel-footer mt-md">
+            <div class="row">
+                <div class="col-sm-9 col-sm-offset-3">
+                    <button class="btn btn-danger btn-wide" type="button" id="btnSubmit" name="btnSubmit" ng-disabled="frmExpense.$invalid" ng-click="InsertItem(model)">
+                        Submit <i class="fa fa-arrow-circle-right"></i>
+                    </button>
+
+                    <a href="@Url.Action("Index", "Expenses")" class="btn btn-default"><i class="fa fa-arrow-circle-left"></i> Back to list</a>
+
+                    <span ng-if="hasDuplicate()==true">
+                        <small style="color:red"> same item already exist</small>
+                    </span>
+                </div>
+            </div>
+        </footer>
+    }
+</section>
+
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+        $scope.showLoader = false;
+        $scope.TypeList = [];
+        $scope.BankList = [];
+        $scope.CashList = [];
+        $scope.ExpensesList = [];
+        $scope.TotalAmount = 0;
+
+        $scope.model = { dtExp: $filter("date")(Date.now(), 'dd-MMM-yyyy'), GateExpensesSubList:[] }
+
+        $scope.LoadCombo = function () {
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetComboLoad", "Expenses")'
+            }).then(function (result) {
+                $scope.TypeList = result.data.Table;
+                $scope.BankList = result.data.Table1;
+                $scope.CashList = result.data.Table2;
+                $scope.ExpensesList = result.data.Table3;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+        $scope.LoadCombo();
+
+        //   1.:  grid api
+        $scope.gridOptions = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 200, 10);
+            },
+            data: []
+        }
+
+        $scope.addItem = function () {
+            $scope.gridOptions.data.push(
+              {
+                  RowNo: $scope.gridOptions.data.length + 1,
+                  HeadId: 0,
+                  Amount: 0,
+                  Remarks: ''
+              }
+            );
+        };
+
+        //Load Expense date to edit
+        $scope.GetExpById = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetExpneseById", "Expenses")',
+                data: JSON.stringify({ id: @Model.ExpId })
+            }).
+            then(function (data) {
+                $interval(function(){
+                    $scope.model = data.data.Table[0];
+                    $scope.gridOptions.data = data.data.Table1;
+                    $scope.showLoader = false;
+                },500,1)
+
+            });
+        };
+        $scope.GetExpById();
+
+        $scope.GetSum = function () {
+            var total = 0;
+            if($scope.gridOptions.data.length>0){
+                for (var i = 0; i < $scope.gridOptions.data.length; i++) {
+                    total = total + $scope.gridOptions.data[i].Amount;
+                }
+            }
+            $scope.model.Total = total;
+            return total;
+        }
+
+        $scope.GetAccAmount = function (Id) {
+            if (Id) {
+                $http({
+                    method: 'Post',
+                    url: '@Url.Action("GetAccNo", "Expenses")',
+                    data: JSON.stringify({ Id: Id })
+                }).then(function (result) {
+                    console.log(result.data);
+                    $scope.TotalAmount = result.data[0].TotalAmount;
+                }, function (error) {
+                    alert(error);
+                    console.log(error);
+                });
+            }
+        }
+
+        //2.:  grid Column
+        $scope.gridOptions.columnDefs = [
+            { name: 'SL#', field: 'RowNo', width: 60, enableColumnMenu: false },
+            {
+                name: 'Expense Name', width: 300, enableColumnMenu: false,
+                cellTemplate: ' <div>' +
+                ' <select class="form-control input-sm" ng-model="row.entity.HeadId" style = "width:100%;" required="" select2="" data-ng-options="d.HeadId as d.HeadName for d in grid.appScope.ExpensesList">' +
+                '<option value="">--- Please Select ---</option>' +
+                ' </select>' +
+                ' </div>'
+            },
+            {
+                name: 'Amount', width: 200, enableColumnMenu: false, cellTemplate: ' <div>' +
+                    ' <input type="Number" required="" ng-model="row.entity.Amount"ng-change="grid.appScope.GetSum(row.entity)"class="pl-sm" />' +
+                ' </div>'
+            },
+            {
+                name: 'Remarks', width: 300, enableColumnMenu: false,
+                cellTemplate: ' <div>' +
+                ' <input type="text" ng-model="row.entity.Remarks" class="pl-sm" />' +
+                ' </div>'
+            },
+            {
+                name: ' ', enableColumnMenu: false, width: 200,
+                cellTemplate:
+                '<a href="javascript:void(0)" class="ml-md black" ng-click="grid.appScope.removeItem(row)"><i class="fa fa-close fa-sm" aria-hidden="true"></i></a>'
+            }
+        ];
+
+        ///   For Remove Item /
+        $scope.removeItem = function (row) {
+            var index = $scope.gridOptions.data.indexOf(row.entity);
+            if (index == 0) {
+            } else {
+                $scope.gridOptions.data.splice(index, 1);
+            }
+        }
+        $scope.ClearForm = function () {
+            $scope.gridOptions.data = [];
+            $scope.gridOptions.data = [{ HeadId: '', Amount: '', Remarks: '' }]
+            $scope.TotalAmount = 0;
+            $scope.model = { dtExp: $filter("date")(Date.now(), 'dd-MMM-yyyy'), GateExpensesSubList: [] }
+        }
+
+        $scope.InsertItem = function (model) {
+            $scope.model.GateExpensesSubList = $scope.gridOptions.data;
+            console.log(model);
+
+            $("#btnSubmit").attr('disabled', 'disabled');
+            $("#btnSubmit").text("Processing");
+
+            $http.post("@Url.Action("Edit", "Expenses")", { model: $scope.model }).then(function (data) {
+                if (data.data == 1) {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data updated Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.ClearForm();
+                    $("#btnSubmit").text("Submit");
+                    $("#btnSubmit").removeAttr('disabled');
+                    window.setTimeout(function(){
+                        window.location.href= '@Url.Action("Index", "Expenses")' ;
+                    },1000,1)
+
+                }
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                }
+                $("#btnSubmit").text("Submit");
+                $("#btnSubmit").removeAttr('disabled');
+            });
+        }
+
+    }]);
+
+</script>

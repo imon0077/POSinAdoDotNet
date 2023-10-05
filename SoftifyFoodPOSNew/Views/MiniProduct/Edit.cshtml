@@ -1,0 +1,166 @@
+﻿
+@using System.Data
+@model SoftifyFoodPOSNew.Models.MiniInventory.MiniProduct
+@{
+    ViewBag.Title = " Product Update  ";
+
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+
+<style>
+    .gridmodal {
+        width: 550px;
+        height: 232px;
+    }
+</style>
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start:  Create page -->
+<section class="panel" ng-app="ngApp" ng-controller="ngCtrl">
+    <form name="InvProductForm">
+        <div class="panel-body">
+
+            <div class="row">
+                <div class="col-md-12">
+
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.ProductName, "Product Name", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.ProductName, new { htmlAttributes = new { @class = "form-control", required = "", ng_model = "model.ProductName" } })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.SellPrice, "Sell Price ", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.SellPrice, new { htmlAttributes = new { @class = "form-control", required = "", ng_model = "model.SellPrice" } })
+                    </div>
+
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.CostPrice, "Cost Price", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.CostPrice, new { htmlAttributes = new { @class = "form-control", type = "number", required = "", ng_model = "model.CostPrice" } })
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="ProductUnitId" class="control-label text-bold">Unit</label>
+                        @Html.DropDownList("UnitId", new SelectList(ViewBag.UnitList, "Id", "Name"), "--- Select Supplier---", new { @class = "form-control", select2 = "", required = "", ng_model = "model.UnitId", style = "width:100%" })
+                    </div>
+
+                    @*<div class="col-md-4">
+                        <label for="ProductCategoryId" class="control-label text-bold">Supplier </label>
+                        @Html.DropDownList("SupplierId", new SelectList(ViewBag.SupplierList, "Id", "Name"), "--- Select Supplier---", new { @class = "form-control", select2 = "", required = "", ng_model = "model.SupplierId", style = "width:100%" })
+                    </div>*@
+
+
+                    <div class="col-md-4">
+                        <label for="ProductCategoryId" class="control-label text-bold">Brand </label>
+                        @Html.DropDownList("BrandId", new SelectList(ViewBag.BrandList, "Id", "Name"), "--- Select Brand---", new { @class = "form-control", select2 = "", required = "", ng_model = "model.BrandId", style = "width:100%" })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.Currency, "Currency", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.Currency, new { htmlAttributes = new { @class = "form-control", required = "", ng_model = "model.Currency" } })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.Weight, "Weight", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.Currency, new { htmlAttributes = new { @class = "form-control", required = "", ng_model = "model.Weight" } })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.ROL, "ROL", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.ROL, new { htmlAttributes = new { @class = "form-control", required = "", ng_model = "model.ROL" } })
+                    </div>
+
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.ROL, "ROL", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.ROL, new { htmlAttributes = new { @class = "form-control", required = "", ng_model = "model.ROL" } })
+                    </div>
+
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.PartNo, "PartNo", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.PartNo, new { htmlAttributes = new { @class = "form-control", required = "", ng_model = "model.PartNo" } })
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- Panel End -->
+
+
+        <footer class="panel-footer">
+            <div class="row">
+                <div class="col-sm-9 col-sm-offset-3">
+                    <button class="btn btn-danger btn-wide mr-md" type="button" name="btnSubmit" ng-disabled="InvProductForm.$invalid" ng-click="InsertItem()">
+                        Submit <i class="fa fa-arrow-circle-right"></i>
+                    </button>
+                    <a href="@Url.Action("Index", "MiniProduct")" class="btn btn-default">
+                        <i class="fa fa-arrow-circle-left"></i> Back to list
+                    </a>
+                </div>
+            </div>
+        </footer>
+
+    </form>
+</section>
+
+
+<script>
+
+    /*$(window).on('load', function () {
+        $('html').addClass('sidebar-left-collapsed');
+    });*/
+
+
+    ngApp.controller('ngCtrl', ['$scope', '$http',  function ($scope, $http) {
+
+
+        $scope.model={};;
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../GetEditData/'
+            }).then(function (data) {
+                $scope.model = data.data.Table[0];
+                console.log(data.data)
+                $scope.showLoader = false;
+            });
+        };
+        $scope.DataLoad();
+
+        /* START : Insert Item */
+        $scope.InsertItem = function () {
+            $http.post(" @Url.Action("prcDataUpdate", "MiniProduct")", { model:$scope.model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: "Data Updated Successfully",
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+
+                }
+                window.setTimeout(function () {
+                    window.location.href = '../index';
+                }, 1500);
+            });
+        }
+        /* END : Insert Item */
+
+
+    }]);
+
+
+
+</script>

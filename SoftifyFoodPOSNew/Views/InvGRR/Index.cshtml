@@ -1,0 +1,203 @@
+﻿@{
+    ViewBag.Title = "Purchase List";
+}
+<!-- start:  List page -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    @using (Html.BeginForm())
+    {
+        <div class="panel-body">
+            <header class="p-xs mr-lg">
+                <div class="row mb-md">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            @Html.Label("From Date", htmlAttributes: new { @class = "control-label" })
+                            <div class="input-group">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                                <input type="text" name="dtFrom" id="" class="form-control" required="required" ng-model="dtFrom" datepicker />
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            @Html.Label("To Date", htmlAttributes: new { @class = "control-label" })
+                            <div class="input-group">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                                <input type="text" name="dtTo" id="" class="form-control" required="required" ng-model="dtTo" datepicker />
+                            </div>
+                        </div>
+
+
+                        <div class="col-sm-3 p-none mt-md pl-md pull-left">
+                            <button type="button" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger " value="Load"
+                                    ng-click="GrrDataLoad()">
+                                <i class="fa fa-refresh" aria-hidden="true"></i> Load List
+                            </button>
+
+                            <a href="@Url.Action("Create", "InvGRR")" class="mb-xs mt-xs mr-xs mt-sm btn  btn-default ">
+                                <i class="fa fa-plus" aria-hidden="true"></i> Add New
+                            </a>
+                        </div>
+
+
+                    </div>
+                </div>
+         
+            </header>
+
+            <!-- : loading..... -->
+            <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+            </div>
+
+
+            <div class="row">
+                
+                <div class="col-md-12">
+                    <!--    UI-GRID    -->
+                    <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                         style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;" class="grid"></div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+</section>
+
+
+<script type="text/javascript">
+
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', 'uiGridConstants', '$interval', '$rootScope', function ($scope, $http, $log, $filter, $timeout, uiGridConstants, $interval) {
+        $scope.showLoader = false;
+        $scope.model = { dtFrom: $filter("date")(Date.now(), 'dd-MMM-yyyy'), dtTo: $filter("date")(Date.now(), 'dd-MMM-yyyy') }
+
+
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10,10] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Purchase List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+
+            enableFiltering: true,
+            showGridFooter: true,
+            showColumnFooter: true,
+            enableColumnMenus: false,
+            // Default: End
+        }
+        $scope.gridOptions.columnDefs = [
+            { name: 'Grr No', field: 'GrrNo', width: 150 },
+            { name: 'Date', field: 'dtGrr', width: 100 },
+            { name: 'Supplier Name', field: 'SupplierName', width: 220 },
+            { name: 'Receiver', field: 'Receiver', width: 120 },
+            { name: 'Challan No', field: 'ChallanNo', width: 120
+            , footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: black">Total : </div>'
+            },           
+            {
+                name: 'Qty', field: 'Qty', width: 80, aggregationType: uiGridConstants.aggregationTypes.sum
+                , footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: black">{{col.getAggregationValue() | number:0 }}</div>'
+            },
+            {
+                name: 'Amount', field: 'Amount', width: 110, aggregationType: uiGridConstants.aggregationTypes.sum
+                , footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: black">{{col.getAggregationValue() | number:0 }}</div>'
+            },
+            {
+                name: 'Action', enableFiltering: false, width: 140,
+                cellTemplate:
+                    ' <div class="ml-sm">' +
+                    "<span ng-if='row.entity.IsAllowEdit==1'>"+
+                        ' <a href="../InvGrr/Edit/{{row.entity.GrrId}}" class="ml-xs black mr-md"><i class="fa fa-pencil fa-lg" aria-hidden="true"  title="Update GRR" data-placement="right" data-delay="500" data-toggle="tooltip"></i></a>' +
+                         ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(row.entity)"><i class="fa fa-trash fa-lg text-danger" aria-hidden="true" title="delete item !!"></i></a>' +
+                    "</span>" +
+
+                       ' <a href="../InvGrr/RptGrr/{{row.entity.GrrId}}" target="_blank" class="ml-xs black mr-md"><i class="fa fa-print fa-lg" aria-hidden="true"  title="GRR Report" data-placement="right" data-delay="500" data-toggle="tooltip"></i></a>' +                       
+
+                        '<a href="../InvGRR/BarcodeItem/?Id={{row.entity.GrrId}}"><i class="fa fa-barcode black mr-sm fa-lg" aria-hidden="true" title="Barcode" data-placement="right" data-delay="500" data-toggle="tooltip"></i></a>' +                        
+
+                        '    </div>'
+            }
+        ];
+
+
+
+        /*   Load  : this area load date wise  */
+        $scope.GrrDataLoad = function (dtFrom, dtTo) {
+            $scope.showLoader = true;
+            $scope.gridOptions.data = [];
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetGRRList", "InvGRR")',
+                data: JSON.stringify({ dtFrom: $scope.dtFrom, dtTo: $scope.dtTo })
+            }).then(function (data) {
+                $scope.gridOptions.data = data.data;
+                $scope.showLoader = false;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+
+        $scope.GrrDataLoad($scope.dtFrom, $scope.dtTo);
+
+        $scope.DeleteItem = function (rowEntity) {
+            console.log(rowEntity);
+            $scope.showLoader = true;
+            if (confirm('Do you want to Delete?')){
+                $http.post("@Url.Action("prcDeleteData", "InvGRR")", { ItemId: rowEntity.GrrId, SupplierId: rowEntity.SupplierId })
+                .then(function (data) {
+                if (data.data == 'Data Deleted Successfully.') {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Deleted Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.showLoader = false;
+                    $scope.GrrDataLoad($scope.dtFrom, $scope.dtTo);
+                }
+                else {
+                    $scope.showLoader = false;
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                }
+            });
+        }
+        }
+    }]);
+
+
+
+</script>

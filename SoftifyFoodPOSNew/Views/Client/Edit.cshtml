@@ -1,0 +1,168 @@
+﻿@model SoftifyFoodPOSNew.Models.Client
+@{
+    ViewBag.Title = "Edit Client ";
+}
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <form name="frmClient">
+        <div class="panel-body">
+            <div class="form-group mb-sm">
+                <div class="col-md-3">
+                    @Html.LabelFor(model => model.ClientName, "Client Name", htmlAttributes: new { @class = "control-label" })<span class="text-danger">*</span>
+                    @Html.EditorFor(model => model.ClientName, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "", ng_model = "model.ClientName" } })
+                    @Html.ValidationMessageFor(model => model.ClientName, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.shortName, "Short Name", htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.ClientName, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.shortName" } })
+                    @Html.ValidationMessageFor(model => model.shortName, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.OPBalance, "Opening Balance", htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.OPBalance, new { htmlAttributes = new { @class = "form-control", @Readonly="", @type = "number", ng_model = "model.OPBalance" } })
+                    @Html.ValidationMessageFor(model => model.OPBalance, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group mb-sm">
+                <div class="col-md-3">
+                    @Html.LabelFor(model => model.dateOP, "Opening Date", htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.dateOP, new { htmlAttributes = new { @class = "form-control", ng_model = "model.dateOP", datepicker = "" } })
+                    @Html.ValidationMessageFor(model => model.dateOP, "", new { @class = "text-danger" })
+                </div>            
+
+            </div>
+
+            <div class="form-group mb-sm">
+                <div class="col-md-3">
+                    @Html.LabelFor(model => model.Mobile, "Mobile", htmlAttributes: new { @class = "control-label " })
+                    @Html.EditorFor(model => model.Mobile, new { htmlAttributes = new { @class = "form-control", ng_model = "model.Mobile" } })
+                    @Html.ValidationMessageFor(model => model.Mobile, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.Email, "Email", htmlAttributes: new { @class = "control-label " })
+                    @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", ng_model = "model.Email" } })
+                    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                </div>              
+
+            </div>
+
+            <div class="form-group mb-sm">
+                <div class="col-md-5">
+                    @Html.LabelFor(model => model.ClientAddress, "Address", htmlAttributes: new { @class = "control-label" })
+                    @Html.TextAreaFor(model => model.ClientAddress, new { @class = "form-control", @rows = "2", ng_model = "model.ClientAddress" })
+                    @Html.ValidationMessageFor(model => model.ClientAddress, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <!-- : loading..... -->
+            <div ng-show="showLoader" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(102, 102, 102); z-index: 30001; opacity: 0.8;">
+                <img src="~/Content/assets/images/demo_wait.gif" alt="loading" style="position: absolute; top: 50%; left: 45%;" /> Loading..
+            </div>
+        </div>
+
+        <footer class="panel-footer">
+            <div class="row">
+                <div class="col-sm-9 col-sm-offset-2">
+                    <button class="btn btn-danger btn-wide mr-md" type="submit" id="btnSubmit" name="btnSubmit" ng-disabled="frmClient.$invalid" ng-click="InsertItem(model)">Submit <i class="fa fa-arrow-circle-right"></i>
+                    </button>
+
+                    <a href="@Url.Action("Index", "Client")" class="btn btn-default">
+                        <i class="fa fa-arrow-circle-left"></i> Back to list
+                    </a>
+
+                </div>
+            </div>
+        </footer>
+    </form>
+</section>
+
+
+<script>
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+        $scope.showLoader = false;
+        $scope.TypeCombp = [];
+        $scope.AreaCombo = [];
+        $scope.ZoneCombo = [];
+        $scope.model = { dateOP: $filter("date")(Date.now(), 'dd-MMM-yyyy'), ClientType: '== N/A ==' }
+
+        $scope.getCombo = function () {
+            $http({
+                method: 'POST',
+                url: '@Url.Action("GetComboLoad", "Client")'
+            }).
+            then(function (result) {
+                $scope.TypeCombp = result.data.Table;
+                $scope.AreaCombo = result.data.Table1;
+                $scope.ZoneCombo = result.data.Table2;
+            });
+        }
+        $scope.getCombo();
+
+        $scope.LoadClientById = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'POST',
+                url: '@Url.Action("GetClientById", "Client")',
+                data: JSON.stringify({id:@Model.ClientId})
+            }).
+            then(function (result) {
+                $interval(function () {
+                    $scope.model = result.data[0];
+                    $scope.showLoader = false;
+                }, 500, 1);
+            });
+        }
+        $scope.LoadClientById();
+
+        $scope.InsertItem = function (model) {
+            $("#btnSubmit").attr('disabled', 'disabled');
+            $("#btnSubmit").text("Processing");
+
+            $http.post("@Url.Action("Edit", "Client")", { model: $scope.model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data updated successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.model = { dateOP: $filter("date")(Date.now(), 'dd-MMM-yyyy'), ClientType: '== N/A ==' }
+
+                    $("#btnSubmit").text("Submit");
+                    $("#btnSubmit").removeAttr('disabled');
+
+                    window.setTimeout(function(){
+                        window.location.href= '@Url.Action("Index", "Client")' ;
+                    },1500,1)
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $("#btnSubmit").text("Submit");
+                    $("#btnSubmit").removeAttr('disabled');
+                }
+
+            });
+        }
+    }]);
+
+</script>
+

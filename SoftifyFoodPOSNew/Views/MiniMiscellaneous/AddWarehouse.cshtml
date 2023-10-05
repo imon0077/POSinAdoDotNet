@@ -1,0 +1,214 @@
+﻿@model SoftifyFoodPOSNew.Models.MiniInventory.MiniMiscellaneous
+@{
+    ViewBag.Title = "Warehouse";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start: Color Entry  page -->
+
+<section class="panel">
+    <div class="" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+        <div class="panel-body">
+            <div class="col-md-3 mt-none ml-md">
+                <div class="row">
+                    <div class="form-group">
+                        @Html.HiddenFor(model => model.WHId, new { @class = "control-label ", ng_model = "Warehouse.WHId", ng_value = "Warehouse.WHId" })
+                        @Html.LabelFor(model => model.WHId, "Warehouse Id", htmlAttributes: new { @class = "control-label" })
+                        @Html.EditorFor(model => model.WHId, new { htmlAttributes = new { @class = "form-control ", @placeholder = "", ng_model = "Warehouse.WHId", @readOnly = "" } })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.WHName, "Warehouse Name", htmlAttributes: new { @class = "control-label " })
+                        @Html.EditorFor(model => model.WHName, new { htmlAttributes = new { @class = "form-control", @placeholder = "Warehouse Name", ng_model = "Warehouse.WHName" } })
+                        @Html.ValidationMessageFor(model => model.WHName, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.WHCode, "Warehouse Code", htmlAttributes: new { @class = "control-label " })
+                        @Html.EditorFor(model => model.WHCode, new { htmlAttributes = new { @class = "form-control", @placeholder = "Warehouse Code", ng_model = "Warehouse.WHCode" } })
+                        @Html.ValidationMessageFor(model => model.WHCode, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.WHNameShort, "Name Short", htmlAttributes: new { @class = "control-label " })
+                        @Html.EditorFor(model => model.WHNameShort, new { htmlAttributes = new { @class = "form-control", ng_model = "Warehouse.WHNameShort" } })
+                        @Html.ValidationMessageFor(model => model.WHNameShort, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-8" style="padding-left:0px">
+                            <button class="btn btn-danger btn-wide btn-block" type="button" name="btnSubmits" ng-disabled="!Warehouse.WHName" ng-click="InsertItem(Warehouse)">
+                                Submit <i class="fa fa-arrow-circle-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-md-8">
+                <!-- : loading..... -->
+                <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                    <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                </div>
+
+                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;" class="grid"></div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', function ($scope, $http, $log, $filter, $timeout) {
+        $scope.showLoader = false;
+
+        $scope.updateWarehouse = function (model) {
+            $scope.Warehouse = angular.copy(model);
+        };
+
+
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10, 10] },
+            exporterPdfTableHeaderStyle: { fontSize: 7, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Color List", style: 'headerStyle', fontSize: 9, bold: false },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { fontSize: 15, bold: true };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: true };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'landscape',
+            exporterPdfPageSize: 'legal',
+            //exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+            enableFiltering: true,
+            showGridFooter: true
+        }
+
+
+        $scope.gridOptions.columnDefs = [
+            , { name: 'Warehouse Name', field: 'WHName', width: 150 }
+            , { name: 'Warehouse Code', field: 'WHCode', width: 100 }
+            , { name: 'Name Short', field: 'WHNameShort', width: 120 }
+            , {
+                name: 'Action', enableFiltering: false, width: 130,
+                cellTemplate:
+                    ' <div class="ml-sm">' +
+                        ' <a href="javascript:void(0)"  ng-click="grid.appScope.updateWarehouse(row.entity)">' +
+                        '                <i class="fa fa-edit fa-lg black mr-md ml-md" aria-hidden="true" title="Update Warehouse" data-placement="top" data-delay="500" data-toggle="tooltip"></i>' +
+                        '          </a>' +
+                        ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(row.entity.WHId)"><i class="fa fa-trash fa-lg" aria-hidden="true" title="delete item !!"></i></a>' +
+                        '    </div>'
+            }
+        ];
+
+
+        $scope.GetWarehouseList = function () {
+            /*  Get Sub Color */
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../MiniMiscellaneous/GetWarehouseList'
+            }).then(function (result) {
+                $scope.gridOptions.data = result.data;
+                $scope.showLoader = false;
+                console.log(result.data);
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+
+        }
+        $scope.GetWarehouseList(); // Page Load
+
+        $scope.DeleteItem = function (WHId) {
+            if (confirm('Do you want to Delete ?')) {
+                var url = ""; var itemId = 0;
+                if (WHId > 0) { url = "prcDeleteDataWarehouse"; itemId = WHId; }
+
+                $http.post(url, { itemId }).then(function (data) {
+                    if (data.data == 1) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data Deleted Successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.GetWarehouseList();
+                        $scope.Warehouse = null;
+
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+                });
+            }
+
+        }
+
+        $scope.InsertItem = function (model) {
+            $http.post("../MiniMiscellaneous/AddWarehouse", { model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.GetWarehouseList();
+                    $scope.Warehouse = null;
+                }
+                else if (data.data == "2") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Updated Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.GetWarehouseList();
+                    $scope.Warehouse = null;
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $scope.GetWarehouseList();
+                    $scope.Warehouse = null;
+                }
+            });
+        }
+
+
+
+    }]);
+</script>

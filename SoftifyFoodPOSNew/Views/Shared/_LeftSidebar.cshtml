@@ -1,0 +1,106 @@
+﻿@{
+    System.Data.DataTable dt = new System.Data.DataTable();
+    dt = (System.Data.DataTable)Session["Menu"];
+
+    <aside id="sidebar-left" class="sidebar-left">
+
+        <div class="sidebar-header">
+            <div class="sidebar-title">
+                Navigation
+            </div>
+            <div class="sidebar-toggle hidden-xs" data-toggle-class="sidebar-left-collapsed" data-target="html" data-fire-event="sidebar-left-toggle">
+                <i class="fa fa-bars" aria-label="Toggle sidebar"></i>
+            </div>
+        </div>
+
+        <div class="nano">
+            <div class="nano-content">
+                <nav id="menu" class="nav-main" role="navigation">
+                    <ul class="nav nav-main">
+
+                        <li class="nav-active">
+                            <a href="@Url.Action("Index", "Dashboard")">
+                                <i class="fa fa-home" aria-hidden="true"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+
+                        @foreach (System.Data.DataRow row in dt.Rows)
+                        {
+                            if (int.Parse(row["isparent"].ToString()) == 1 && int.Parse(row["parentId"].ToString()) == 1)
+                            {
+                                       
+                                <li class="nav-parent">
+                                    <a>
+                                        <i class="@row["MenuIcon"].ToString()" aria-hidden="true"></i>
+                                        <span>@row["menuName"].ToString()</span>
+                                    </a>
+                                    <ul class="nav nav-children">
+                                        @foreach (System.Data.DataRow row2 in dt.Select("parentId=" + row["menuId"].ToString() + ""))
+                                        {
+                                            if (row["menuId"].ToString() == row2["parentId"].ToString())
+                                            {
+
+
+                                                if (int.Parse(row2["isparent"].ToString()) != 0)
+                                                {
+                                                    <li class="nav-parent">
+                                                        <a>
+                                                            <i class="@row2["MenuIcon"].ToString()" aria-hidden="true"> </i>
+                                                            <span>@row2["menuName"].ToString()</span>
+                                                        </a>
+                                                        <ul class="nav nav-children">
+                                                            @foreach (System.Data.DataRow row4 in dt.Select("parentId=" + row2["menuId"].ToString() + ""))
+                                                            {
+                                                                <li class="">
+                                                                    <a href="@Url.Action(@row4["menuLink"].ToString(), @row4["menuController"].ToString())">
+                                                                        <i class="@row4["MenuIcon"].ToString()" aria-hidden="true"></i>
+                                                                        <span>@row4["menuName"].ToString()</span>
+                                                                    </a>
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    </li> 
+                                                }
+                                                else
+                                                {
+                                                    <li class="">
+                                                        <a href="@Url.Action(@row2["menuLink"].ToString(), @row2["menuController"].ToString())">
+                                                            <i class="@row2["MenuIcon"].ToString()" aria-hidden="true"></i>
+                                                            <span>@row2["menuName"].ToString()</span>
+                                                        </a>
+                                                    </li>
+                                                }
+
+
+
+                                            }
+                                        }
+                                    </ul>
+
+                                </li>
+                            }
+                            else if (int.Parse(row["isparent"].ToString()) == 0 && int.Parse(row["parentId"].ToString()) == 0)
+                            {
+                                <li class="">
+                                    <a href="@Url.Action(@row["menuLink"].ToString(), @row["menuController"].ToString())">
+                                        <i class="@row["MenuIcon"].ToString()" aria-hidden="true"></i>
+                                        <span>@row["menuName"].ToString()</span>
+                                    </a>
+                                </li>
+                            }
+                        }
+
+
+                    </ul>
+                </nav>
+
+
+
+            </div>
+
+        </div>
+
+    </aside>
+
+}

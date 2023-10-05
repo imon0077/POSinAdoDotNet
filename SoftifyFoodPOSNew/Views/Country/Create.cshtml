@@ -1,0 +1,137 @@
+﻿@model SoftifyFoodPOSNew.Models.Country
+@{
+    ViewBag.Title = "New Country";
+}
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start: Category Entry  page -->
+<section ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    @using (Html.BeginForm("Create", "Country", new { id = "frmCountry" }))
+    {
+        //countryId, countryCode, countryName,countrySName, CurrName, CurrSName, timeDifference
+        @Html.AntiForgeryToken()
+        <section class="panel" style="background-color:white">
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.countryCode, "Country Code :", htmlAttributes: new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-3">
+                        @Html.EditorFor(model => model.countryCode, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.countryCode", @Required = "required" } })
+                        @Html.ValidationMessageFor(model => model.countryCode, "", new { @class = "text-danger" })
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.countryName, "Country Name :", htmlAttributes: new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-3">
+                        @Html.EditorFor(model => model.countryName, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.countryName" } })
+                        @Html.ValidationMessageFor(model => model.countryName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.countrySName, "Country Name (Short) :", htmlAttributes: new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-3">
+                        @Html.EditorFor(model => model.countrySName, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.countrySName" } })
+                        @Html.ValidationMessageFor(model => model.countrySName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.CurrName, "Currency Name :", htmlAttributes: new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-3">
+                        @Html.EditorFor(model => model.CurrName, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.CurrName" } })
+                        @Html.ValidationMessageFor(model => model.CurrName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.CurrSName, "Currency Name (Short) :", htmlAttributes: new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-3">
+                        @Html.EditorFor(model => model.CurrSName, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.CurrSName" } })
+                        @Html.ValidationMessageFor(model => model.CurrSName, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.timeDifference, "Time Difference :", htmlAttributes: new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-3">
+                        @Html.EditorFor(model => model.timeDifference, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.timeDifference" } })
+                        @Html.ValidationMessageFor(model => model.timeDifference, "", new { @class = "text-danger" })
+                    </div>
+
+                </div>
+            </div>
+
+            <footer class="panel-footer">
+                <div class="row">
+                    <div class="col-sm-9 col-sm-offset-2">
+                        <button class="btn btn-success btn-wide" type="button" name="btnSubmits" ng-disabled="!model.countryName" ng-click="InsertItem(model)">
+                            Submit <i class="fa fa-arrow-circle-right"></i>
+                        </button>
+
+                        <a href="@Url.Action("Index", "Country")" class="btn btn-primary">
+                            <i class="fa fa-arrow-circle-left"></i> Back to list
+                        </a>
+                    </div>
+                </div>
+            </footer>
+
+        </section>
+    }
+</section>
+
+
+<script>
+
+    //ngApp.controller("myCtrl", function ($scope, $http) {
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', function ($scope, $http, $log, $filter, $timeout) {
+        $scope.model = {};
+
+        $scope.InsertItem = function (model) {
+            $http.post("../Country/Create", { model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.model = null;
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    //$scope.model = null;
+                }
+            });
+        }
+
+
+    }]);
+</script>

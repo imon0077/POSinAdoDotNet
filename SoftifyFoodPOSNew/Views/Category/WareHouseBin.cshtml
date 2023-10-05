@@ -1,0 +1,403 @@
+﻿
+@using System.Data
+@using Newtonsoft.Json
+@using SoftifyFoodPOSNew.Models.Helpers
+@model SoftifyFoodPOSNew.Models.Category.WareHouseBin
+@{
+    ViewBag.Title = "Ware House - Bin  Entry /List";
+}
+
+<header class="page-header">
+    <h2>@ViewBag.Title </h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start: WareHouse Entry  page -->
+
+@using (Html.BeginForm("", "", new { id = "POSCountrySave", name="WareHouseApp"}))
+{
+
+    @Html.AntiForgeryToken()
+    <section class="panel">
+        <div class="row" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+            <div class="col-md-12">
+                <div class="tabs">
+                    <ul class="nav nav-tabs tabs-primary">
+                        <li class="active">
+                            <a href="#WareHouse" data-toggle="tab" ng-click="GetWareHouseBin()">WareHouse Add/List</a>
+                        </li>
+                        <li>
+                            <a href="#WareHouseBin" data-toggle="tab" ng-click="GetWareHouseBin()">Sub-WareHouse Add/List</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div id="WareHouse" class="tab-pane active">
+
+                            <div class="row">
+                                <div class="col-md-3  mt-none ml-md">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            @Html.HiddenFor(model => model.WHID, new { @class = "control-label ", ng_model = "WareHouse.WHID", ng_value = "WareHouse.WHID" })
+
+                                            @Html.LabelFor(model => model.WHID, "WareHouse Id", htmlAttributes: new { @class = "control-label" })
+                                            @Html.EditorFor(model => model.WHID, new { htmlAttributes = new { @class = "form-control ", @placeholder = "", ng_model = "WareHouse.WHID", @readOnly = "" } })
+
+
+                                            @Html.LabelFor(model => model.WHName, "WareHouse Name", htmlAttributes: new { @class = "control-label " })
+                                            @Html.EditorFor(model => model.WHName, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "WareHouse.WHName", @Required = "required", ng_required = "!WareHouseBin.BinId" } })
+                                            @Html.ValidationMessageFor(model => model.WHName, "", new { @class = "text-danger" })
+
+                                        </div>
+
+
+                                        <div class="col-md-12 mt-lg">
+                                            <button class="btn btn-danger btn-wide" type="button" name="btnSubmits" ng-disabled="!WareHouse.WHName" ng-click="InsertItem(WareHouse)">
+                                                Submit <i class="fa fa-arrow-circle-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8" ng-if="gridOptionsWareHouseBin.data.length>-1">
+                                    <!-- : loading..... -->
+                                    <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                                        <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                                    </div>
+
+                                    <div ui-grid="gridOptionsWareHouse" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                                         style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;" class="grid"></div>
+
+                                </div>
+                            </div>
+
+                        </div> <!-- WareHouse tab End-->
+
+                        <div id="WareHouseBin" class="tab-pane">
+
+                            <div class="row">
+                                <div class="col-md-3  mt-none">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            @Html.HiddenFor(model => model.BinId, new { @class = "control-label ", ng_value = "WareHouseBin.BinId" })
+                                            @Html.HiddenFor(model => model.WHID, new { @class = "control-label ", ng_value = "WareHouseBin.WHID" })
+
+                                            <div class="col-md-12">
+                                                @Html.LabelFor(model => model.BinId, "Bin Id", htmlAttributes: new { @class = "control-label" })
+                                                @Html.EditorFor(model => model.BinId, new { htmlAttributes = new { @class = "form-control ", @placeholder = "", ng_model = "WareHouseBin.BinId", @readOnly = "" } })
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                @Html.LabelFor(model => model.BinNo, "Bin Name", htmlAttributes: new { @class = "control-label " })
+                                                @Html.EditorFor(model => model.BinNo, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "WareHouseBin.BinNo", ng_required = "!WareHouse.WHName", @disabled="", ng_value= "WareHouseBin.FloorNo+'-'+WareHouseBin.RoomNo+'-'+WareHouseBin.RackNo+'-'+WareHouseBin.CellNo" } })
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                @Html.LabelFor(model => model.FloorNo, "Floor Name", htmlAttributes: new { @class = "control-label " })
+                                                @Html.EditorFor(model => model.FloorNo, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "WareHouseBin.FloorNo", ng_required = "!WareHouse.WHName" } })
+                                            </div>
+
+
+                                            <div class="col-md-12">
+                                                @Html.LabelFor(model => model.RoomNo, "Room No", htmlAttributes: new { @class = "control-label " })
+                                                @Html.EditorFor(model => model.RoomNo, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "WareHouseBin.RoomNo", ng_required = "!WareHouse.WHName" } })
+                                            </div>
+
+
+                                            <div class="col-md-12">
+                                                @Html.LabelFor(model => model.RackNo, "Rack No", htmlAttributes: new { @class = "control-label " })
+                                                @Html.EditorFor(model => model.RackNo, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "WareHouseBin.RackNo", ng_required = "!WareHouse.WHName" } })
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                @Html.LabelFor(model => model.CellNo, "Cell No", htmlAttributes: new { @class = "control-label " })
+                                                @Html.EditorFor(model => model.CellNo, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "WareHouseBin.CellNo", ng_required = "!WareHouse.WHName" } })
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                @Html.LabelFor(model => model.WHID, "Product WareHouse", htmlAttributes: new { @class = "control-label " })
+                                                <select ng-model="WareHouseBin.WHID"
+                                                        ng-disabled="CatCombo.length == 0"
+                                                        ng-options="obj.Id as obj.Name for obj in CatCombo"
+                                                        select2=""
+                                                        required=""
+                                                        ng-required="!WareHouse.WHName"
+                                                        style="width:200px;min-width:200px !important;max-width:200px !important;">
+                                                    <option value="">-- Choose WareHouse --</option>
+                                                </select>
+                                                @Html.ValidationMessageFor(model => model.WHID, "", new { @class = "text-danger" })
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                @Html.LabelFor(model => model.BinDetails, "Note", htmlAttributes: new { @class = "control-label " })
+                                                @Html.EditorFor(model => model.BinDetails, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "WareHouseBin.BinDetails", ng_required = "!WareHouse.WHName" } })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 mt-md ml-md">
+                                            <button class="btn btn-danger btn-wide" type="button" name="btnSubmits" ng-disabled="WareHouseApp.$invalid" ng-click="InsertItem(WareHouseBin)">
+                                                Submit <i class="fa fa-arrow-circle-right"></i>
+                                            </button>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <!-- Start: WareHouseBin Start -->
+
+                                <div class="col-md-8" ng-if="gridOptionsWareHouseBin.data.length>-1">
+                                    <!-- : loading..... -->
+                                    <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                                        <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                                    </div>
+
+                                    <div ui-grid="gridOptionsWareHouseBin" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                                         style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;  width:110vh;" class="grid"></div>
+                                </div>
+
+                                <!-- END: WareHouseBin End -->
+                            </div>
+                        </div>
+
+
+
+                    </div><!-- Sub WareHouse Tab End-->
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<script>
+    //var ngApp = angular.module("ngApp", []);
+
+    //ngApp.controller("myCtrl", function ($scope, $http) {
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', function ($scope, $http, $log, $filter, $timeout) {
+        $scope.WareHouse = {};
+        $scope.WareHouseBin = {};
+        $scope.CatCombo = [];
+
+        $scope.updateWareHouse = function (model) {
+            $scope.WareHouse = angular.copy(model);
+        };
+        $scope.updateWareHouseBin = function (model) {
+            $scope.WareHouseBin = angular.copy(model);
+        };
+
+        $scope.isRequired = function () {
+            return !!($scope.WareHouseBin.BinId || $scope.WareHouseBin.BinNo);
+        };
+
+
+        $scope.gridOptionsWareHouse = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10, 10] },
+            exporterPdfTableHeaderStyle: { fontSize: 7, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Voucher List", style: 'headerStyle', fontSize: 9, bold: false },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { fontSize: 15, bold: true };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: true };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'landscape',
+            exporterPdfPageSize: 'legal',
+            //exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+            enableFiltering: true,
+            showGridFooter: true
+
+        }
+
+        $scope.gridOptionsWareHouseBin = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10, 10] },
+            exporterPdfTableHeaderStyle: { fontSize: 7, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Voucher List", style: 'headerStyle', fontSize: 9, bold: false },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { fontSize: 15, bold: true };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: true };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'landscape',
+            exporterPdfPageSize: 'legal',
+            //exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+            enableFiltering: true,
+            showGridFooter: true
+
+        }
+
+        $scope.gridOptionsWareHouse.columnDefs = [
+            , { name: 'WareHouse', field: 'WHName', width: 500 }
+            , {
+                name: 'Action', enableFiltering: false, width: 130,
+                cellTemplate:
+                    ' <div class="ml-sm">' +
+                        ' <a href="javascript:void(0)"  ng-click="grid.appScope.updateWareHouse(row.entity)">' +
+                        '                <i class="fa fa-edit fa-lg black mr-md ml-md" aria-hidden="true" title="Update Trip" data-placement="top" data-delay="500" data-toggle="tooltip"></i>' +
+                        '          </a>' +
+
+                        ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(row.entity.WHID,0)"><i class="fa fa-trash fa-lg" aria-hidden="true" title="delete item !!"></i></a>' +
+                        '    </div>'
+            }
+        ];
+
+        $scope.gridOptionsWareHouseBin.columnDefs = [
+            , { name: 'Bin No', field: 'BinNo', width: 180 }
+            , { name: 'Floor', field: 'FloorNo', width: 90 }
+            , { name: 'Room', field: 'RoomNo', width: 90 }
+            , { name: 'Rack', field: 'RackNo', width: 90 }
+            , { name: 'Cell', field: 'CellNo', width: 90 }
+            , { name: 'WareHouse', field: 'HouseName', width: 90 }
+            , {
+                name: 'Action', enableFiltering: false, width: 100,
+                cellTemplate:
+                    ' <div class="ml-sm">' +
+
+                        ' <a href="javascript:void(0)"  ng-click="grid.appScope.updateWareHouseBin(row.entity)">' +
+                        '                <i class="fa fa-edit fa-lg black mr-md ml-md" aria-hidden="true" title="Update Trip" data-placement="top" data-delay="500" data-toggle="tooltip"></i>' +
+                        '          </a>' +
+
+                        ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(0,row.entity.BinId)"><i class="fa fa-trash fa-lg" aria-hidden="true" title="delete item !!"></i></a>' +
+                        '    </div>'
+            }
+        ];
+        $scope.GetWareHouseBin = function () {
+            /*  Get Sub WareHouse */
+            $http({
+                method: 'Post',
+                url: '../Category/GetWareHouseList'
+            }).
+                then(function (data) {
+                    $scope.gridOptionsWareHouse.data = data.data;
+                });
+            /*  Get Sub WareHouse */
+            $http({
+                method: 'Post',
+                url: '../Category/GetWareHouseBinList'
+            }).
+              then(function (data) {
+                  $scope.gridOptionsWareHouseBin.data = data.data;
+              });
+
+            $http({
+                method: 'Post',
+                url: '../Category/GetWareHouseCombo/'
+            }).
+               then(function (data) {
+                   $scope.CatCombo = data.data;
+
+               });
+        }
+
+
+        $scope.DeleteItem = function (WHID, BinId) {
+            if (confirm('Do you want to Delete  ?')) {
+                var url = ""; var itemId = 0;
+                if (WHID > 0) { url = "prcDeleteDataWareHouse/Category"; itemId = WHID; }
+                else { url = "prcDeleteDataWareHouseBin/Category"; itemId = BinId }
+
+                $http.post(url, { itemId }).then(function (data) {
+                    if (data.data == 1) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data Deleted Successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.GetWareHouseBin();
+                        $scope.WareHouseBin = null;
+                        $scope.WareHouse = null;
+
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+                });
+            }
+
+        }
+
+        $scope.InsertItem = function (model) {
+            $http.post("../Category/WareHouseBin", { model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.GetWareHouseBin();
+                    $scope.WareHouseBin = null;
+                    $scope.WareHouse = null;
+                }
+                else if (data.data == "2") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Updated Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.GetWareHouseBin();
+                    $scope.WareHouseBin = null;
+                    $scope.WareHouse = null;
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $scope.GetWareHouseBin();
+                    $scope.GetSubCategory();
+                    $scope.GetCategoryCombo();
+                    $scope.WareHouse = null;
+                    $scope.GetSubCategory = null;
+                }
+            });
+        }
+
+        $scope.GetWareHouseBin(); // Page Load
+
+
+
+
+    }]);
+</script>

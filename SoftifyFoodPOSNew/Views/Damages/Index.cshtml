@@ -1,0 +1,224 @@
+﻿@using System.Data
+@model SoftifyFoodPOSNew.Models.Damages
+@{
+    ViewBag.Title = "Product Damage List ";
+}
+<!-- start:  List page -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    @using (Html.BeginForm())
+    {
+        <div class="panel-body">
+            @*<span ng-init="IsMaster=@ViewBag.IsMaster "></span>*@
+            <header class="p-xs mr-lg">
+                <div class="row mb-md">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            @Html.Label("From Date", htmlAttributes: new { @class = "control-label" })
+                            @Html.Editor("dtFrom", new { htmlAttributes = new { @class = "form-control", @id = "date", datepicker = "", ng_model = "dtFrom", @placeholder = "", @required = "required" } })
+                        </div>
+                        <div class="col-md-3">
+                            @Html.Label("To Date", htmlAttributes: new { @class = "control-label" })
+                            @Html.Editor("dtTo", new { htmlAttributes = new { @class = "form-control", @id = "date1", ng_model = "dtTo", @placeholder = "", datepicker = "", @required = "required" } })
+                        </div>
+                        <div class="col-sm-3 p-none mt-md pl-md pull-left">
+
+                            <button type="button" class="mb-xs mt-xs mr-xs mt-sm btn  btn-info" value="Load" ng-click="DataLoad(dtFrom,dtTo)">
+                                <i class="fa fa-refresh" aria-hidden="true"></i> Load List
+                            </button>
+
+                            <a href="@Url.Action("Create", "Damages")" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger ">
+                                <i class="fa fa-plus" aria-hidden="true"></i> Add New
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <hr class="mb-none mt-none" />
+            </header>
+
+            <!-- end: page -->
+            <!-- : loading..... -->
+            <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+            </div>
+
+            <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;" class="grid"></div>
+        </div>
+    }
+
+</section>
+
+<script type="text/javascript">
+
+    var ngGridApp = angular.module('ngGridApp', ['ngTouch', 'ui.grid', 'ui.grid.expandable', 'ui.grid.selection',
+        'ui.grid.pinning', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.autoResize', 'ui.grid.saveState', 'ui.grid.cellNav']);
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$rootScope', function ($scope, $http, $log, $filter) {
+        $scope.showLoader = false;
+        $scope.dtFrom = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.dtTo = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.model = {};
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "PO List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+            enableFiltering: true,
+            showGridFooter: true,
+            // Default: End
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+            }
+        }
+
+
+        $scope.gridOptions.columnDefs = [
+            , { name: 'Damage No', field: 'DamageNo', width: 150 }
+            , { name: 'GRR No', field: 'GrrNo', width: 150 }
+            , { name: 'Supplier Name', field: 'SupplierName', width: 150 }            
+            , { name: 'Qty', field: 'Qty', width: 100 }
+            , { name: 'Rate', field: 'Rate', width: 100 }
+
+            , { name: 'Total', field: 'Amount', width: 150 }
+            , {
+                name: 'Action', width: 150, enableFiltering: false, cellTemplate:
+
+                           //'<a href="../Damages/Edit/{{row.entity.DamageId}}" class="ml-xs black" ng-click="grid.appScope.UpdateData(row.entity)"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></a>' +
+                       '<a href="javascript:void(0)" class="ml-xs black ml-md" ng-confirm-click="Are you sure to delete this record ?" confirmed-click="grid.appScope.DeleteItem(row.entity)"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></a>'
+            }
+
+        ];
+
+
+        /*   Load  : this area load date wise  */
+        $scope.DataLoad = function (dtFrom, dtTo) {
+            console.log(dtFrom);
+            console.log(dtTo);
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../Damages/GetDamageList',
+                data: JSON.stringify({ dtFrom: $scope.dtFrom, dtTo: $scope.dtTo })
+            }).then(function (data) {
+                $scope.gridOptions.data = data.data;
+                $scope.showLoader = false;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+        $scope.DataLoad($scope.dtFrom, $scope.dtTo);
+
+
+        //$scope.UpdateClick = function (data) {
+        //    $scope.model = data
+        //}
+
+        $scope.DeleteItem = function (rowEntity) {
+            $scope.showLoader = true;
+            $http.post("prcDeleteData/Damages", { ItemId: rowEntity.DamageId}).then(function (data) {
+                if (data.data == 'Data Deleted Successfully.') {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Deleted Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.showLoader = false;
+                    $scope.DataLoad($scope.dtFrom, $scope.dtTo);
+
+                }
+                else {
+                    $scope.showLoader = false;
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $scope.DataLoad($scope.dtFrom, $scope.dtTo);
+
+                }
+            });
+        }
+
+    }]);
+
+
+    ngGridApp.directive('datepicker', function ($filter) {
+        return {
+            restrict: 'A',
+            require: 'ngModel',
+            compile: function () {
+                return {
+                    pre: function (scope, element, attrs, ngModelCtrl) {
+                        var format, dateObj;
+                        format = (!attrs.dpFormat) ? 'dd-M-yyyy' : attrs.dpFormat;
+                        if (!attrs.initDate && !attrs.dpFormat) {
+                            dateObj = new Date();
+                            scope[attrs.ngModel] = $filter("date")(dateObj, 'dd-MMM-yyyy');
+
+                        } else if (!attrs.initDate) {
+                            // Otherwise set as the init date
+                            scope[attrs.ngModel] = attrs.initDate;
+                        } else {
+                        }
+                        $(element).datepicker({
+                            format: format,
+                        }).on('changeDate', function (ev) {
+                            scope.$apply(function () {
+                                ngModelCtrl.$setViewValue(ev.format(format));
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    });
+    ngGridApp.directive('ngConfirmClick',
+        [
+            function () {
+                return {
+                    link: function (scope, element, attr) {
+                        var msg = attr.ngConfirmClick || "Are you sure?";
+                        var clickAction = attr.confirmedClick;
+                        element.bind('click',
+                            function (event) {
+                                if (window.confirm(msg)) {
+                                    scope.$eval(clickAction);
+                                }
+                            });
+                    }
+                };
+            }
+        ]);
+
+</script>

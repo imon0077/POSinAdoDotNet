@@ -1,0 +1,291 @@
+﻿@model SoftifyFoodPOSNew.Models.MiniInventory.MiniMiscellaneous
+@{
+    ViewBag.Title = "Bin";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start: Color Entry  page -->
+
+<section class="panel">
+    <div class="" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+        <div class="panel-body">
+            <div class="col-md-3 mt-none ml-md">
+                <div class="row">
+                    <div class="form-group" style="margin-bottom: 5px;">
+                        @Html.HiddenFor(model => model.BinId, new { @class = "control-label ", ng_model = "Bin.BinId", ng_value = "Bin.BinId" })
+                        @Html.LabelFor(model => model.BinNo, "Bin No", htmlAttributes: new { @class = "control-label " })
+                        @Html.EditorFor(model => model.BinNo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Auto Generate", ng_model = "Bin.BinNo", @readonly = "readonly" } })
+                        @Html.ValidationMessageFor(model => model.BinNo, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px;">
+                        @Html.LabelFor(model => model.FloorNo, "Floor No", htmlAttributes: new { @class = "control-label " })
+                        @Html.EditorFor(model => model.FloorNo, new { htmlAttributes = new { @class = "form-control", @placeholder = "Floor No", ng_model = "Bin.FloorNo", ng_change = "fncGenerateBinNo('floor')" } })
+                        @Html.ValidationMessageFor(model => model.FloorNo, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px;">
+                        @Html.LabelFor(model => model.RoomNo, "Room No", htmlAttributes: new { @class = "control-label " })
+                        @Html.EditorFor(model => model.RoomNo, new { htmlAttributes = new { @class = "form-control", ng_model = "Bin.RoomNo", ng_change = "fncGenerateBinNo('room')" } })
+                        @Html.ValidationMessageFor(model => model.RoomNo, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px;">
+                        @Html.LabelFor(model => model.RackNo, "Rack No", htmlAttributes: new { @class = "control-label " })
+                        @Html.EditorFor(model => model.RackNo, new { htmlAttributes = new { @class = "form-control", ng_model = "Bin.RackNo", ng_change = "fncGenerateBinNo('rack')" } })
+                        @Html.ValidationMessageFor(model => model.RackNo, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px;">
+                        @Html.LabelFor(model => model.CellNo, "Cell No", htmlAttributes: new { @class = "control-label " })
+                        @Html.EditorFor(model => model.CellNo, new { htmlAttributes = new { @class = "form-control", ng_model = "Bin.CellNo", ng_change = "fncGenerateBinNo('cell')" } })
+                        @Html.ValidationMessageFor(model => model.CellNo, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px;">
+                        @Html.LabelFor(model => model.BinDetails, "Bin Details", htmlAttributes: new { @class = "control-label " })
+                        @Html.EditorFor(model => model.BinDetails, new { htmlAttributes = new { @class = "form-control", ng_model = "Bin.BinDetails" } })
+                        @Html.ValidationMessageFor(model => model.BinDetails, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group" style="margin-bottom: 5px;">
+                        @Html.LabelFor(model => model.BinWHId, "Ware House", htmlAttributes: new { @class = "control-label " })
+                        <select ng-model="Bin.BinWHId "
+                                ng-disabled="BinList.length == 0"
+                                ng-options="obj.Id as obj.Name for obj in BinList"
+                                select2=""
+                                required=""
+                                style="width:100%">
+                            <option value="">-- Choose WareHouse --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-8" style="padding-left:0px">
+                            <button class="btn btn-danger btn-wide" type="button" name="btnSubmits" ng-disabled="!Bin.BinNo" ng-click="InsertItem(Bin)">
+                                Submit <i class="fa fa-arrow-circle-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-md-8">
+                <!-- : loading..... -->
+                <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                    <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                </div>
+
+                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;" class="grid"></div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', function ($scope, $http, $log, $filter, $timeout) {
+        $scope.showLoader = false;
+        $scope.BinList = [];
+
+        $scope.updateBin = function (model) {
+            console.log(model);
+            $scope.Bin = angular.copy(model);
+
+        };
+
+        $scope.fncGenerateBinNo = function (param) {
+            var FloorNo = '';
+            var RoomNo = '';
+            var RackNo = '';
+            var CellNo = '';
+
+            if (angular.isUndefined($scope.Bin.FloorNo)) {
+                $scope.Bin.FloorNo = '';
+            }
+            else if ($scope.Bin.FloorNo.length > 0) {
+                FloorNo = $scope.Bin.FloorNo;
+            }
+            if (angular.isUndefined($scope.Bin.RoomNo)) {
+                $scope.Bin.RoomNo = '';
+            }
+            else if ($scope.Bin.RoomNo.length > 0) {
+                RoomNo = '-'+$scope.Bin.RoomNo;
+            }
+            if (angular.isUndefined($scope.Bin.RackNo)) {
+                $scope.Bin.RackNo = '';
+            }
+            else if ($scope.Bin.RackNo.length > 0) {
+                RackNo = '-'+$scope.Bin.RackNo;
+            }
+            if (angular.isUndefined($scope.Bin.CellNo)) {
+                $scope.Bin.CellNo = '';
+            }
+            else if ($scope.Bin.CellNo.length > 0) {
+                CellNo = '-'+$scope.Bin.CellNo;
+            }
+
+            $scope.Bin.BinNo =FloorNo +RoomNo +RackNo + CellNo;
+
+        };
+
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10, 10] },
+            exporterPdfTableHeaderStyle: { fontSize: 7, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Color List", style: 'headerStyle', fontSize: 9, bold: false },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { fontSize: 15, bold: true };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: true };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'landscape',
+            exporterPdfPageSize: 'legal',
+            //exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+            enableFiltering: true,
+            showGridFooter: true
+        }
+
+        $scope.gridOptions.columnDefs = [
+            , { name: 'Bin No', field: 'BinNo', width: 150 }
+            , { name: 'Warehouse Name', field: 'BinWHName', width: 150 }
+            , { name: 'Floor No', field: 'FloorNo', width: 100 }
+            , { name: 'Room No', field: 'RoomNo', width: 100 }
+            , { name: 'Rack No', field: 'RackNo', width: 100 }
+            , { name: 'Cell No', field: 'CellNo', width: 100 }
+            , { name: 'Details', field: 'BinDetails', width: 100 }
+            , {
+                name: 'Action', enableFiltering: false, width: 100,
+                cellTemplate:
+                    ' <div class="ml-sm">' +
+                        ' <a href="javascript:void(0)"  ng-click="grid.appScope.updateBin(row.entity)">' +
+                        '                <i class="fa fa-edit fa-lg black mr-md ml-md" aria-hidden="true" title="Update Bin" data-placement="top" data-delay="500" data-toggle="tooltip"></i>' +
+                        '          </a>' +
+                        ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(row.entity.BinId)"><i class="fa fa-trash fa-lg" aria-hidden="true" title="delete item !!"></i></a>' +
+                        '    </div>'
+            }
+        ];
+
+
+        $scope.GetBinList = function () {
+            /*  Get Sub Color */
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../MiniMiscellaneous/GetBinList'
+            }).then(function (result) {
+                $scope.gridOptions.data = result.data;
+                $scope.showLoader = false;
+                console.log(result.data);
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+
+        }
+
+        $scope.GetBinList(); // Page Load
+
+        $scope.getCombo = function () {
+            $http({ method: 'Post', url: '../MiniMiscellaneous/GetWareHouseCombo' }).then(function (result) {
+                $scope.BinList = result.data;
+                console.log(result.data);
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+
+        }
+        $scope.getCombo(); // call Combo Data
+
+
+        $scope.DeleteItem = function (BinId) {
+            if (confirm('Do you want to Delete ?')) {
+                var url = ""; var itemId = 0;
+                if (BinId > 0) { url = "prcDeleteDataBin"; itemId = BinId; }
+
+                $http.post(url, { itemId }).then(function (data) {
+                    if (data.data == 1) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data Deleted Successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.GetBinList();
+                        $scope.Bin = null;
+
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+                });
+            }
+
+        }
+
+        $scope.InsertItem = function (model) {
+            $http.post("../MiniMiscellaneous/AddBin", { model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.GetBinList();
+                    $scope.Bin = null;
+                }
+                else if (data.data == "2") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Updated Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.GetBinList();
+                    $scope.Bin = null;
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $scope.GetBinList();
+                    $scope.Bin = null;
+                }
+            });
+        }
+
+
+
+    }]);
+</script>

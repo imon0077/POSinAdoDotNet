@@ -1,0 +1,662 @@
+﻿@using SoftifyFoodPOSNew.Models.Helpers
+@using System.Data;
+@using Newtonsoft.Json
+@{
+    ViewBag.Title = "Dashboard";
+
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start: Client Add Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    <form name="Dashborad">
+        <div class="row no-print">
+            <div class="col-md-3 col-lg-3 col-xl-6">
+                <section class="panel panel-featured-left panel-featured-primary">
+                    <div class="panel-body">
+                        <div class="widget-summary widget-summary-md">
+                            <div class="widget-summary-col widget-summary-col-icon">
+                                <div class="summary-icon bg-primary">
+                                    <i class="" style="font-weight:bold; font-style:normal"><span class="fa fa-shopping-cart"></span></i>
+                                </div>
+                            </div>
+                            <div class="widget-summary-col">
+                                <div class="summary">
+                                    <h4 class="title">
+                                        Today's Sales
+                                    </h4>
+                                    <div class="info">
+                                        <strong class="amount">
+                                            {{model.TtlSales}}
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="summary-footer">
+                                    <span class="text-muted text-uppercase">Today's Sales</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="col-md-3 col-lg-3 col-xl-6">
+                <section class="panel panel-featured-left panel-featured-tertiary">
+                    <div class="panel-body">
+                        <div class="widget-summary widget-summary-md">
+                            <div class="widget-summary-col widget-summary-col-icon">
+                                <div class="summary-icon bg-quartenary">
+                                    <i class="" style="font-weight:bold; font-style:normal"><span class="fa fa-handshake-o"></span></i>
+                                </div>
+                            </div>
+                            <div class="widget-summary-col">
+                                <div class="summary">
+                                    <h4 class="title">
+                                        Today's Collection
+                                    </h4>
+                                    <div class="info">
+                                        <strong class="amount">
+                                            {{model.TtlCollection}}
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="summary-footer">
+                                    <span class="text-muted text-uppercase">Today's Collection</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="col-md-3 col-lg-3 col-xl-6">
+                <section class="panel panel-featured-left panel-featured-secondary">
+                    <div class="panel-body">
+                        <div class="widget-summary widget-summary-md">
+                            <div class="widget-summary-col widget-summary-col-icon">
+                                <div class="summary-icon bg-success">
+                                    <i class="" style="font-weight:bold; font-style:normal"><span class="fa fa-arrow-circle-down"></span></i>
+                                </div>
+                            </div>
+                            <div class="widget-summary-col">
+                                <div class="summary">
+                                    <h4 class="title">
+                                        Today's Purchase
+                                    </h4>
+                                    <div class="info">
+                                        <strong class="amount">
+                                            {{model.TtlPurchase}}
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="summary-footer">
+                                    <span class="text-muted text-uppercase">Today's Purchase</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-md-3 col-lg-3 col-xl-6">
+                <section class="panel panel-featured-left panel-featured-quartenary">
+                    <div class="panel-body">
+                        <div class="widget-summary widget-summary-md">
+                            <div class="widget-summary-col widget-summary-col-icon">
+                                <div class="summary-icon bg-quartenary">
+                                    <i class="" style="font-weight:bold; font-style:normal"><span class="fa fa-list"></span></i>
+                                </div>
+                            </div>
+                            <div class="widget-summary-col">
+                                <div class="summary">
+                                    <h4 class="title">
+                                        Today's Payment
+                                    </h4>
+                                    <div class="info">
+                                        <a href="#">
+                                            <strong class="amount">
+                                                {{model.TtlPayment}}
+                                            </strong>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="summary-footer">
+                                    <span class="text-muted text-uppercase">Today's Payment</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+
+        <div class="row no-print">
+            <div class="form-group">
+                <div class="col-md-4">
+                    <section id="lowestStock" class="panel">
+                        <header class="panel-heading text-center" style="padding:10px;background-color: #337ab7 !important;">
+                            <div class="row">
+                                <h4 class="panel-title  text-bold" style="color:white !important">Lowest Stock</h4>
+                            </div>
+                        </header>
+                        <div class="panel-body" style="padding:0px">
+                            <div ui-grid="gridOptionslowStock" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                            </div>
+                        </div>
+
+                    </section>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <section id="topSalesItem" class="panel">
+                        <header class="panel-heading text-center" style="padding:10px;background-color: #006699!important;">
+                            <div class="row">
+                                <h4 class="panel-title text-bold" style="color:white !important">Top Sales Item List</h4>
+                            </div>
+                        </header>
+                        <div class="panel-body" style="padding:0px">
+                            <div ui-grid="gridOptionsTopSale" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+
+                <div class="col-md-4">
+
+                    <section id="topSalesItem" class="panel">
+                        <header class="panel-heading text-center" style="padding:10px;background-color: #006699!important;">
+                            <div class="row">
+                                <h4 class="panel-title text-bold" style="color:white !important">Top Sales Item List</h4>
+                            </div>
+                        </header>
+                        <div class="panel-body" style="padding:0px">
+                            <div ui-grid="gridOptionsTopSale" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+
+            </div>
+
+
+            @* UpComming Collection & Payment *@
+            <div class="form-group hide">
+                <div class="col-md-6">
+                    <section id="CommingCollection" class="panel">
+                        <header class="panel-heading text-center" style="padding:10px;background-color: #337ab7 !important;">
+                            <div class="row">
+                                <h4 class="panel-title  text-bold" style="color:white !important">UpComming Collection ({{model.UPTotalAmount}} Tk) </h4>
+                            </div>
+                        </header>
+                        <div class="panel-body" style="padding:0px">
+                            <div ui-grid="gridOptionsUPCollection" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                            </div>
+                        </div>
+
+                    </section>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <section id="CommingPayment" class="panel">
+                        <header class="panel-heading text-center" style="padding:10px;background-color: #006699!important;">
+                            <div class="row">
+                                <h4 class="panel-title text-bold" style="color:white !important">UpComming Payment ({{model.UPpayTotalAmount}} Tk)</h4>
+                            </div>
+                        </header>
+                        <div class="panel-body" style="padding:0px">
+                            <div ui-grid="gridOptionsUPpayment" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+
+            </div>
+        </div>
+
+        @*<div class="row no-print">
+            <div class="form-group">
+                <div class="col-md-4">
+                    <section id="lowestStock" class="panel">
+                        <header class="panel-heading text-center" style="padding:10px;background-color: #337ab7 !important;">
+                            <div class="row">
+                                <h4 class="panel-title  text-bold" style="color:white !important">Lowest Stock</h4>
+                            </div>
+                        </header>
+                        <div class="panel-body" style="padding:0px">
+                            <div ui-grid="gridOptionslowStock" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                            </div>
+                        </div>
+
+                    </section>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <section id="topSalesItem" class="panel">
+                        <header class="panel-heading text-center" style="padding:10px;background-color: #006699!important;">
+                            <div class="row">
+                                <h4 class="panel-title text-bold" style="color:white !important">Top Sales Item List</h4>
+                            </div>
+                        </header>
+                        <div class="panel-body" style="padding:0px">
+                            <div ui-grid="gridOptionsTopSale" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+
+                <div class="col-md-4">
+
+                    <section id="topSalesItem" class="panel">
+                        <header class="panel-heading text-center" style="padding:10px;background-color: #006699!important;">
+                            <div class="row">
+                                <h4 class="panel-title text-bold" style="color:white !important">Top Sales Item List</h4>
+                            </div>
+                        </header>
+                        <div class="panel-body" style="padding:0px">
+                            <div ui-grid="gridOptionsTopSale" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+
+            </div>
+
+
+            @* UpComming Collection & Payment *@
+            <div class="form-group hide">
+                <div class="col-md-6">
+                    <section id="CommingCollection" class="panel">
+                        <header class="panel-heading text-center" style="padding:10px;background-color: #337ab7 !important;">
+                            <div class="row">
+                                <h4 class="panel-title  text-bold" style="color:white !important">UpComming Collection ({{model.UPTotalAmount}} Tk) </h4>
+                            </div>
+                        </header>
+                        <div class="panel-body" style="padding:0px">
+                            <div ui-grid="gridOptionsUPCollection" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                            </div>
+                        </div>
+
+                    </section>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <section id="CommingPayment" class="panel">
+                        <header class="panel-heading text-center" style="padding:10px;background-color: #006699!important;">
+                            <div class="row">
+                                <h4 class="panel-title text-bold" style="color:white !important">UpComming Payment ({{model.UPpayTotalAmount}} Tk)</h4>
+                            </div>
+                        </header>
+                        <div class="panel-body" style="padding:0px">
+                            <div ui-grid="gridOptionsUPpayment" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+
+            </div>
+       
+
+
+
+    </form>
+</section>
+<script>
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$rootScope', function ($scope, $http, $log, $filter, $timeout, $interval, $rootScope) {
+
+        $scope.model = { TtlSales: '', TtlCollection: '', TtlPurchase: '', TtlPayment: '' };
+        $scope.RecvPayId = 0;
+
+
+        // arrray ininialized:
+        $scope.topSale = [{
+            prodCatName: '',
+            ProductName: '',
+            TtlProduct: ''
+        }];
+
+        // arrray ininialized:
+        $scope.lowstock = [{
+            ProductName: '',
+            ROL: '',
+            stock: ''
+        }];
+
+        $scope.GetDashboard = function () {
+            // Count Data
+            $http({
+                method: 'GET',
+                url: '../Dashboard/GetDashboardData'
+            }).
+            then(function (result) {
+                $scope.model.TtlSales = result.data.Table[0].TtlSales;
+                $scope.model.TtlCollection = result.data.Table1[0].TtlCollection;
+                $scope.model.TtlPurchase = result.data.Table2[0].TtlPurchase;
+                $scope.model.TtlPayment = result.data.Table3[0].TtlPayment;
+                $scope.gridOptionsTopSale.data = result.data.Table4;
+                $scope.gridOptionslowStock.data = result.data.Table5;
+                $scope.gridOptionsUPCollection.data = result.data.Table6;
+                $scope.model.UPTotalAmount = result.data.Table7[0].TotalAmount;
+                $scope.gridOptionsUPpayment.data = result.data.Table8;
+                $scope.model.UPpayTotalAmount = result.data.Table9[0].TotalAmount;
+                //console.log($scope.model);
+            });
+        }
+        $scope.GetDashboard(); // Call Counting Data
+
+        //   1.:  grid api
+        $scope.gridOptionsTopSale = {
+            onRegisterApi: function (gridApi) {
+                $rootScope.gridApi = gridApi,
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+                data: $scope.topSale;
+            },
+
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Top Sales Item List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1'
+
+        }
+
+        //   2.:  grid Column
+        $scope.gridOptionsTopSale.columnDefs = [
+            
+             { name: 'Product Name', field: 'ProductName', width: 150 },
+             {
+                 name: 'Total Sale', field: 'TtlProduct', width: 110,
+                 cellTemplate: ' <div class="text-center" >{{row.entity.TtlProduct}}</div>'
+             },
+            { name: 'Category', field: 'prodCatName', width: 110 }
+        ];
+
+
+        //   1.:  grid api
+        $scope.gridOptionslowStock = {
+            onRegisterApi: function (gridApi) {
+                $rootScope.gridApi = gridApi,
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+                data: $scope.lowstock;
+            },
+
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Lowest Stock List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1'
+
+        }
+
+        //   2.:  grid Column
+        $scope.gridOptionslowStock.columnDefs = [
+             { name: 'Product Name', field: 'ProductName', width: 150 },
+             {
+                 name: 'Stock', field: 'CurrStock', width: 100,
+                 cellTemplate: ' <div class="text-center" >{{row.entity.CurrStock}}</div>'
+             }
+        ];
+
+        //   1.:  grid api
+        $scope.gridOptionsUPCollection = {
+            onRegisterApi: function (gridApi) {
+                $rootScope.gridApi = gridApi,
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+                data: $scope.lowstock;
+            },
+
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "C List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1'
+
+        }
+
+        //   2.:  grid Column Cllection
+        $scope.gridOptionsUPCollection.columnDefs = [
+             { name: 'Client Name', field: 'ClientName', width: 120 },
+             { name: 'Account Name', field: 'HeadName', width: 130 },
+             { name: 'Amount', field: 'Amount', width: 90 },
+             {
+                 name: 'Cheque Date', width: 120, field: 'ChequeDate', enableColumnMenu: false,
+                 cellTemplate: ' <div>' +
+                     ' <input type="datetime"  datepicker = "" ng-model="row.entity.ChequeDate" class="pl-sm" />' +
+                     ' </div>'
+             }
+
+             , {
+                 name: 'Action', enableFiltering: false, width: 90, cellTemplate:
+                               '<span ng-if="row.entity.isCleared!=1">' +
+                               '<a href="javascript:void(0)" ng-click="grid.appScope.ChequeCleare(row.entity)" class="btn btn-danger btn-xs ml-md"> Clear' +
+                               ' </a>' +
+                               '</span>' +
+                               '<span ng-if="row.entity.isCleared==1 ">' +
+                               '<a href="#" ng-disabled="true" class="btn btn-danger btn-xs ml-md"> Clear' +
+                               ' </a>' +
+                               '</span>'
+             }
+        ];
+
+        //   1.:  grid api
+        $scope.gridOptionsUPpayment = {
+            onRegisterApi: function (gridApi) {
+                $rootScope.gridApi = gridApi,
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+                data: $scope.lowstock;
+            },
+
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "p List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1'
+
+        }
+
+        //   2.:  grid Column Supplier
+        $scope.gridOptionsUPpayment.columnDefs = [
+             { name: 'SupplierName', field: 'SupplierName', width: 120 },
+             { name: 'Account Name', field: 'HeadName', width: 130 },
+             { name: 'Amount', field: 'Amount', width: 90 },
+              {
+                  name: 'Cheque Date', width: 120, field: 'ChequeDate', enableColumnMenu: false,
+                  cellTemplate: ' <div>' +
+                      ' <input type="datetime"  datepicker = "" ng-model="row.entity.ChequeDate" class="pl-sm" />' +
+                      ' </div>'
+              }
+                 , {
+                     name: 'Action', enableFiltering: false, width: 90, cellTemplate:
+                                   '<span ng-if="row.entity.isCleared!=1">' +
+                                   '<a href="javascript:void(0)" ng-click="grid.appScope.ChequeClearePayment(row.entity)" class="btn btn-danger btn-xs ml-md"> Clear' +
+                                   ' </a>' +
+                                   '</span>' +
+                                   '<span ng-if="row.entity.isCleared==1 ">' +
+                                   '<a href="#" ng-disabled="true" class="btn btn-danger btn-xs ml-md"> Clear' +
+                                   ' </a>' +
+                                   '</span>'
+                 }
+        ];
+
+
+        $scope.ChequeCleare = function (rowEntity) {
+            if (confirm("Are you sure to clear this Cheque?")) {
+                $http({
+                    method: 'Post',
+                    url: '@Url.Action("prcChequeCleare", "ReceiptPayment")',
+                    data: JSON.stringify({ Id: rowEntity.CollectionId, Type: rowEntity.Type, dtCheque: rowEntity.ChequeDate })
+                }).then(function (data) {
+                    if (data.data == '1') {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Cleared Successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.GetDashboard();
+                    }
+                    else {
+                        $scope.showLoader = false;
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+                });
+            }
+        }
+        //$scope.ChequeCleare($scope.RecvPayId);
+
+        $scope.ChequeClearePayment = function (rowEntity) {
+            if (confirm("Are you sure to clear this Cheque?")) {
+                $http({
+                    method: 'Post',
+                    url: '@Url.Action("prcChequeCleare", "ReceiptPayment")',
+                    data: JSON.stringify({ Id: rowEntity.ID, Type: rowEntity.Type, dtCheque: rowEntity.ChequeDate })
+                }).then(function (data) {
+                    if (data.data == '1') {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Payment Cleared Successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.GetDashboard();
+                    }
+                    else {
+                        $scope.showLoader = false;
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+                });
+            }
+        }
+        //$scope.ChequeCleare($scope.RecvPayId);
+
+    }]);
+
+
+</script>

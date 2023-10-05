@@ -1,0 +1,321 @@
+﻿@model SoftifyFoodPOSNew.Models.Product
+@{
+    ViewBag.Title = "Update product";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start:  Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <form name="InvProductForm">
+        <div class="panel-body">
+
+            <div class="row">
+                <div class="col-md-9">
+                    <div class="form-group mb-sm">
+
+                        <div class="col-md-4 hide">
+                            @Html.LabelFor(model => model.ProductCode, "Product Code", htmlAttributes: new { @class = "control-label text-bold" })<span class="text-danger">*</span>
+                            @Html.EditorFor(model => model.ProductCode, new { htmlAttributes = new { @class = "form-control", ng_model = "model.ProductCode" } })
+                        </div>
+
+                        <div class="col-md-4">
+                            @Html.LabelFor(model => model.ProductName, "Product Name", htmlAttributes: new { @class = "control-label text-bold" })<span class="text-danger">*</span>
+                            @Html.EditorFor(model => model.ProductName, new { htmlAttributes = new { @class = "form-control", @autocomplete = "off",  required = "", ng_model = "model.ProductName" } })
+                        </div>
+
+                        <div class="col-md-4 hide">
+                            @Html.LabelFor(model => model.ProductNameB, "Product Name(Others)", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.ProductNameB, new { htmlAttributes = new { @class = "form-control", ng_model = "model.ProductNameB" } })
+                        </div>
+                        <div class="col-md-4 hide">
+                            @Html.LabelFor(model => model.Model, "Model", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.Model, new { htmlAttributes = new { @class = "form-control", ng_model = "model.Model" } })
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ProductCategoryId" class="control-label text-bold">Category </label><span class="text-danger">*</span>
+                            <select ng-model="model.ProductCategoryId" name="ProductCategoryId"
+                                    ng-options="obj.prodCatId as obj.prodCatName for obj in CategoryList"
+                                    style="width: 80%" required="" class="form-control Category" select2="">
+                                <option value="">-- Select --</option>
+                            </select>
+                            <a id="add-Category" class="btn btn-default btn-xs" data-toggle="modal" data-target="#myModal">
+                                <i class="fa fa-plus-circle" id="add-Category" ng-click="HeaderNameShow('Category')" style="padding:6px 8px;color:black;">
+                                </i>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="BrandId" class="control-label text-bold">Brand</label>
+                            <select ng-model="model.BrandId" name="BrandId"
+                                    ng-options="obj.BrandId as obj.BrandName for obj in BrandList"
+                                    style="width: 100%" required="" class="form-control" select2="">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="form-group mb-sm">
+
+                        <div class="col-md-4">
+                            <label for="UnitId" class="control-label text-bold">Unit</label>
+                            <select ng-model="model.unitId" name="UnitId"
+                                    ng-options="obj.unitId as obj.unitName for obj in UnitList"
+                                    style="width: 100%" required="" class="form-control" select2="">
+                                <option value="">--Select--</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.Description, "Description", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @placeholder = "", @rows = 2, ng_model = "model.Description" })
+                        </div>
+
+
+                    </div>
+
+                    <div class="form-group mb-sm">
+
+                        <div class="col-md-2 hide">
+                            @Html.LabelFor(model => model.CostPrice, "Cost Price", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.CostPrice, new { htmlAttributes = new { @class = "form-control", type = "number",  ng_model = "model.CostPrice" } })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.SellingPrice, "Selling Price", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.SellingPrice, new { htmlAttributes = new { @class = "form-control", type = "number", required = "", ng_model = "model.SellingPrice" } })
+                        </div>
+
+                        <div class="col-md-2 hide">
+                            @Html.LabelFor(model => model.ROL, "ROL", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.ROL, new { htmlAttributes = new { @class = "form-control", type = "number",  ng_model = "model.ROL" } })
+                        </div>
+
+                        <div class="col-md-2 hide">
+                            @Html.LabelFor(model => model.ROQ, "ROQ", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.ROQ, new { htmlAttributes = new { @class = "form-control", type = "number",  ng_model = "model.ROQ" } })
+                        </div>
+
+                    </div>
+                    <div class="form-group mb-sm">
+                        <div class="col-md-2 hide">
+                            @Html.LabelFor(model => model.StockQty, "Stock", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.StockQty, new { htmlAttributes = new { @class = "form-control", type = "number", ng_model = "model.StockQty" } })
+                        </div>
+
+                    </div>
+                    <!-- Modal : Start -->
+                    <div class="modal fade" id="myModal" role="dialog">
+                        <div class="modal-dialog">
+
+                            <div class="modal-content">
+                                <div class="modal-header" style="background:#fdf6f6">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title pull-left">{{HeaderName}}</h4>
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <section class="panel">
+                                            <div class="col-md-12">
+                                                <div class="col-md-6">
+                                                    <label class="control-label text-bold pull-left">Category Name</label>
+                                                    <input type="text" class="form-control ng-pristine ng-untouched ng-valid ng-empty" name="ProdCatName" ng-model="model.ProdCatName" autocomplete="off" />
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" ng-disabled="!model.ProdCatName" class="btn btn-danger" data-dismiss="modal" ng-click="SaveCategory(model.ProdCatName)">Submit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Modal : End -->
+                </div>
+                <!-- Col 4 -->
+                <div class="col-md-3">
+                    <div class="form-group mb-sm">
+
+                        <label class="control-label "> <strong>Image</strong></label>
+                        <div class="fileupload fileupload-new" data-provides="fileupload">
+                            <div class="fileupload-new thumbnail" style="width: 150px; height: 135px;">
+                                <img src="~/Content/assets/images/no_image.png" class="rounded img-responsive" alt="No image">
+                            </div>
+                            <div class="fileupload-preview fileupload-exists thumbnail" style="max-width: 150px; max-height: 135px; line-height: 20px;"></div>
+                            <input type="hidden">
+                            <div class="input-append ml-xs">
+                                <span class="btn btn-default btn-file btn-sm">
+                                    <span class="fileupload-exists">Change</span>
+                                    <span class="fileupload-new">Select photo</span>
+                                    <input type="file" id="uploadPhoto" name="ImagePic" size="100" value=Server.MapPath("~/Content/assets/images/ItemImg") ngf-select="InsertItem($files)">
+                                </span>
+                                <a href="#" class="btn btn-default fileupload-exists btn-sm" data-dismiss="fileupload">Remove</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-sm">
+                        @Html.LabelFor(model => model.Isvalidity, "Under Validity?", htmlAttributes: new { @class = "control-label" })
+                        <span class="checkbox-custom checkbox-text-dark checkbox-default">
+                            <input type="checkbox" id="Isvalidity" name="Isvalidity" ng-model="model.Isvalidity" />
+                            <label for="Isvalidity"></label>
+                        </span>
+                        @Html.ValidationMessageFor(model => model.Isvalidity)
+                    </div>
+
+                    <div class="form-group mb-sm hide">
+                        <label class="control-label col-sm-10" style="padding-left:0">Warranty Period</label>
+                        <div class="col-sm-7 " style="padding-left:0">
+                            <div class="input-group">
+                                <input type="number" ng-disabled="!model.IsWarranty" ng-model="model.Warranty" class="form-control" min="0" aria-describedby="Warranty">
+                                <span class="input-group-addon" id="Warranty">months</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- END : row-->
+            </div>
+
+        </div>
+        <!-- Panel End -->
+
+        <footer class="panel-footer">
+            <div class="row">
+                <div class="col-sm-9 col-sm-offset-3">
+                    <button class="btn btn-danger btn-wide mr-md" type="button" id="btnSubmit" ng-disabled="InvProductForm.$invalid" ng-click="InsertItem('Submit')">
+                        Submit <i class="fa fa-arrow-circle-right"></i>
+                    </button>
+                    <a href="@Url.Action("Index", "Product")" class="btn btn-default">
+                        <i class="fa fa-arrow-circle-left"></i> Back to list
+                    </a>
+                </div>
+            </div>
+        </footer>
+
+    </form>
+</section>
+
+
+<script>
+
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', 'Upload', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, Upload, $http, $log, $filter, $timeout, $interval) {
+        $scope.showLoader = false;
+        $scope.UnitList = [];
+        $scope.CategoryList = [];
+        $scope.BrandList = [];
+        $scope.CountryList = [];
+        $scope.WeightList = [];
+
+        // Main Array
+        $scope.model = { Warranty: 0, ProductUnitId: 26, ROL: 0, ROQ: 0, CostPrice: 0, SellingPrice: 0 }
+
+        $scope.HeaderNameShow = function (Type) {
+            $scope.HeaderName = '';
+            if (Type == 'Category') {
+                $scope.HeaderName = 'Add Category'
+                //console.log($scope.HeaderName);
+            }
+        }
+
+
+        /*  START : Load Combo  */
+        $scope.GetCombo = function () {
+            $http({ method: 'Post', url: '@Url.Action("PrcLoadCombo", "Product")' }).then(function (res) {
+                $scope.UnitList = res.data.Table;
+                $scope.CategoryList = res.data.Table1;
+                $scope.BrandList = res.data.Table3;
+                $scope.CountryList = res.data.Table4;
+                $scope.WeightList = res.data.Table5;
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+
+        };
+
+        $scope.GetCombo();
+        /*  END : Load Combo  */
+
+        /*  END : Load GetEditData  */
+        $scope.GetDataById = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'POST',
+                url: '@Url.Action("GetProductById", "Product")',
+                data: JSON.stringify({ Id: @Model.ProductId })
+            }).
+         then(function (result) {
+             $interval(function () {
+                 $scope.model = result.data.Table[0];
+                 console.log(result.data);
+
+                 $scope.model.IsSerial = $scope.model.IsSerial == 1 ? true : false;
+                 $scope.model.IsWarranty = $scope.model.IsWarranty == 1 ? true : false;
+
+                 $scope.showLoader = false;
+             }, 500, 1);
+
+         });
+        }
+
+        $scope.GetDataById();
+        /* START : Save Data */
+        $scope.InsertItem = function (filedata) {
+            //console.log($scope.model);
+
+            if (filedata != 'Submit') {
+                $scope.filedata = filedata
+            } else {
+                $("#btnSubmit").attr('disabled', 'disabled');
+                $("#btnSubmit").text("Processing");
+
+                $scope.model.files = $scope.filedata;
+                Upload.upload({
+                    url: '@Url.Action("Edit", "Product")',
+                    data: {
+                        model: $scope.model
+                    }
+                }).then(function (data) {
+                    if (data.data == "1") {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data updated successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        
+                        window.setTimeout(function(){
+                            window.location.href = '@Url.Action("Index", "Product")';
+                        },1000,1)
+
+                    }
+
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                        $("#btnSubmit").text("Submit");
+                        $("#btnSubmit").removeAttr('disabled');
+                    }
+
+                })
+            }
+
+        }
+
+    }]);
+
+
+
+</script>

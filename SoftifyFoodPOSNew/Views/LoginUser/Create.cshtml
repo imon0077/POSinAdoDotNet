@@ -1,0 +1,122 @@
+﻿@model SoftifyFoodPOSNew.Models.LoginUser
+@{
+    ViewBag.Title = "New User";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+<!--Error messages will be shown here-->
+
+
+<section ng-app="ngApp" ng-controller="ctrlLoginUser">
+    @using (Html.BeginForm("Create", "LoginUser", FormMethod.Post, new { @class = "form-horizontal", name = "frmLoginUser" }))
+    {
+        @Html.AntiForgeryToken()
+        <section class="panel">
+            <div class="panel-body plr-xlglg">
+                <div class="row col-md-8">
+
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label class="control-label pull-right">User Name :</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.UserName, new { @class = "form-control", @required = "required", @autocomplete = "off", ng_model = "model.UserName" })
+                            @Html.ValidationMessageFor(model => model.UserName)
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label class="control-label pull-right">Password :</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.PasswordFor(model => model.UserPass, new { @class = "form-control", @required = "required", ng_model = "model.UserPass" })
+                            @Html.ValidationMessageFor(model => model.UserPass)
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label class="control-label pull-right">Display Name :</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.DisplayName, new { @class = "form-control", @autocomplete = "off", @required = "required", ng_model = "model.DisplayName" })
+                            @Html.ValidationMessageFor(model => model.DisplayName)
+                        </div>
+                    </div>
+                    @*<div class="form-group row">
+                        <div class="col-md-4">
+                            <label class="control-label pull-right">Reference :</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.DropDownList("RefId", new SelectList(ViewBag.RefList, "Id", "Name"), "=Select Reference=", new { @class = "form-control", @required = "required", @select2 = "", ng_model = "model.RefId", @style = "width:100%" })
+                            @Html.ValidationMessageFor(model => model.RefId)
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-md-4">
+                            <label class="control-label pull-right">Branch :</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.DropDownList("BranchId", new SelectList(ViewBag.BranchList, "Id", "Name"), "=Select Branch=", new { @class = "form-control", @required = "required", @select2 = "", ng_model = "model.BranchId", @style = "width:100%" })
+                            @Html.ValidationMessageFor(model => model.BranchId)
+                        </div>
+                    </div>*@
+                  
+                </div>
+            </div>
+
+            <footer class="panel-footer">
+                <div class="row">
+                    <div class="col-sm-9 col-sm-offset-4">
+                        <a href="@Url.Action("Index", "LoginUser")" class="btn btn-primary">
+                            <i class="fa fa-arrow-circle-left"></i> Back to list
+                        </a>
+                        <button class="btn btn-success btn-wide" type="button" name="btnSubmit" ng-click="InsertItem(model)" ng-disabled="frmLoginUser.$invalid">
+                            Submit <i class="fa fa-arrow-circle-right"></i>
+                        </button>
+
+                    </div>
+                </div>
+            </footer>
+
+
+        </section>
+    }
+</section>
+
+
+<script type="text/javascript">
+
+    ngApp.controller('ctrlLoginUser', function ($scope, $http, $filter) {
+
+        //Form submit
+        $scope.InsertItem = function (model) {
+
+            $http.post("../LoginUser/Create", { model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.model = {};
+                }
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                }
+            });
+
+        };
+    });
+
+</script>
+

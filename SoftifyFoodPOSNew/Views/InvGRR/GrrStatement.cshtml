@@ -1,0 +1,117 @@
+﻿@{
+    ViewBag.Title = "Purchase Statement Report";
+}
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    @using (Html.BeginForm("GrrStatement", "InvGRR", FormMethod.Post, new { @class = "", target = "_blank" }))
+    {
+        <section class="panel">
+
+            <div class="panel-body">
+                <div class="form-group">
+
+                    <div class="col-md-3">
+                        @Html.Label("From Date", htmlAttributes: new { @class = "control-label" })
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+
+                            <input type="text" name="dtFrom" id="" class="form-control" required="required" ng-model="dtFrom" datepicker autocomplete="off" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        @Html.Label("To Date", htmlAttributes: new { @class = "control-label" })
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            <input type="text" name="dtTo" id="" class="form-control" required="required" ng-model="dtTo" datepicker autocomplete="off" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.Label("Supplier Name", htmlAttributes: new { @class = "control-label text-bold" })
+                        <div class="form-group">
+                            <select ng-model="SupplierId"
+                                    name="SupplierId"
+                                    id="SupplierId"
+                                    ng-options="obj.SupplierId as obj.SupplierName for obj in SupplierList"
+                                    style="width: 100%" required="" class="form-control Category" select2="">
+                                <option value="">---Please Select ---</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="form-group">
+                    <div class="col-md-12">
+                        @Html.Label("Report Format", htmlAttributes: new { @class = "control-label text-bold" })
+                    </div>
+                    <div class="col-md-2">
+                        <span class="radio-custom radio-dark">
+                            @Html.RadioButton("rptFormat", "pdf", new { @class = " ", @checked = "checked" })
+                            <label>PDF</label>
+                        </span>
+                    </div>
+
+                    <div class="col-md-2">
+                        <span class="radio-custom radio-dark">
+                            @Html.RadioButton("rptFormat", "Word", new { @class = "form-control" })
+                            <label>Word</label>
+                        </span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <span class="radio-custom radio-dark">
+                            @Html.RadioButton("rptFormat", "Excel", new { @class = " " })
+                            <label>Excel</label>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-2 mt-sm pull-left">
+                        <input type="submit" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger" value="Preview Report">
+                    </div>
+                </div>
+                
+
+            </div>
+
+        </section>
+    }
+</section>
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+
+        $scope.dtFrom = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.dtTo = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+
+        $scope.getCombo = function () {
+            $http({
+                method: 'Post',
+                url: '@Url.Action("prcLoadCombo", "InvGRR")'
+            }).then(function (result) {
+                //console.log(result.data);
+                $scope.SupplierList = result.data.Table;
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+
+        }
+        $scope.getCombo(); // call Combo Data
+
+    }]);
+
+
+</script>

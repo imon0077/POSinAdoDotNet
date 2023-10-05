@@ -1,0 +1,310 @@
+﻿
+@{
+    ViewBag.Title = "Product Search";
+}
+
+<!-- js/css files -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+<!-- start: Supplier Entry  page -->
+
+<div ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    <section class="panel panel-default">
+        <form name="SupplierForm">
+
+            <div class="panel-heading" style="background-color:#DADADA;">
+                <div class="row">
+
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <select ng-model="ProductId" required="" style="width:100%;padding:50px;" select2="" data-ng-options="d.ProductId as d.ProductName for d in productData" ng-change="getProductName()">
+                                <option value="" selected>--Search Product--</option>
+                            </select>
+                            <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+
+                            <!-- : loading..... -->
+                            <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                                <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 50%; left: 70%; width: 8%;">
+                            </div>
+
+                            <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #595959 !important;" class="grid mt-md"></div>
+
+
+                        </div>
+
+                        <div class="col-md-5">
+                            <table class="table-bordered table table-hover table-striped  mt-md">
+                                <tr style="background-color:#DADADA;">
+
+                                    <th>Bin Name </th>
+                                    <th>Qty </th>
+                                </tr>
+                                <tr ng-repeat="x in demo" ng-if="demo.length">
+
+                                    <td>
+                                        <button type="button" class="btn btn-primary btn-xs">GODOWN - <span class="badge">{{x.BinId}}</span></button>
+
+                                    </td>
+                                    <td ng-if="x.Qty>0">
+                                        <span class="badge label label-success">{{x.Qty}}</span>
+                                    </td>
+                                    <td ng-if="x.Qty==0">
+                                        <span class="badge label label-default">{{x.Qty}}</span>
+                                    </td>
+                                </tr>
+                                <tr ng-if="!demo.length">
+                                    <td colspan="2" style="text-align:center">
+                                        <small> ( please select or search product )</small>
+                                    </td>
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+
+
+            </div>  <!-- ng-init End-->
+
+
+
+        </form>
+    </section>
+
+
+</div>
+
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', function ($scope, $http, $log, $filter, $timeout) {
+        $scope.productData = [];
+        $scope.showLoader = false;
+
+        $scope.gridOptions = {
+
+            enableFiltering: false,
+            showGridFooter: false,
+            // Default: End
+            // Register : API [ for collapsable window ]
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $timeout(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 200);
+            },
+            data: []
+        }
+
+        $scope.BrandArray = [];
+        $scope.BinArray = [];
+
+        $scope.gridOptions.columnDefs = [
+                    , {
+                        name: 'Product Info : ', field: 'Weight', width: 500, enableColumnMenu: false, cellTemplate:
+                        '<div class="row">' +
+               
+                              '<div class="pl-sm col-md-12 col-sm-12 col-xs-12  mt-md">' +
+                                   '<div class="col-md-4 col-sm-6 col-xs-12 pull-left">Product :</div>' +
+                                   '<div class="col-md-8 col-sm-6 col-xs-12 pull-right"> {{row.entity.ProductName}} </div>' +
+                              ' </div>' +
+
+                              '<div class="pl-sm col-md-12 col-sm-12 col-xs-12 mt-md">' +
+                                    '<div class="col-md-4 col-sm-4 col-xs-4 pull-left">Supplier :</div>' +
+                                    '<div class="col-md-8 col-sm-4 col-xs-8 pull-right"> {{row.entity.SupplierName}} </div>' +
+                              ' </div>' +
+
+                              '<div class="pl-sm col-md-12  col-sm-12 col-xs-12 mt-md">' +
+                                    '<div class="col-md-4  col-sm-4 col-xs-4 pull-left"> Stock Qty :</div>' +
+                                    '<div class="col-md-8 col-sm-4 col-xs-8 pull-right"> {{row.entity.Qty}} </div>' +
+                              ' </div>' +
+
+                              '<div class="pl-sm col-md-12 col-sm-12 col-xs-12 mt-md">' +
+                                    '<div class="col-md-4  col-sm-4 col-xs-4 pull-left">SellPrice :</div>' +
+                                    '<div class="col-md-8 col-sm-4 col-xs-8 pull-right"> {{row.entity.SellPrice}} </div>' +
+                             ' </div>' +
+                       
+                        ' </div>'
+
+                    }
+
+
+        ];
+
+        /*   Load  : this area load date wise  */
+        $scope.getProductName = function () {
+            $scope.gridOptions.data = [];
+            if ($scope.productData.length == 0) {
+                $scope.gridOptions.data.push(
+                         {
+                             ProductName: '( empty )'
+                         }
+                   )
+            }
+            for (var i = 0; i < $scope.searchData.length; i++) {
+                if ($scope.searchData[i].ProductId == $scope.ProductId) {
+                    $scope.gridOptions.data.push(
+                            {
+
+                                ProductName: $scope.searchData[i].ProductName, SupplierName: $scope.searchData[i].SupplierName, SellPrice: $scope.searchData[i].SellPrice,
+                                Qty: $scope.searchData[i].Qty, CostPrice: $scope.searchData[i].CostPrice, BrandName: $scope.searchData[i].BrandName
+                            }
+                      )
+                    //break;
+                }
+            }
+            $scope.BinStoreData();
+
+        }
+
+
+
+        $scope.demo = []
+
+        $scope.BinStoreData = function () {
+            $scope.demo = [];
+            for (var i = 0; i < $scope.searchData.length; i++) {
+
+                if ($scope.searchData[i].ProductId == $scope.ProductId) {
+
+                    for (var j = 0; j < $scope.BinData.length; j++) {
+
+                        if ($scope.BinData[j].BinNo == $scope.searchData[i].BinName) {
+
+                            $scope.demo.push({ BinId: $scope.BinData[j].BinId, BinName: $scope.BinData[j].BinNo, Qty: $scope.searchData[i].Qty, Brand: $scope.searchData[i].BrandName })
+
+                        }
+                        else {
+                            $scope.demo.push({ BinId: $scope.BinData[j].BinId, BinName: $scope.BinData[j].BinNo, Qty: 0, Brand: "" })
+                        }
+                    }
+                }
+
+            }
+
+        }
+
+
+        //$scope.getSearchProduct();
+
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../MiniProduct/GetProductSearch/',
+            }).then(function (data) {
+                console.log(data);
+                $scope.productData = data.data.Table1;
+                $scope.searchData = data.data.Table;
+                $scope.BinData = data.data.Table2;
+                $scope.showLoader = false;
+            });
+        };
+
+
+        $scope.DataLoad();
+        /*   Load  : this area Save wise  */
+
+
+        $scope.SaveData = function () {
+            $http.post("../Supplier/Index", { model: $scope.Supplier }).then(function (data) {
+
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.DataLoad();
+                    $scope.Supplier = {};
+                } // Notification: Save Successfully
+                else if (data.data == "2") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Updated Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.DataLoad();
+                    $scope.Supplier = {};
+                } // Notification: update Successfully
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $scope.DataLoad();
+                    $scope.Supplier = {};
+                }
+            },
+                function (responseData) {
+
+                    console.log("Error !" + responseData);
+                });
+        };
+
+        $scope.DeleteItem = function (itemId) {
+            console.log(itemId);
+            $http.post("prcDeleteData/Supplier", { itemId }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Deleted Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.DataLoad();
+                    $scope.Supplier = {};
+                }
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $scope.DataLoad();
+                    $scope.Supplier = {};
+                }
+            });
+        }
+    }]);
+
+
+</script>

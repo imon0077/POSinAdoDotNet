@@ -1,0 +1,157 @@
+﻿@model SoftifyFoodPOSNew.Models.Country
+@{
+    ViewBag.Title = "Country List";
+}
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start: Category Entry  page -->
+
+<section ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    @using (Html.BeginForm("Index", "Country", new { id = "frmCountry" }))
+    {
+        @Html.AntiForgeryToken()
+        <section class="panel">
+            <header class="panel-heading">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="pull-left">
+                            <a href="@Url.Action("Create", "Country")" class="btn btn-primary">
+                                Add New <i class="fa fa-plus" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </header>
+            <div class="panel-body" style="background-color:white">
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <!-- : loading..... -->
+                        <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                            <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                        </div>
+
+                        <div ui-grid="gridOptionsCat" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                             style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;" class="grid"></div>
+                    </div>
+                </div>
+            </div>
+
+
+        </section>
+    }
+</section>
+
+
+<script>
+
+    //ngApp.controller("myCtrl", function ($scope, $http) {
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', function ($scope, $http, $log, $filter, $timeout) {
+
+        $scope.GetCountry = [];
+
+        $scope.gridOptionsCat = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10, 10] },
+            exporterPdfTableHeaderStyle: { fontSize: 7, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Voucher List", style: 'headerStyle', fontSize: 9, bold: false },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { fontSize: 15, bold: true };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: true };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'landscape',
+            exporterPdfPageSize: 'legal',
+            //exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+            enableFiltering: true,
+            showGridFooter: true
+
+        }
+
+        $scope.gridOptionsCat.columnDefs = [
+            , { name: 'Country Code', field: 'countryCode', width: 120 }
+            , { name: 'Country Name', field: 'countryName', width: 250 }
+            , { name: 'Short Name', field: 'countrySName', width: 120 }
+            , { name: 'Currency Name', field: 'CurrName', width: 150 }
+            , { name: 'Currency Short', field: 'CurrSName', width: 120 }
+            , { name: 'Time Difference', field: 'timeDifference', width: 150 }
+            , { 
+                name: 'Action', enableFiltering: false, width: 100,
+                cellTemplate:
+                    ' <div class="ml-sm">' +
+                        ' <a href="../Country/Edit/{{row.entity.countryId}}" class="ml-xs black"><i class="fa fa-pencil fa-lg" aria-hidden="true"  title="Update Country" data-placement="top" data-delay="500" data-toggle="tooltip"></i></a></span>' +
+
+                        ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(row.entity.countryId,0)"><i class="fa fa-trash fa-lg" aria-hidden="true" title="delete item !!"></i></a>' +
+                        '    </div>'
+            }
+        ];
+
+
+        $scope.GetCountry = function () {
+            /*  Get Buyer */
+            $http({
+                method: 'Post',
+                url: '../Country/GetCountryData',
+                data: JSON.stringify({ tempId: 0 })
+            }).
+            then(function (data) {
+                $scope.gridOptionsCat.data = data.data;
+            });
+        }
+
+
+        $scope.DeleteItem = function (param) {
+            if (confirm('Do you want to Delete  ?')) {
+                var url = ""; var itemId = 0;
+                if (param > 0) { url = "prcDeleteData/Country"; itemId = param; }
+
+                $http.post(url, { itemId }).then(function (data) {
+                    if (data.data == 1) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data Deleted Successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.GetCountry();
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+                });
+            }
+
+        }
+
+        $scope.GetCountry(); // Page Load
+
+    }]);
+</script>

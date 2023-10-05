@@ -1,0 +1,227 @@
+﻿@model SoftifyFoodPOSNew.Models.Transfer
+@{
+    ViewBag.Title = "Accept Transfer List";
+}
+<!-- start:  List page -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    <div class="panel-body">
+
+        <div class="row">
+            <div class="col-md-12">
+                <!-- : loading..... -->
+                <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                    <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                </div>
+                <!--    UI-GRID    -->
+                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;height:65vh;" class="grid"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!--Modla Start-->
+            <div class="black no-print">
+                <div class="modal fade" id="myModal" role="dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">
+                                    Transfer No: <span style="color:orangered">{{modalheader}}</span>                               
+                                </h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="form-group">
+
+                                        <div class="col-md-12">
+
+                                            <div class="col-md-12">
+                                                <div ui-grid="gridAccept" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 43vh;" class="grid">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <div class="col-md-3">
+                                    <button class="btn btn-warning" type="button" name="btnSubmit" data-dismiss="modal">
+                                        Close <i class="fa fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="col-md-4 pull-right">
+                                    <button class="btn btn-primary" type="button" name="btnSubmit" data-dismiss="modal" ng-click="SaveAcceptData(TransferId)">
+                                        Submit <i class="fa fa-arrow-circle-right"></i>
+                                    </button>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!--Modal End-->
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<script type="text/javascript">
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+
+        $scope.showLoader = false;
+        $scope.modalheader = "";
+        $scope.TransferId = 0;
+
+        /* START : GRID Settings */
+        $scope.gridOptions = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+            },
+
+            enableFiltering: true,
+            showGridFooter: true,
+            enableColumnMenus: false
+            // Default: End
+        }
+        /* END : GRID Settings */
+
+        /*   START : grid Column */
+        $scope.gridOptions.columnDefs = [
+            { name: 'Transfer No', field: 'TransferNo', width: 120 },
+            { name: 'Date', field: 'dtTransfar', width: 100 },
+            { name: 'From', field: 'WHFrom', width: 140 },
+            { name: 'To', field: 'WHTo', width: 100 },
+            { name: 'Qty', field: 'Qty', width: 70 },            {
+                name: 'Amount', field: 'Amount', width: 100,
+                cellTemplate: ' <div class="text-right mr-sm text-bold" >{{row.entity.Amount}}</div>'
+            },
+            {
+                name: 'Action', width: 112, enableColumnMenu: false, cellTemplate: '' +
+                   ' <button type="button" class="" style="width:100%" data-toggle="modal" data-target="#myModal" ng-click="grid.appScope.GridReload(row.entity)">Accept</button>'
+            },
+            { name: 'Remarks', field: 'Remarks', width: 150 },
+        ];
+        /*   END : grid Column */
+
+        /* START : GRID Data Load */
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $scope.gridOptions.data = [];
+            $http({
+                method: 'Post',
+                url: '@Url.Action("PrcLoadListToAccept", "Transfer")'
+            }).then(function (res) {
+                $scope.gridOptions.data = res.data;
+                $scope.showLoader = false;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+        $scope.DataLoad();
+        /* END : GRID Data Load */
+
+        //Grid accept details
+        /* START : GRID Settings */
+        $scope.gridAccept = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+            },
+            showGridFooter: true,
+            enableColumnMenus: false
+            // Default: End
+        }
+        /* END : GRID Settings */
+
+        /*   START : grid Column */
+        $scope.gridAccept.columnDefs = [
+            { name: 'Product Name', field: 'ProductName', width: 180 },
+            { name: 'Qty', field: 'Qty', width: 100 },
+            { name: 'Rate', field: 'UnitPrice', width: 100 },
+            { name: 'Amount', field: 'Amount', width: 150 },
+        ];
+        /*   END : grid Column */
+
+        //End grid accept details
+
+
+        $scope.GridReload = function (RowEntity) {
+            $scope.modalheader = RowEntity.TransferNo;
+            $scope.TransferId = RowEntity.TransferId;
+
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetAcceptDataById", "Transfer")',
+                data: JSON.stringify({ id: RowEntity.TransferId })
+            }).then(function (data) {
+                $scope.gridAccept.data = data.data;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+
+            $interval(function () {
+                $scope.gridApi.core.handleWindowResize();
+            }, 500, 10)
+        }
+
+        $scope.SaveAcceptData = function (TransferId) {
+            console.log(TransferId);
+
+            if (confirm('Are you sure?')) {
+                var url = ""; var ItemId = 0;
+                if (TransferId > 0) { url = "PrcAcceptData"; ItemId = TransferId; }
+
+                $http.post(url, { ItemId }).then(function (data) {
+                    if (data.data == "1") {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data approved successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.DataLoad();
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+                });
+            }
+
+
+        }
+
+    }]);
+
+
+
+</script>

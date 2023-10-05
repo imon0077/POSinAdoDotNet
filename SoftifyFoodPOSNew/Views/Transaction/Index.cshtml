@@ -1,0 +1,362 @@
+﻿@using System.Data
+@model  SoftifyFoodPOSNew.Models.Transaction
+@{
+    ViewBag.Title = "Transaction";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<!-- start: Client Add Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-12">
+                    <div class="col-md-4">
+                        <div class="col-md-12">
+                            @Html.Label("Report Format", htmlAttributes: new { @class = "control-label text-bold" })
+                        </div>
+                        <div class="col-md-4">
+                            <span class="radio-custom radio-dark">
+                                @Html.RadioButton("TransStatus", "post", new { @class = " ", @checked = "checked", ng_model = "model.TransStatus" })
+                                <label style="color:black">Post</label>
+                            </span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <span class="radio-custom radio-dark">
+                                @Html.RadioButton("TransStatus", "unpost", new { @class = "form-control", ng_model = "model.TransStatus" })
+                                <label style="color:black">UnPost</label>
+                            </span>
+                        </div>
+
+                    </div>
+                    <div class="col-md-8">
+                        <div class="col-md-4">
+                            @Html.Label("Post Date:", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.Editor("PostDate", new { htmlAttributes = new { @class = "form-control", @id = "date", @ng_equired = "", @Value = "datepicker", @ReadOnly = "true", ng_model = "model.PostDate" } })
+                        </div>
+                        <div class="col-md-4">
+                            @Html.LabelFor(model => model.TransType, "Type ", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.DropDownList("TransType", new SelectList(ViewBag.Typelist, "Name", "Name"), new { @class = "form-control populate ", @Required = "required", ng_model = "model.TransType", select2 = "", ng_change = "DataLoad()", @style = "width:100%" })
+                            @Html.ValidationMessageFor(model => model.TransType, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    @*<div class="col-md-3">
+                            <button type="button" class="mb-xs mt-xs mr-xs mt-sm btn  btn-info btn-block mt-lg" value="Load" ng-click="DataLoad()">
+                                <i class="fa fa-refresh" aria-hidden="true"></i> Load
+                            </button>
+                        </div>*@
+
+                </div>
+
+            </div>
+
+
+            <!-- end : row-->
+
+        </div>
+        <br>
+
+        <div class="row">
+            <br>
+            <hr style="margin-top:0px;">
+        </div> <!---Add Item -->
+
+
+        <div class="row">
+            <div class="col-md-12">
+                <div ui-grid="gridOptions" ui-grid-selection ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 60vh;" class="grid">
+                </div>
+            </div>
+
+        </div>
+        <!---Grid Option-->
+    </div>
+    <footer class="panel-footer mt-md">
+        <div class="row">
+            <div class="col-sm-9 col-sm-offset-3">
+                <button class="btn btn-danger btn-wide" type="button" name="btnSubmit" ng-click="InsertItem(ID)">
+                    Submit <i class="fa fa-arrow-circle-right"></i>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+</section>
+
+
+<script>
+
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+
+        //$scope.FromDate = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        //$scope.ToDate = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        //$scope.PostDate = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.model = { TransactionSubList: $scope.dataForPost, TransStatus: "post", FromDate: $filter("date")(Date.now(), 'dd-MMM-yyyy'), ToDate: $filter("date")(Date.now(), 'dd-MMM-yyyy'), PostDate: $filter("date")(Date.now(), 'dd-MMM-yyyy'), TransType: 'INV' }
+
+        $scope.TransType = $scope.TransType;
+        $scope.TransStatus = $scope.TransStatus;
+
+        $scope.gridOptions = {
+            showGridFooter: true,
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableFiltering: true,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "PO List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+
+                gridApi.selection.on.rowSelectionChanged($scope, function (row) {
+                    $scope.countSelectRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                    console.log($scope.dataForPost);
+                });
+
+                gridApi.selection.on.rowSelectionChangedBatch($scope, function (row) {
+                    $scope.countAllRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                    console.log($scope.dataForPost);
+                });
+            },
+            data: []
+        }
+
+        $scope.DataLoad = function () {
+            //console.log(FromDate);
+            //console.log(ToDate);
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../Transaction/GetComboLoad',
+                data: JSON.stringify({ model: $scope.model })
+            }).then(function (data) {
+                $scope.gridOptions.data = data.data;
+                $scope.showLoader = false;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+        $scope.DataLoad();
+
+
+
+
+
+        $scope.gridOptions.columnDefs = [
+                           , { name: 'Trans No', field: 'TransNo', width: 200 }
+                           , { name: 'Trans Date', field: 'TransDate', width: 200 }
+                           , { name: 'Name', field: 'ReffName', width: 300 }
+                           , { name: 'Amount', field: 'TransAmount', width: 150 }
+                            , {
+                                name: 'Action', enableFiltering: false, width: 150,
+                                cellTemplate:
+                                ' <div class="ml-sm" ng-if="row.entity.Type==\'INV\'">' +
+                                ' <a href="../POS/RptSalesInvoice/{{row.entity.TransId}}" class="text-info black ml-sm" data-toggle="tooltip" data-trigger="hover" onclick="window.open(this.href,\'popUpWindow\',\'height=500,width=700,left=10,top=10,scrollbars=yes,menubar=no\'); return false;">' +
+                                '<i class="fa fa-print fa-lg mr-md black" aria-hidden="true"  data-placement="top" data-delay="500" data-toggle="tooltip"></i><small></small>' +
+                                '  </a>' +
+                                '</div>' +
+                                    ' <div class="ml-sm" ng-if="row.entity.Type==\'GRR\'">' +
+                                        ' <a href="../InvGrr/RptGrr/{{row.entity.TransId}}" class="text-info black ml-sm" data-toggle="tooltip" data-trigger="hover" onclick="window.open(this.href,\'popUpWindow\',\'height=500,width=700,left=10,top=10,scrollbars=yes,menubar=no\'); return false;">' +
+                                        '<i class="fa fa-print fa-lg mr-md black" aria-hidden="true"  data-placement="top" data-delay="500" data-toggle="tooltip"></i><small></small>' +
+                                        '  </a>' +
+                                        '</div>'
+                            }];
+
+
+
+        $scope.InsertItem = function (model) {
+            $scope.model.TransactionSubList = $scope.dataForPost
+            console.log($scope.model);
+            $http.post("../Transaction/prcDataSave", { model: $scope.model }).then(function (data) {
+                if (data.data == 'Unpost Data Success') {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Unpost Data Success.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.gridOptions.data = [];
+                    $scope.DataLoad();
+                    $scope.gridApi.selection.clearSelectedRows();
+                }
+                else if (data.data == 'Post Data Success') {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Post Data Success.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.gridOptions.data = [];
+                    $scope.DataLoad();
+                    $scope.gridApi.selection.clearSelectedRows();
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+
+                }
+            });
+        }
+    }]);
+
+
+    ngGridApp.directive("select2", function ($timeout, $parse) {
+        return {
+            restrict: 'AC',
+            require: 'ngModel',
+            link: function (scope, element, attrs) {
+                $timeout(function () {
+                    element.select2();
+                    element.select2Initialized = true;
+                });
+
+                var refreshSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.trigger('change');
+                    });
+                };
+
+                var recreateSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.select2('destroy');
+                        element.select2();
+                    });
+                };
+
+                scope.$watch(attrs.ngModel, refreshSelect);
+
+                if (attrs.ngOptions) {
+                    var list = attrs.ngOptions.match(/ in ([^ ]*)/)[1];
+                    // watch for option list change
+                    scope.$watch(list, recreateSelect);
+                }
+
+                if (attrs.ngDisabled) {
+                    scope.$watch(attrs.ngDisabled, refreshSelect);
+                }
+            }
+        };
+    });
+
+    // this datepicker also work chcnge event in angular js
+    ngGridApp.directive('datepicker', function ($filter) {
+        return {
+            restrict: 'A',
+            require: 'ngModel',
+            compile: function () {
+                return {
+                    pre: function (scope, element, attrs, ngModelCtrl) {
+                        var format, dateObj;
+                        format = (!attrs.dpFormat) ? 'dd-M-yyyy' : attrs.dpFormat;
+                        if (!attrs.initDate && !attrs.dpFormat) {
+                            // If there is no initDate attribute than we will get todays date as the default
+                            dateObj = new Date();
+
+                            //scope[attrs.ngModel] = dateObj.getDate() + '/' + (dateObj.getMonth() + 1) + '/' + dateObj.getFullYear();
+                            scope[attrs.ngModel] = $filter("date")(dateObj, 'dd-MMM-yyyy')
+
+                        } else if (!attrs.initDate) {
+                            // Otherwise set as the init date
+                            scope[attrs.ngModel] = attrs.initDate;
+                        } else {
+                            // I could put some complex logic that changes the order of the date string I
+                            // create from the dateObj based on the format, but I'll leave that for now
+                            // Or I could switch case and limit the types of formats...
+                        }
+                        // Initialize the date-picker
+                        $(element).datepicker({
+                            format: format,
+                        }).on('changeDate', function (ev) {
+                            // To me this looks cleaner than adding $apply(); after everything.
+                            scope.$apply(function () {
+                                ngModelCtrl.$setViewValue(ev.format(format));
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    ngApp.directive('datetimez', function () {
+        return {
+            require: '?ngModel',
+            restrict: 'A',
+            link: function (scope, element, attrs, ngModel) {
+                if (!ngModel) return;
+
+                ngModel.$render = function () {
+                    element.val(ngModel.$viewValue || '');
+                };
+
+                function read() {
+                    var value = element.val();
+                    ngModel.$setViewValue(value);
+                    //console.log(scope.dueDate);
+                }
+
+                var options = scope.$eval(attrs.datetimez) || { format: 'DD-MMM-YYYY hh:mm A', defaultDate: new Date(), sideBySide: true, };
+                if (element.next().is('.input-group-addon')) {
+                    var parentElm = $(element).parent();
+                    parentElm.datetimepicker(options);
+
+                    parentElm.on('dp.change', function () {
+                        scope.$apply(read);
+                    });
+                } else {
+                    element.datetimepicker(options);
+
+                    element.on('dp.change', function () {
+                        scope.$apply(read);
+                    });
+                }
+
+                read();
+            }
+        };
+    });
+
+</script>

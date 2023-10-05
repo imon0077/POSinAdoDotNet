@@ -1,0 +1,587 @@
+﻿@model SoftifyFoodPOSNew.Models.InvGRR
+@{
+    ViewBag.Title = "Update Purchase";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+<style>
+    .gridmodal1 {
+        height: 160px;
+    }
+
+    .gridmodal2 {
+        height: 180px;
+    }
+</style>
+
+<!-- start: Client Add Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <div class="" shortcuts="keyUp">
+
+        <form name="InvGRRForm">
+            <div class="panel-body">
+
+                <div class="form-group mb-xs">
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.SupplierId, "Supplier Name", htmlAttributes: new { @class = "control-label" })
+                        <div class="form-group">
+                            <select ng-model="model.SupplierId"
+                                    name="SupplierId"
+                                    ng-change="GetSupplierDue(model)"
+                                    ng-options="obj.SupplierId as obj.SupplierName for obj in SupplierList"
+                                    style="width: 100%" required="" class="form-control Category" select2="">
+                                <option value="">---Please Select ---</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        @Html.LabelFor(model => model.dtGrr, "Date", htmlAttributes: new { @class = "control-label" })
+                        @Html.EditorFor(model => model.dtGrr, new { htmlAttributes = new { @class = "form-control", @autocomplete = "off",  @Required = "required", ng_model = "model.dtGrr", datepicker = "" } })
+                        @Html.ValidationMessageFor(model => model.dtGrr, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-2">
+                        @Html.LabelFor(model => model.ChallanNo, "Challan No.", htmlAttributes: new { @class = "control-label" })
+                        @Html.EditorFor(model => model.ChallanNo, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @autocomplete = "off", ng_model = "model.ChallanNo", @Required = "required" } })
+                    </div>
+
+                    <div class="col-md-3" hidden>
+                        @Html.LabelFor(model => model.LCId, "LC No", htmlAttributes: new { @class = "control-label" })
+                        <div class="form-group">
+                            <select ng-model="model.LCId"
+                                    name="LCId"
+                                    ng-options="obj.LCId as obj.LCNo for obj in LCList"
+                                    style="width: 100%" required="" class="form-control Category" select2="">
+                                <option value="">---Please Select ---</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="form-group mb-xs">
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.ReceivedBy, "Received By", htmlAttributes: new { @class = "control-label" })
+                        @Html.EditorFor(model => model.ReceivedBy, new { htmlAttributes = new { @class = "form-control", @autocomplete = "off", @placeholder = "", ng_model = "model.ReceivedBy" } })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.Notes, "Remarks", htmlAttributes: new { @class = "control-label" })
+                        @Html.TextBoxFor(model => model.Notes, new { @class = "form-control", @autocomplete = "off", ng_model = "model.Notes" })
+                        @Html.ValidationMessageFor(model => model.Notes, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-3" hidden>
+                        @Html.LabelFor(model => model.WHId, "Warehouse", htmlAttributes: new { @class = "control-label" })
+                        <div class="form-group">
+                            <select ng-model="model.WHId"
+                                    name="WHId"
+                                    ng-options="obj.WHId as obj.WHName for obj in WHList"
+                                    style="width: 100%" required="" class="form-control Category" select2="">
+                                <option value="">---Please Select ---</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2 mt-md" ng-show="isInvalid">
+                        <span class="text-danger text-bold">{{ message }}</span>
+                    </div>
+                </div>
+
+                <hr class="mb-xs mt-xs" />
+                <div class="form-group">
+                    <div class="col-md-5">
+                        <div class="typeaheadcontainer">
+                            <input type="text" name="ItemName" autocomplete="off"
+                                   class="typeaheadcontrol form-control"
+                                   ng-model="model.ProductName"
+                                   uib-typeahead="ProductName as ProductName.ProductName for ProductName in SearchItem($viewValue)| limitTo:5"
+                                   placeholder="Item Code/Item Name/ Size/ Model"
+                                   typeahead-editable="false"
+                                   id="ItemName"
+                                   ng-click="fncSearchClear()"
+                                   typeahead-on-select="GetFillData(row.entity, $item)" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-7">
+                        <div class="col-md-3">
+                            <span class="text-bold">Total Qty : </span>
+                            <span class="text-bold text-danger" ng-init="model.TotalQty"> {{model.TotalQty}}{{fncGrandtotal()}}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="text-bold">Total TK : </span>
+                            <span class="text-bold text-danger" ng-init="model.TotalAmount"> {{model.TotalAmount}}{{fncGrandtotal()}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                             style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 35vh;" class="grid">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel End -->
+            <div class="panel-footer">
+                <div class="row">
+                    <div class="col-sm-9 col-sm-offset-3">
+                        <button class="btn btn-danger btn-wide mr-md" type="button" id="btnSubmit" name="btnSubmit" ng-click="InsertItem(model)">
+                            Submit <i class="fa fa-arrow-circle-right"></i>
+                        </button>
+                        <a href="@Url.Action("Index", "InvGRR")" class="btn btn-default">
+                            <i class="fa fa-arrow-circle-left"></i> Back to list
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+
+        </form>
+
+    </div>
+</section>
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', 'Upload', '$filter', '$timeout', '$interval', '$rootScope', function ($scope, $http, $log, Upload, $filter, $timeout, $interval, $rootScope) {
+
+        $scope.filedata = [];
+        $scope.File = { FileName: [] };
+        $scope.SupplierList = [];
+        $scope.LCList = [];
+        $scope.WHList = [];
+        $scope.WeightList = [];
+
+        // Main Array
+        $scope.model = { dtGrr: $filter("date")(Date.now(), 'dd-MMM-yyyy'), InvGRRSubList: [], GrrSerialList: [], FileName: '' }
+
+        $scope.message = '';
+        $scope.isInvalid = false;
+        $rootScope.ProductId = '0';
+
+        // arrray ininialized:
+        $scope.InvGRRSubList = [];
+
+        $scope.getCombo = function () {
+            $http({
+                method: 'Post',
+                url: '@Url.Action("prcLoadCombo", "InvGRR")'
+            }).then(function (result) {
+                $scope.SupplierList = result.data.Table;
+                $scope.PaymentTypeList = result.data.Table1;
+                $scope.BankList = result.data.Table2;
+                $scope.LCList = result.data.Table3;
+                $scope.WHList = result.data.Table4;
+                $scope.WeightList = result.data.Table5;
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+        }
+        $scope.getCombo(); // call Combo Data
+
+
+        //   1.:  grid api
+        $scope.gridOptions = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 100, 10);
+            },
+
+            data: $scope.InvGRRSubList
+        }
+
+        //   2.:  grid Column
+        $scope.gridOptions.columnDefs = [
+
+                { name: 'SL#', field: 'RowNo', width: 60, enableColumnMenu: false },
+                { name: 'Product Name', field: 'ProductName', width: 180, enableColumnMenu: false },
+
+                { name: 'Category', field: 'prodCatName', width: 100, enableColumnMenu: false, visible: false },
+                //{ name: 'Barcode', field: 'BarCode', width: 100, enableColumnMenu: false },
+                {
+                    name: 'Qty', width: 80, enableColumnMenu: false, field: 'Qty', cellTemplate: ' <div>' +
+                    '<strong> <input type="number" required="" ng-model="row.entity.QtyRcv" id=\"{{grid.renderContainers.body.visibleRowCache.indexOf(row)}}\" class="pl-sm" ng-change="grid.appScope.CalcAmount(row.entity)"/> </strong>' +
+                    ' </div>'
+                },
+                {
+                    name: 'Price', width: 80, enableColumnMenu: false, field: 'Price', cellTemplate: ' <div>' +
+                    '<strong> <input type="number" required="" ng-model="row.entity.Price" class="pl-sm" ng-change="grid.appScope.CalcAmount(row.entity)"/> </strong>' +
+                    ' </div>'
+                },
+                {
+                    name: 'Amount', width: 90, enableColumnMenu: false, cellTemplate: '<div>' +
+                            '<strong><input type="number" ng-model="row.entity.Amount" class="pl-sm" disabled="" /></strong>' +
+                    '</div>'
+                },
+                {
+                    name: 'Selling Price', field: 'SellingPrice', width: 180, cellTemplate: ' <div>' +
+                      '<strong> <input type="number" required="" ng-model="row.entity.SellingPrice" class="pl-sm"/> </strong>' +
+                      ' </div>'
+                },
+
+
+                {
+                    name: 'Expiry Date', field: 'dtValidate', width: 120, enableColumnMenu: false, cellTemplate: '<div>' +
+                            '<strong><input type="text" ng-model="row.entity.dtValidate" class="pl-sm" datepicker="" /></strong>' +
+                    '</div>'
+                },
+
+                {
+                    name: 'Del', enableColumnMenu: false, width: 80,
+                    cellTemplate:
+                    '<a href="javascript:void(0)" class="ml-md black" ng-click="grid.appScope.removeItem(row)"><i class="fa fa-close fa-sm text-danger" aria-hidden="true"></i></a>'
+                }
+        ];
+
+        // Autocomplete load invoice
+        $scope.SearchItem = function (param) {
+            var output = [];
+            if (angular.isDefined(param)) {
+                if (param.length > 2) {
+                    $scope.showLoader = true;
+
+                    return $http({
+                        method: 'POST',
+                        url: '@Url.Action("GetItemAutocomplete", "InvGRR")',
+                        data: JSON.stringify({ Flag: param })
+                    }).then(function (response) {
+                        $scope.showLoader = false;
+                        $scope.ItemList = response.data;
+                        return $scope.ItemList;
+                    }, function errorCallback(response) {
+                        console.log(response);
+                    });
+                    $scope.showLoader = false;
+                }
+            }
+            else {
+                //$scope.filterCountry = null;
+            }
+        }
+        //Get GRRData byId
+        $scope.GetGRRDataById = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '@Url.Action("prcGetGRRById", "InvGRR")',
+                data: JSON.stringify({id:@Model.GrrId})
+            }).then(function (result) {
+                $interval(function(){
+                    $scope.model = result.data.Table[0];
+                    $scope.gridOptions.data = result.data.Table1;
+                    $scope.showLoader = false;
+                },800,1)
+
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+        }
+
+        $scope.GetGRRDataById();
+        // End GRR By Id
+
+
+        $scope.GetFillData = function (entity, selectedItem) {
+            $scope.showLoader = false;
+            $scope.model.ProductName = selectedItem.ProductName;
+
+            if (angular.isDefined(selectedItem.ProductId)) {
+
+                if (selectedItem.ProductId > 0) {
+                    $scope.gridOptions.data.push({
+                        RowNo: $scope.gridOptions.data.length + 1,
+                        ProductName: selectedItem.ProductName,
+                        ModelNo: '',
+                        Reference: '',
+                        BrandName: selectedItem.BrandName,
+                        prodCatName: selectedItem.prodCatName,
+                        QtyRcv: 0,
+                        Price: 0,
+                        Amount: 0,
+                        ProductId: selectedItem.ProductId
+                    });
+                }
+
+                var rownumberID = 0;
+                window.setTimeout(function () {
+                    if ($scope.gridOptions.data.length > 0) {
+                        rownumberID = $scope.gridOptions.data.length - 1;
+                        $("#" + rownumberID).focus().select();
+                    }
+                    else {
+                        $("#" + rownumberID).focus().select();
+                    }
+                }, 100, 2);
+            }
+        }
+
+        /* START : Item Amount Calculation */
+        $scope.CalcAmount = function (rowEntity) {
+            var rate = 0, amount = 0, qty = 0, totalQty = 0;
+            rate = rowEntity.Price;
+            qty = rowEntity.QtyRcv;
+            if (qty > 0) {
+                amount = (rate * qty);
+                rowEntity.Amount = amount;
+            }
+            else {
+                rowEntity.Amount = 0;
+            }
+        }
+
+        $scope.fncGrandtotal = function () {
+            var totalQty = 0, amount = 0, paidAmount = 0;
+            paidAmount = $scope.model.PaidAmount;
+
+            angular.forEach($scope.gridOptions.data, function (item) {
+                totalQty += item.QtyRcv;
+                amount += item.Amount;
+            });
+
+            $scope.model.TotalQty = totalQty;
+            $scope.model.TotalAmount = amount;
+            $scope.model.DueAmount = amount;
+
+            if (amount > 0) {
+                $scope.model.DueAmount = amount;
+            }
+        }
+        //End : fncGrandtotal
+
+        //Start : Validation
+        $scope.fncFormValidation = function () {
+            $scope.isInvalid = false;
+            angular.forEach($scope.gridOptions.data, function (item) {
+
+                if (item.QtyRcv == 0 || item.QtyRcv == '') {
+                    $scope.isInvalid = true;
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Please provide valid Qty',
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                }
+                else if (item.Price == 0 || item.Price == '') {
+                    $scope.isInvalid = true;
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Please provide valid Price',
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                }
+                else if (item.SellingPrice == 0 || item.SellingPrice == '') {
+                    $scope.isInvalid = true;
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Please provide valid Selling Price',
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                }
+            });
+
+            if ($scope.model.SupplierId == 0 || $scope.model.SupplierId == '' || $scope.model.SupplierId == undefined || $scope.model.SupplierId == null) {
+                $scope.isInvalid = true;
+                new PNotify({
+                    title: 'Notification',
+                    text: 'Please select supplier',
+                    type: 'custom',
+                    addclass: 'notification-danger',
+                    icon: 'fa fa-exclamation-triangle'
+                });
+            }
+
+            else if ($scope.model.ChallanNo == 0 || $scope.model.ChallanNo == '' || $scope.model.ChallanNo == undefined || $scope.model.SupplierId == null) {
+                $scope.isInvalid = true;
+                new PNotify({
+                    title: 'Notification',
+                    text: 'Please provide valid Challan No.',
+                    type: 'custom',
+                    addclass: 'notification-danger',
+                    icon: 'fa fa-exclamation-triangle'
+                });
+            }
+
+            else if ($scope.gridOptions.data.length == 0) {
+                $scope.isInvalid = true;
+                new PNotify({
+                    title: 'Notification',
+                    text: 'Please select product/item',
+                    type: 'custom',
+                    addclass: 'notification-danger',
+                    icon: 'fa fa-exclamation-triangle'
+                });
+            }
+        }
+        //End : Validation
+
+
+        $scope.InsertItem = function (model) {
+            //Start : Validation
+            $scope.fncFormValidation();
+            //End : Validation
+
+            if ($scope.isInvalid == false) {
+                $scope.model.InvGRRSubList = $scope.gridOptions.data;
+
+                $("#btnSubmit").attr('disabled', 'disabled');
+                $("#btnSubmit").text("Processing");
+
+                $http.post("@Url.Action("Edit", "InvGRR")", { model }).then(function (data) {
+                    if (data.data == "1") {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data updated successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.getCombo();
+
+                        $scope.gridOptions.data = [];
+                        $scope.model = { dtGrr: $filter("date")(Date.now(), 'dd-MMM-yyyy'), InvGRRSubList: [], GrrSerialList: [] }
+                        $("#btnSubmit").text("Submit");
+                        $("#btnSubmit").removeAttr('disabled');
+
+                        window.setTimeout(function(){
+                            window.location.href ="@Url.Action("Index","InvGRR")";
+                        },2000, 1);
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+
+                        $("#btnSubmit").text("Submit");
+                        $("#btnSubmit").removeAttr('disabled');
+                    }
+                });
+            }
+        }
+
+
+        @*$scope.InsertItem = function (filedata, fileCount, rowEntity) {
+
+            //Start : Validation
+            $scope.fncFormValidation();
+            //End : Validation
+
+            if ($scope.isInvalid == false) {
+
+                if (filedata != 'Submit') {
+                    $scope.filedata[fileCount] = filedata
+                    $scope.gridOptions.data[fileCount].PhotoName = filedata[0].name;
+                    $scope.gridOptions.data[fileCount].FileName = filedata[0].name;
+                    console.log($scope.gridOptions.data);
+                }
+
+                else {
+                    console.log('===============');
+                    console.log($scope.gridOptions.data);
+                    $scope.model.InvGRRSubList = $scope.gridOptions.data;
+                    $scope.model.MemoAttachment = $scope.filedata;
+
+                    $("#btnSubmit").attr('disabled', 'disabled');
+                    $("#btnSubmit").text("Processing");
+
+                    $scope.showLoader = true;
+                    Upload.upload({
+                        url: "../Edit",
+                        data: { model: $scope.model }
+                    }).then(function (response) {
+                        if (response.data == "1") {
+                            new PNotify({
+                                title: 'Notification',
+                                text: 'Data Saved Successfully.',
+                                type: 'custom',
+                                addclass: 'notification-success',
+                                icon: 'fa fa-check'
+                            });
+                            $scope.showLoader = false;
+                            window.setTimeout(function(){
+                                window.location.href = "@Url.Action("Edit", "InvGRR")"
+                            },500,1)
+                        }
+                        else {
+                            new PNotify({
+                                title: 'Notification',
+                                text: '!! Failure : ' + response.data,
+                                type: 'custom',
+                                addclass: 'notification-danger',
+                                icon: 'fa fa-exclamation-triangle'
+                            });
+                        }
+                    })
+
+
+                }
+
+            }
+
+        }*@
+
+        /*   For Remove Item */
+        $scope.removeItem = function (row) {
+            var index = $scope.gridOptions.data.indexOf(row.entity);
+            console.log(index);
+            if ($scope.gridOptions.data.length == 1) {
+                //minimum fill one row
+            } else {
+
+                // Sub Data Delete
+                $scope.gridOptions.data.splice(index, 1);
+            }
+        } // Delete : End
+
+        $scope.keyUp = function (key) {
+            if (key.keyCode == 17 || key.keyCode == 13) {
+                $('#ItemName').focus().select();
+            }
+        };
+
+        $scope.fncSearchClear = function () {
+            $scope.model.ProductName = "";
+        }
+
+    }]);
+
+
+    ngGridApp.directive('shortcuts', ['$document', '$rootScope', function ($document, $rootScope) {
+        $rootScope.shortcuts = [];
+
+        $document.on('keydown', function (e) {
+            $rootScope.shortcuts.forEach(function (eventHandler) {
+                if (event.target.tagName !== eventHandler)
+                    eventHandler(e.originalEvent, e)
+            });
+        })
+
+        return {
+            restrict: 'A',
+            scope: {
+                'shortcuts': '&'
+            },
+            link: function (scope, element, attrs) {
+                $rootScope.shortcuts.push(scope.shortcuts());
+            }
+        };
+    }]);
+
+</script>

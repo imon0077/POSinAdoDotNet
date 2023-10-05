@@ -1,0 +1,229 @@
+﻿@model  SoftifyFoodPOSNew.Models.Transaction
+@{
+    ViewBag.Title = "Ledger Report";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<!-- start: page -->
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-6">
+                    <div class="col-md-12">
+                        @Html.Label("Report Format", htmlAttributes: new { @class = "control-label text-bold" })
+                    </div>
+
+                    <div class="col-md-4">
+                        <span class="radio-custom radio-dark">
+                            @Html.RadioButton("LedgerStatus", "Supplier", new { @class = " ", @checked = "checked", ng_change = "DataLoad(0)", ng_model = "model.LedgerStatus" })
+                            <label style="color:black">Supplier Ledger</label>
+                        </span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <span class="radio-custom radio-dark">
+                            @Html.RadioButton("LedgerStatus", "Customer", new { @class = "form-control", ng_change = "DataLoad(0)", ng_model = "model.LedgerStatus" })
+                            <label style="color:black">Customer Ledger</label>
+                        </span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <span class="radio-custom radio-dark">
+                            @Html.RadioButton("LedgerStatus", "Expense", new { @class = "form-control", ng_change = "DataLoad(0)", ng_model = "model.LedgerStatus" })
+                            <label style="color:black">Expense Ledger</label>
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="col-md-2">
+                    @Html.Label("From Date", htmlAttributes: new { @class = "control-label" })
+                    @Html.Editor("dtFrom", new { htmlAttributes = new { @class = "form-control", @autocomplete = "off", datepicker = "", ng_model = "dtFrom", @required = "" } })
+                </div>
+
+                <div class="col-md-2">
+                    @Html.Label("To Date", htmlAttributes: new { @class = "control-label" })
+                    @Html.Editor("dtTo", new { htmlAttributes = new { @class = "form-control", @autocomplete = "off", ng_model = "dtTo", datepicker = "", @required = "" } })
+                </div>
+
+                <div class="col-md-2 mt-xl">
+                    @*<a href="@Url.Action("RptLedgerStatus","Transaction")?id={{dataForPost[0].LedgerId}}&LedgerStatus={{model.LedgerStatus}}&FromDate={{dtFrom}}&ToDate={{dtTo}}&GrrId={{GrrId}}" class="btn btn-primary pl-xlg pr-xlg" id="" target="_blank">
+                        <i class="fa fa-print"></i>Preview
+                    </a>*@
+
+                    <form action="RptLedgerStatus" method="post" name="RptLedgerStatus" target="_blank">
+                        <input type="hidden" name="id" value="{{dataForPost[0].LedgerId}}">
+                        <input type="hidden" name="LedgerStatus" value="{{model.LedgerStatus}}">
+                        <input type="hidden" name="FromDate" value="{{dtFrom}}">
+                        <input type="hidden" name="ToDate" value="{{dtTo}}">
+                        <input type="hidden" name="GrrId" value="{{GrrId}}">
+                        <input type="hidden" name="rptFormat" value="pdf" autocomplete="off">
+
+                        <button type="submit" formtarget="_blank" class="btn btn-danger pl-xlg pr-xlg"> 
+                            <i class="fa fa-print" aria-hidden="true"></i> Preview
+                        </button>
+                    </form>
+
+                </div>
+
+
+            </div>
+        </div>
+        <br>
+
+        <div class="row">
+            <br>
+            <hr style="margin-top:0px;">
+        </div> <!---Add Item -->
+
+
+        <div class="row">
+            <div class="col-md-9">
+                <div ui-grid="gridOptions" ui-grid-selection ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 60vh;" class="grid">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                @Html.Label("Reference No", htmlAttributes: new { @class = "control-label text-bold" })
+                <div class="form-group">
+                    <select ng-model="GrrId"
+                            select2=""
+                            required=""
+                            ng-disabled="!dataForPost[0].LedgerId"
+                            data-ng-options="d.GrrId as d.LotNo for d in LotList"
+                            style="width: 100%"
+                            class="form-control">
+                    </select>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', 'uiGridConstants', '$interval', function ($scope, $http, $log, $filter, $timeout, uiGridConstants, $interval) {
+        $scope.FromDate = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.ToDate = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+
+        $scope.model = { TransactionSubList: $scope.dataForPost, LedgerStatus: "Supplier", TransType: 'INV' }
+
+        $scope.TransType = $scope.TransType;
+        $scope.LedgerStatus = $scope.LedgerStatus;
+        $scope.dataForPost = [];
+
+        $scope.LotList = [];
+        $scope.GrrId = 0;
+
+
+        $scope.gridOptions = {
+            enableRowSelection: true,
+            enableRowHeaderSelection: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            multiSelect: false,
+            showGridFooter: true,
+            enableGridMenu: true,
+            enableSelectAll: false,
+            enableFiltering: true,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Supplier/Customer Closing Balance", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+
+                gridApi.selection.on.rowSelectionChanged($scope, function (row) {
+                    $scope.countSelectRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                    $scope.DataLoad($scope.dataForPost[0].LedgerId);
+                });
+
+                gridApi.selection.on.rowSelectionChangedBatch($scope, function (row) {
+                    $scope.countAllRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                });
+            },
+            enableFiltering: true,
+            showGridFooter: true,
+            showColumnFooter: true,
+            enableColumnMenus: false,
+            data: []
+        }
+
+        $scope.DataLoad = function (LedgerId) {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetComboLoadLedger", "Transaction")',
+                data: JSON.stringify({ model: $scope.model, id: LedgerId })
+            }).then(function (data) {
+                console.log(data.data);
+                if (LedgerId === 0)
+                    $scope.gridOptions.data = data.data.Table;
+                else {
+                    $scope.LotList = data.data.Table;
+                    $scope.GrrId = 0;
+                }
+                    
+                $scope.showLoader = false;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+        $scope.DataLoad(0);
+
+        //$scope.dataForPost[0].LedgerId
+
+        $scope.gridOptions.columnDefs = [
+            //{ name: 'Code', field: 'Code', width: 100 },
+            { name: 'Name', field: 'Name', width: 150 },
+            { name: 'Address', field: 'Address', width: 200 },
+           
+             {
+                 name: 'Opening Balance', field: 'OPBalnce', width: 150, aggregationType: uiGridConstants.aggregationTypes.sum
+                   , footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: black">{{col.getAggregationValue() | number:0 }}</div>'
+             },
+            {
+                name: 'Closing Balnce', field: 'ClosingBalnce', width: 150, aggregationType: uiGridConstants.aggregationTypes.sum
+                , footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: black">{{col.getAggregationValue() | number:0 }}</div>'
+            },
+
+        
+
+        ];
+
+    }]);
+
+
+</script>

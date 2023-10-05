@@ -1,0 +1,436 @@
+﻿@using System.Data
+@model SoftifyDealer.Models.Product
+@{
+    ViewBag.Title = " Product List  ";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <div class="panel-body">
+
+        <div class="col-md-4">
+            @Html.LabelFor(model => model.IsSerial, "Serial", htmlAttributes: new { @class = "control-label text-bold" })
+            @Html.EditorFor(model => model.IsSerial, new { htmlAttributes = new { @class = "form-control", type = "number", required = "", ng_model = "model.ROQ" } })
+        </div>
+
+
+        <div class="col-md-4">
+            @Html.LabelFor(model => model.IsWarranty, "Warranty", htmlAttributes: new { @class = "control-label text-bold" })
+            @Html.EditorFor(model => model.IsWarranty, new { htmlAttributes = new { @class = "form-control", type = "number", required = "", ng_model = "model.SellingPrice" } })
+        </div>
+    </div>
+</section>
+
+<script>
+
+    /*$(window).on('load', function () {
+        $('html').addClass('sidebar-left-collapsed');
+    });*/
+    var ngGridAppProduct = angular.module('ngGridAppProduct', ['ngTouch', 'ui.grid', 'ui.grid.expandable', 'ui.grid.selection',
+ 'ui.grid.pinning', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.autoResize', 'ui.grid.saveState', 'ui.grid.cellNav', 'ngFileUpload']);
+    ngGridAppProduct.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$rootScope', 'modal', 'Upload', function ($scope, $http, $log, $filter, $timeout, $interval, $rootScope, modal, Upload) {
+
+ 
+        $rootScope.WarrantyList = []; $rootScope.modalHeader = 'Serial Entry'
+        $rootScope.BinId = 0; var myModal = new modal(); $scope.IsSerial = false; $scope.IsWarranty = false;
+  
+
+
+        // arrray ininialized:
+        $scope.InvProductSubList = [{
+            RowId: 0,
+            ProductSizeId: '',
+            ThicknessId: '',
+            ProductWeight: '',
+            TotalQty: 0,
+            TotalPrice: 0
+        }];
+
+
+        // arrray ininialized:
+        $scope.ProductSubColorList = [];
+        $scope.ProductDistList = [];
+
+        // Main Array
+        $scope.model = { ProductSubList: [], ProductDistList: [], ProductSubColorList: [], files: [] }
+        //$rootScope.modaldata = [];
+
+        //   1.:  grid api
+        $rootScope.gridOptionsModal = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi,
+                // call resize every 500 ms for 5 s after modal finishes opening - usually only necessary on a bootstrap modal
+                    $interval(function () {
+                        $scope.gridApi.core.handleWindowResize();
+                    }, 500, 10);
+                $scope.gridApi.grid.registerRowsProcessor($scope.modalFilterByRowId, 200);
+            },
+            data: []
+        }
+
+
+
+        $rootScope.addSerial = function () {
+            $rootScope.gridOptionsModal.data.push({
+                SerialNo: '',
+                BinId: $scope.BinId.toString()
+            });
+        };
+        /*   START : -------------------------------- Product Distribution  -------------------------------- */
+
+
+        /*   START : grid api | ProductDistBin | ProductDistList  */
+        $scope.gridOptionsProductDistBin = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+            }
+        }
+        /*   END : grid api | ProductSub */
+
+
+        /*   START : grid Column | ProductDistBin */
+
+
+        /*   END : grid Column | ProductDistBin */
+
+        $scope.IsSerialTrue = function (Serial) {
+            /* If Serial Active */
+            if (Serial == true) {
+                $scope.gridOptionsProductDistBin.columnDefs[3] = {
+                    name: 'Serial', width: 100, enableColumnMenu: false, cellTemplate: '' +
+                        '<button type="button" class="" ng-disabled="grid.appScope.model.IsSerial==false||row.entity.QtyOpening==0||!row.entity.QtyOpening" ng-click="grid.appScope.showModal(row.entity)">Click </button>'
+                };
+            }
+        }
+
+        // modal call
+        $scope.showModal = function (row) {
+            console.log(row);
+            myModal.open();
+            $rootScope.BinId = row.BinId;
+            var check = 0;
+            for (let i = 0; i < $rootScope.gridOptionsModal.data.length; i++) {
+                $rootScope.binIdCheck = $rootScope.gridOptionsModal.data[i].BinId;
+                if ($rootScope.binIdCheck == row.BinId) {
+                    check = 1;
+                }
+                for (var j = $rootScope.gridOptionsModal.data.length; j < row.QtyOpening; j++) {
+                    $rootScope.gridOptionsModal.data.push({
+                        SerialNo: '',
+                        Warranty: '',
+                        BinId: $scope.BinId.toString()
+                    });
+                }
+            }
+
+            if (check == 0 && row.QtyOpening > 0) {
+                for (var i = 0; i < row.QtyOpening; i++) {
+                    $rootScope.gridOptionsModal.data.push({
+                        SerialNo: '',
+                        Warranty: '',
+                        BinId: $scope.BinId.toString()
+                    });
+                }
+
+            }
+
+        }
+        /*  START : Load GetEditData  */
+        $scope.GetEditData = function (ProductId) {
+            console.log(ProductId);
+            $http({
+                method: 'Post',
+                url: '../GetSerialByProduct',
+                data: JSON.stringify({ productid: ProductId })
+            }).then(function (res) {
+                $scope.model = res.data.Table[0];
+                $scope.gridOptionsProductDistBin.data = res.data.Table1;
+                $rootScope.gridOptionsModal.data = res.data.Table2;
+                $scope.model.IsSerial = Boolean(res.data.Table[0].IsSerial)
+                $scope.model.IsWarranty = Boolean(res.data.Table[0].IsWarranty)
+                console.log(res.data)
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+
+        };
+
+
+        /*  END : Load GetEditData  */
+
+
+        /*  START : Load Combo  */
+        $scope.GetCombo = function () {
+            $http({ method: 'Post', url: '../PrcLoadCombo' }).then(function (res) {
+                $scope.UnitList = res.data.Table1;
+                $scope.CategoryList = res.data.Table2;
+                $scope.SubCategoryList = res.data.Table3;
+                $scope.BrandList = res.data.Table4;
+                $scope.ProdTypeList = res.data.Table6;
+                $scope.BinList = res.data.Table9;
+                $rootScope.WarrantyList = res.data.Table12;
+                $scope.SupplierList = res.data.Table11;
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+
+        };
+
+        $scope.GetCombo();
+        /*  END : Load Combo  */
+
+        //   2.:  grid Column
+        $rootScope.gridOptionsModal.columnDefs = [
+            {
+                name: 'Bin',
+                enableColumnMenu: false, visible: false,
+                width: 200, cellTemplate: '<div>' + 'appscope{{grid.appScope.BinId}}' + 'row.entity{{row.entity.BinId}}' + '</div>'
+            },
+            {
+                name: 'SerialNo', field: 'SerialNo', width: 400, enableColumnMenu: false, cellTemplate: ' <div>' +
+                     '<strong> <input type="text" required="" ng-model="row.entity.SerialNo" class="pl-sm" ng-disabled="row.entity.InvoiceId>0"/> </strong>' +
+                    ' </div>'
+            }
+        ];
+
+        /*   END : -------------------------------- Product Distribution  -------------------------------- */
+        /*   For Remove Item */
+        $scope.removeItem = function (row) {
+            var index = $scope.gridOptionsSub.data.indexOf(row.entity);
+            console.log(index);
+            if ($scope.gridOptionsSub.data.length == 1) {
+                //minimum fill one row
+            } else {
+                for (var i = $rootScope.gridOptionsModal.data.length - 1; i >= 0; i--) {
+                    if ($rootScope.gridOptionsModal.data[i].BinId == index) {
+                        $rootScope.gridOptionsModal.data.splice(i, 1);
+                    }
+                }
+                $scope.gridOptionsSub.data.splice(index, 1);
+            }
+            // order set BinId [muse br recomended for Sub Under Modal]
+
+            for (var i = 0; i < $scope.gridOptionsSub.data.length; i++) {
+                for (var j = 0; j < $rootScope.gridOptionsModal.data.length; j++) {
+                    if ($scope.gridOptionsSub.data[i].BinId == $rootScope.gridOptionsModal.data[j].BinId)
+                        $rootScope.gridOptionsModal.data[j].BinId = i.toString();
+                }
+                $scope.gridOptionsSub.data[i].BinId = i.toString();
+            }
+        }
+
+        $rootScope.removeModalItem = function (row) {
+            var index = $rootScope.gridOptionsModal.data.indexOf(row.entity);
+            if ($rootScope.gridOptionsModal.data.length == 1) {
+                //minimum fill one row
+            } else {
+                $rootScope.gridOptionsModal.data.splice(index, 1);
+            }
+        }
+
+        /* START : Save Data */
+        $scope.InsertItem = function (filedata) {
+            $scope.model.ProductDistList = $scope.gridOptionsProductDistBin.data;
+            $scope.model.ProductSerialList = $scope.gridOptionsModal.data;
+            console.log(filedata);
+            if (filedata != 'Submit') {
+                $scope.filedata = filedata
+            } else {
+                $scope.model.files = $scope.filedata;
+                Upload.upload({
+                    url: "@Url.Action("PrcDataUpdateCommon", "Product")",
+                    data: {
+                        model: $scope.model
+                    }
+                }).then(function (data) {
+                    if (data.data == "1") {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data Updated Successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+
+
+                        $('#frmCompany').trigger("reset");
+                        window.setTimeout(function () {
+                            window.location.href = '../CommonIndex';
+                        }, 3000);
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+
+                    }
+                })
+            }
+
+
+            //$http.post("../PrcDataUpdateCommon", { model }).then(function (data) {
+            //    if (data.data == "1") {
+            //        new PNotify({
+            //            title: 'Notification',
+            //            text: 'Data Saved Successfully.',
+            //            type: 'custom',
+            //            addclass: 'notification-success',
+            //            icon: 'fa fa-check'
+            //        });
+
+            //        window.setTimeout(function () {
+            //            window.location.href = '../CommonIndex';
+            //        }, 3000);
+            //    }
+
+            //    else {
+            //        new PNotify({
+            //            title: 'Notification',
+            //            text: '!! Failure : ' + data.data,
+            //            type: 'custom',
+            //            addclass: 'notification-danger',
+            //            icon: 'fa fa-exclamation-triangle'
+            //        });
+
+            //    }
+            //});
+        }
+        /*  END : Save Data  */
+
+        // Modal Filter By RowId
+        $scope.modalFilterByRowId = function (renderableRows) {
+            //var matcher = new RegExp($rootScope.BinId);
+            renderableRows.forEach(function (row) {
+                var match = false;
+                ['BinId'].forEach(function (field) {
+                    if (row.entity[field] == $rootScope.BinId) {
+                        match = true;
+                    }
+                });
+                if (!match) {
+                    row.visible = false;
+                }
+            });
+            return renderableRows;
+        };
+
+    }]);
+
+    ngGridAppProduct.factory('modal', ['$compile', '$rootScope', function ($compile, $rootScope) {
+        return function () {
+            var elm;
+            var modal = {
+                open: function () {
+
+                    var html = '' +
+                        '<div class="modal" ng-style="modalStyle">{{modalStyle}}' +
+                        '<div class="modal-dialog"><div class="modal-content">' +
+                        '<div class="modal-header pt-xs pb-xs"><strong>{{modalHeader}}</strong></div>' +
+                        '<div class="modal-body pt-xs pb-xs">' +
+
+                                '<div id="grid1" ui-grid="gridOptionsModal" class="gridmodal mt-xs"></div></div>' +
+                        '<div class="modal-footer pt-xs pb-xs">' +
+                        '<button id="buttonClose" class="btn btn-primary btn-sm" ng-click="close()">OK</button>' +
+                        '</div></div></div></div>';
+                    elm = angular.element(html);
+                    angular.element(document.body).prepend(elm);
+
+                    $rootScope.close = function () {
+                        modal.close();
+                    };
+                    $rootScope.modalStyle = { "display": "block" };
+                    $compile(elm)($rootScope);
+                },
+                close: function () {
+                    if (elm) {
+                        elm.remove();
+                    }
+                }
+            };
+
+            return modal;
+        };
+    }]);
+
+    ngGridAppProduct.directive("select2", function ($timeout, $parse) {
+        return {
+            restrict: 'AC',
+            require: 'ngModel',
+            link: function (scope, element, attrs) {
+                $timeout(function () {
+                    element.select2();
+                    element.select2Initialized = true;
+                });
+
+                var refreshSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.trigger('change');
+                    });
+                };
+
+                var recreateSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.select2('destroy');
+                        element.select2();
+                    });
+                };
+
+                scope.$watch(attrs.ngModel, refreshSelect);
+
+                if (attrs.ngOptions) {
+                    var list = attrs.ngOptions.match(/ in ([^ ]*)/)[1];
+                    // watch for option list change
+                    scope.$watch(list, recreateSelect);
+                }
+
+                if (attrs.ngDisabled) {
+                    scope.$watch(attrs.ngDisabled, refreshSelect);
+                }
+            }
+        };
+    });
+
+    ngGridAppProduct.directive('datepicker', function ($filter) {
+        return {
+            restrict: 'A',
+            require: 'ngModel',
+            compile: function () {
+                return {
+                    pre: function (scope, element, attrs, ngModelCtrl) {
+                        var format, dateObj;
+                        format = (!attrs.dpFormat) ? 'dd-M-yyyy' : attrs.dpFormat;
+                        if (!attrs.initDate && !attrs.dpFormat) {
+                            dateObj = new Date();
+                            scope[attrs.ngModel] = $filter("date")(dateObj, 'dd-MMM-yyyy')
+
+                        } else if (!attrs.initDate) {
+                            // Otherwise set as the init date
+                            scope[attrs.ngModel] = attrs.initDate;
+                        } else {
+                        }
+                        $(element).datepicker({
+                            format: format,
+                        }).on('changeDate', function (ev) {
+                            scope.$apply(function () {
+                                ngModelCtrl.$setViewValue(ev.format(format));
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+</script>

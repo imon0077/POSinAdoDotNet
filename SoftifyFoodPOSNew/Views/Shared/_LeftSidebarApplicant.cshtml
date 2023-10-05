@@ -1,0 +1,716 @@
+﻿<aside id="sidebar-left" class="sidebar-left">
+
+    <div class="sidebar-header">
+        <div class="sidebar-title">
+            Navigation
+        </div>
+        <div class="sidebar-toggle hidden-xs" data-toggle-class="sidebar-left-collapsed" data-target="html" data-fire-event="sidebar-left-toggle">
+            <i class="fa fa-bars" aria-label="Toggle sidebar"></i>
+        </div>
+    </div>
+
+    <div class="nano">
+        <div class="nano-content">
+            <nav id="menu" class="nav-main" role="navigation">
+                <ul class="nav nav-main">
+
+                    <li class="nav-active">
+                        <a href="@Url.Action("Index", "Dashboard")">
+                            <i class="fa fa-home" aria-hidden="true"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+
+
+                    @*<!-- Start : HR & Attendance -->
+                    <li class="nav-parent">
+                        <a>
+                            <i class="fa fa-id-card" aria-hidden="true"></i>
+                            <span>HR &amp; Attendance</span>
+                        </a>
+                        <ul class="nav nav-children">
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-users" aria-hidden="true"> </i>
+                                    <span>Employee</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Create", "Employee")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Create Employee</span>
+                                        </a>
+                                    </li>
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "Employee")">
+                                            <i class="fa fa-list" aria-hidden="true"></i>
+                                            <span>Employee List</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!--end : Employee-->
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-calendar-times-o" aria-hidden="true"> </i>
+                                    <span>Leave Balance</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "LeaveBalanceEntry")">
+                                            <i class="fa fa-calendar-times-o" aria-hidden="true"></i>
+                                            <span>Manage Leave Balance</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!--end : Leave Balance-->
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class=" fa fa-minus-square" aria-hidden="true"> </i>
+                                    <span>Employee Leave</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "LeaveEntry")">
+                                            <i class="fa fa-list" aria-hidden="true"></i>
+                                            <span>Leave List</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="">
+                                        <a href="@Url.Action("Create", "LeaveEntry")">
+                                            <i class="fa fa-plus" aria-hidden="true"></i>
+                                            <span>Leave Input</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li><!--end : Employee Leave-->
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-calendar-check-o" aria-hidden="true"> </i>
+                                    <span>Fix Attendance</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "FixAttendanceEntry")">
+                                            <i class="fa fa-calendar-check-o" aria-hidden="true"></i>
+                                            <span>Manage Fix Attendance</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!--end : Fix Attendance-->
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-google-wallet" aria-hidden="true"> </i>
+                                    <span>Increment</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "Increment")">
+                                            <i class="fa fa-credit-card-alt" aria-hidden="true"></i>
+                                            <span>Increment Index</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Increment -->
+
+                        </ul>
+                    </li>
+                    <!-- End : HR & Attendance -->
+                    <!-- Start : Payroll -->
+                    <li class="nav-parent">
+                        <a>
+                            <i class="fa fa-money" aria-hidden="true"></i>
+                            <span>Payroll</span>
+                        </a>
+                        <ul class="nav nav-children">
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-product-hunt" aria-hidden="true"> </i>
+                                    <span>Production Amount Input</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Create", "ProductionAmount")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Input Production Amount</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "ProductionAmount")">
+                                            <i class="fa fa-list" aria-hidden="true"></i>
+                                            <span>Production Amount list</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Production Amount Input -->
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-usd" aria-hidden="true"> </i>
+                                    <span> Addition Salary</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Create", "SalaryAddition")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Addition Salary</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "SalaryAddition")">
+                                            <i class="fa fa-list" aria-hidden="true"></i>
+                                            <span>Salary Addition List</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Addition Salary -->
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-dollar" aria-hidden="true"> </i>
+                                    <span>Advance Salary All</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "AdvanceSalaryAll")">
+                                            <i class="fa fa-usd" aria-hidden="true"></i>
+                                            <span>Advance Salary All</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Input Advance Salary -->
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-money" aria-hidden="true"> </i>
+                                    <span> Advance Salary</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Create", "AdvanceSalary")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Input Advance Salary </span>
+                                        </a>
+                                    </li>
+
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "AdvanceSalary")">
+                                            <i class="fa fa-list" aria-hidden="true"></i>
+                                            <span>Advance Salary List</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Input Advance Salary -->
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-money" aria-hidden="true"> </i>
+                                    <span> Manual Individual Salary </span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "ManualIndividualSalary")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Input Advance Salary </span>
+                                        </a>
+                                    </li>
+
+
+                                </ul>
+                            </li> <!-- end : Manual Individual Salary -->
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-calendar-minus-o" aria-hidden="true"> </i>
+                                    <span>Late Remission</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "LateRemission")">
+                                            <i class="fa fa-calendar-plus-o" aria-hidden="true"></i>
+                                            <span>Remission Entry</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="">
+                                        <a href="@Url.Action("List", "LateRemission")">
+                                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                                            <span>Remission List</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Late Remission Input -->
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                    <span>Monthly Salary Process</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("ProcessSalary", "SalaryProcess")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Salary Process</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Production Amount Input -->
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-times" aria-hidden="true"> </i>
+                                    <span>Short Leave</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "ShortLeave")">
+                                            <i class="fa fa-times" aria-hidden="true"></i>
+                                            <span>Short Leave</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Short Leave Input -->
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-money" aria-hidden="true"> </i>
+                                    <span>Festival Advance Salary</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "FestivalAdvanceSalary")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Festival Advance Salary</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!--end : Festival Advance Salary-->
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-money" aria-hidden="true"> </i>
+                                    <span> Other Allowance</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Details", "OtherAllowance")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Other Allowance Entry</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "OtherAllowance")">
+                                            <i class="fa fa-list" aria-hidden="true"></i>
+                                            <span>Other Allowance List</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Other Allowance -->
+
+                        </ul>
+                    </li>
+                    <!-- End : Payroll -->
+                    <!-- Start : PF -->
+                    <li class="nav-parent">
+                        <a>
+                            <i class="fa fa-product-hunt" aria-hidden="true"></i>
+                            <span>PF</span>
+                        </a>
+                        <ul class="nav nav-children">
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-recycle" aria-hidden="true"> </i>
+                                    <span>PF Process</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="#">
+                                            <i class="fa fa-refresh" aria-hidden="true"></i>
+                                            <span>PF Process</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="">
+                                        <a href="#">
+                                            <i class="fa fa-list" aria-hidden="true"></i>
+                                            <span>PF list</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : PF -->
+
+                        </ul>
+                    </li>
+                    <!-- End : PF -->*@
+                    <!-- Start : Recruitment -->
+                    <li class="nav-parent">
+                        <a>
+                            <i class="fa fa-black-tie" aria-hidden="true"></i>
+                            <span>Recruitment</span>
+                        </a>
+                        <ul class="nav nav-children">
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-recycle" aria-hidden="true"> </i>
+                                    <span>Job Post</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "AvailableJobs")">
+                                            <i class="fa fa-refresh" aria-hidden="true"></i>
+                                            <span>Available Jobs</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Appointment process -->
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-refresh" aria-hidden="true"> </i>
+                                    <span>Interview process</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="#">
+                                            <i class="fa fa-refresh" aria-hidden="true"></i>
+                                            <span>Interview process</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Interview process -->
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-bullhorn" aria-hidden="true"> </i>
+                                    <span>Result published</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="#">
+                                            <i class="fa fa-bullhorn" aria-hidden="true"></i>
+                                            <span>Result published</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li> <!-- end : Result published -->
+
+                        </ul>
+                    </li>
+                    <!-- End : Recruitment -->
+                    
+                    
+                    <!-- End : Master Settings -->
+                    <!--Start : Menu Sample with dropdown menu-->
+                    @*<li class="nav-parent">
+                             <a>
+                                <i class=" fa fa-sitemap" aria-hidden="true"> </i>
+                                <span>Department</span>
+                            </a>
+                            <ul class="nav nav-children">
+                                <li class="">
+                                    <a href="@Url.Action("Create", "Department")">
+                                        <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                        <span>Create Department</span>
+                                    </a>
+                                </li>
+
+                                <li class="">
+                                    <a href="@Url.Action("Index", "Department")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>Department list</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>*@
+                    <!--End : Menu Sample with dropdown menu-->
+                    @*<li class="nav-parent">
+                            <a>
+                                <i class=" fa fa-sitemap" aria-hidden="true"> </i>
+                                <span>Section</span>
+                            </a>
+                            <ul class="nav nav-children">
+                                <li class="nav-active">
+                                    <a href="@Url.Action("Create", "Section")">
+                                        <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                        <span>Create Section</span>
+                                    </a>
+                                </li>
+
+                                <li class="">
+                                    <a href="@Url.Action("Index", "Section")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>Section list</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>*@
+
+                    @*<li class="nav-parent">
+                            <a>
+                                <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                <span>District</span>
+                            </a>
+                            <ul class="nav nav-children">
+                                <li class="">
+                                    <a href="@Url.Action("Create", "District")">
+                                        <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                        <span>Create District</span>
+                                    </a>
+                                </li>
+
+                                <li class="">
+                                    <a href="@Url.Action("Index", "District")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>District list</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-parent">
+                            <a>
+                                <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                <span>Shift</span>
+                            </a>
+                            <ul class="nav nav-children">
+                                <li class="">
+                                    <a href="@Url.Action("Create", "Shift")">
+                                        <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                        <span>Create Shift</span>
+                                    </a>
+                                </li>
+
+                                <li class="">
+                                    <a href="@Url.Action("Index", "Shift")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>Shift list</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-parent">
+                            <a>
+                                <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                <span>Variable Entry</span>
+                            </a>
+                            <ul class="nav nav-children">
+                                <li class="">
+                                    <a href="@Url.Action("Create", "VariableEntry")">
+                                        <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                        <span>Create Variable</span>
+                                    </a>
+                                </li>
+
+                                <li class="">
+                                    <a href="@Url.Action("Index", "VariableEntry")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>Variable list</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>*@
+
+                    @*<li class="nav-parent">
+                            <a>
+                                <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                <span>Leave Balance Entry</span>
+                            </a>
+                            <ul class="nav nav-children">
+
+
+                                <li class="">
+                                    <a href="@Url.Action("Index", "LeaveBalanceEntry")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>Manage Leave Balance</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-parent">
+                            <a>
+                                <i class=" fa fa-sitemap" aria-hidden="true"> </i>
+                                <span>Employee Leave Entry</span>
+                            </a>
+                            <ul class="nav nav-children">
+                                <li class="">
+                                    <a href="@Url.Action("Index", "LeaveEntry")">
+                                        <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                        <span>Leave List</span>
+                                    </a>
+                                </li>
+
+                                <li class="">
+                                    <a href="@Url.Action("Create", "LeaveEntry")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>Leave Input</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-parent">
+                            <a>
+                                <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                <span>Fix Attendance Entry</span>
+                            </a>
+                            <ul class="nav nav-children">
+
+
+                                <li class="">
+                                    <a href="@Url.Action("Index", "FixAttendanceEntry")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>Manage Fix Attendance</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>*@
+
+                    @*<li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                    <span>Production Amount Input</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Create", "Shift")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Input Production Amount</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "Shift")">
+                                            <i class="fa fa-file-text" aria-hidden="true"></i>
+                                            <span>Production Amount list</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                    <span> Addition Salary</span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Create", "SalaryAddition")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Addition Salary</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "SalaryAddition")">
+                                            <i class="fa fa-file-text" aria-hidden="true"></i>
+                                            <span>Salary Addition List</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        <li class="nav-parent">
+                            <a>
+                                <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                <span> Input Advance Salary</span>
+                            </a>
+                            <ul class="nav nav-children">
+                                <li class="">
+                                    <a href="@Url.Action("Create", "AdvanceSalary")">
+                                        <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                        <span>Input Advance Salary </span>
+                                    </a>
+                                </li>
+
+                                <li class="">
+                                    <a href="@Url.Action("Index", "AdvanceSalary")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>Advance Salary List</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                            <li class="nav-parent">
+                                <a>
+                                    <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                    <span> Manual Individual Salary </span>
+                                </a>
+                                <ul class="nav nav-children">
+                                    <li class="">
+                                        <a href="@Url.Action("Index", "ManualIndividualSalary")">
+                                            <i class="fa fa-plus-square" aria-hidden="true"></i>
+                                            <span>Input Advance Salary </span>
+                                        </a>
+                                    </li>
+
+
+                                </ul>
+                            </li>*@
+
+
+                    @*<li class="nav-parent">
+                            <a>
+                                <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                <span>Increment Entry</span>
+                            </a>
+                            <ul class="nav nav-children">
+
+                                <li class="">
+                                    <a href="@Url.Action("Index", "Increment")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>Increment Index</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>*@
+
+
+                    @*<li class="nav-parent">
+                            <a>
+                                <i class="fa fa-sitemap" aria-hidden="true"> </i>
+                                <span>Report</span>
+                            </a>
+                            <ul class="nav nav-children">
+
+
+                                <li class="">
+                                    <a href="@Url.Action("Index", "DailyAttendance")">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                        <span>Daily Attendance</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>*@
+
+                    <!--Start : single menu sample-->
+                    @*<li class="">
+                            <a href="#">
+                                <i class="fa fa-file-text" aria-hidden="true"></i>
+                                <span>Users</span>
+                            </a>
+                        </li>*@
+                    <!--End : single menu sample-->
+
+
+
+
+
+                </ul>
+            </nav>
+
+
+
+        </div>
+
+    </div>
+
+</aside>
+

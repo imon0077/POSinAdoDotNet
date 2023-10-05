@@ -1,0 +1,242 @@
+﻿@{
+    ViewBag.Title = "Shortage List";
+}
+<!-- start:  List page -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    <div class="panel-body">
+        <header class="p-xs mr-lg">
+            <div class="row mb-md">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.Label("From Date", htmlAttributes: new { @class = "control-label" })
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            <input type="text" name="dtFrom" id="" class="form-control" required="required" autocomplete="off" ng-model="dtFrom" datepicker />
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        @Html.Label("To Date", htmlAttributes: new { @class = "control-label" })
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            <input type="text" name="dtTo" id="" class="form-control" autocomplete="off" required="required" ng-model="dtTo" datepicker />
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4 p-none mt-md pull-left">
+
+                        <button type="button" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger"
+                                ng-click="DataLoad()">
+                            <i class="fa fa-refresh" aria-hidden="true"></i> Load List
+                        </button>
+
+                        <a href="@Url.Action("Create", "ProductShortage")" class="mb-xs mt-xs mr-xs mt-sm btn  btn-default ">
+                            <i class="fa fa-plus" aria-hidden="true"></i> Add New
+                        </a>
+                    </div>
+
+
+                </div>
+            </div>
+        </header>
+
+        <div class="row">
+            <div class="col-md-12">
+                <!-- : loading..... -->
+                <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                    <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                </div>
+                <!--    UI-GRID    -->
+                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;height:65vh;" class="grid"></div>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+<script type="text/javascript">
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+
+        $scope.showLoader = false;
+        $scope.disableFilter = false;
+        if ($scope.disableFilter)
+                $scope.disableFilter = true;
+
+        $scope.dtFrom = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.dtTo = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.rptFormat = 'pdf';
+        $scope.pdf = true;
+        $scope.xlsx = false;
+        $scope.doc = false;
+
+        /* START : GRID Settings */
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10,10] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Shortage List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+
+            enableFiltering: true,
+            showGridFooter: true,
+            enableColumnMenus: false
+            // Default: End
+
+        }
+        /* END : GRID Settings */
+
+        /*   START : grid Column */
+        $scope.gridOptions.columnDefs = [
+            { name: 'Date', field: 'dtShortage', width: 100 },
+            { name: 'Warehouse', field: 'WHName', width: 150 },
+            { name: 'Remarks', field: 'Remarks', width: 150 },
+            { name: 'Qty', field: 'Qty', width: 100 },
+            { name: 'Amount', field: 'Amount', width: 100 },
+
+
+            {
+                name: 'Action', enableFiltering: false, width: 220, headerCellTemplate:
+                        "<label class='ml-sm mt-xs text-bold'>Action</label>" +
+                    "<div>" +
+
+                    "<span class=\"checkbox-custom checkbox-text-dark checkbox-default ml-md\">" +
+                        "<input  type=\"checkbox\" ng-model='grid.appScope.pdf' id=\"a1\" ng-click=\"grid.appScope.SetRptType('pdf')\">" +
+                        "<label for=\"a1\"><i class=\"fa fa-file-pdf-o\" style=\"color:red\" aria-hidden=\"true\"></i></label>" +
+                    "</span>" +
+                    "<span class=\"checkbox-custom checkbox-text-dark checkbox-default ml-md\">" +
+                        "<input  type=\"checkbox\" ng-model='grid.appScope.xlsx' id=\"b1\" ng-click=\"grid.appScope.SetRptType('Excel')\">" +
+                        "<label for=\"b1\"><i class=\"fa fa-file-excel-o\" style=\"color:green\" aria-hidden=\"true\"></i></label>" +
+                    "</span>" +
+                    "<span class=\"checkbox-custom checkbox-text-dark checkbox-default ml-md\">" +
+                        "<input  type=\"checkbox\" ng-model='grid.appScope.doc' id=\"c1\" ng-click=\"grid.appScope.SetRptType('Word')\">" +
+                        "<label for=\"c1\"><i class=\"fa fa-file-word-o \" style=\"color:black;\" aria-hidden=\"true\"></i></label>" +
+                    "</span>" +
+                "<div>",
+                cellTemplate:
+                        '<div>' +
+                        ' <a href="../ProductShortage/RptDamage/{{row.entity.ShortageId}}?rptFormat={{grid.appScope.rptFormat}}" class="text-info black ml-sm" data-toggle="tooltip" data-trigger="hover" onclick="window.open(this.href,\'popUpWindow\',\'height=500,width=700,left=10,top=10,scrollbars=yes,menubar=no\'); return false;">' +
+                        '  <i class="fa fa-print fa-lg mr-md black" aria-hidden="true"  data-placement="top" data-delay="500" data-toggle="tooltip"></i><small></small>' +
+                        '  </a>' +
+                        ' <a href="../ProductShortage/Edit/{{row.entity.ShortageId}}" class="ml-xs black mr-md"><i class="fa fa-pencil fa-lg" aria-hidden="true"  title="Update Damages" data-placement="top" data-delay="500" data-toggle="tooltip"></i></a></span>' +
+                            ' </a>' +
+                        ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(row.entity)"><i class="fa fa-trash fa-lg" aria-hidden="true" title="delete item !!"></i></a>' +
+                          ' </div>'
+            },
+
+        ];
+        /*   END : grid Column */
+
+
+
+        $scope.SetRptType = function (rptFormat) {
+
+            $scope.doc = true
+            $scope.rptFormat = rptFormat;
+            if (rptFormat == 'Word') {
+                $scope.doc = true
+                $scope.pdf = false
+                $scope.xlsx = false
+
+            }
+            else if (rptFormat == 'pdf') {
+                $scope.pdf = true
+                $scope.doc = false
+                $scope.xlsx = false
+            } else {
+                $scope.xlsx = true
+                $scope.doc = false
+                $scope.pdf = false
+            }
+            $scope.rptFormat = rptFormat;
+        }
+
+
+
+        /* START : GRID Data Load */
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $scope.gridOptions.data = [];
+            $http({
+                method: 'Post',
+                url: '@Url.Action("PrcLoadList", "ProductShortage")',
+                data: JSON.stringify({ dtFrom: $scope.dtFrom, dtTo: $scope.dtTo })
+            }).then(function (res) {
+                console.log(res.data);
+                $scope.gridOptions.data = res.data;
+                $scope.showLoader = false;
+            }, function (error) {
+                alert(error);
+                //console.log(error);
+            });
+        }
+        $scope.DataLoad();
+        /* END : GRID Data Load */
+
+        /* START : GRID Data Delete */
+        $scope.DeleteItem = function (rowEntity) {
+
+            $scope.showLoader = true;
+            if (confirm('Do you want to Delete  ?')) {
+                $http.post("PrcDeleteData/Damages", { ItemId: rowEntity.ShortageId })
+                    .then(function (data) {
+                        if (data.data == 'Data Deleted Successfully.') {
+                            new PNotify({
+                                title: 'Notification',
+                                text: 'Data Deleted Successfully.',
+                                type: 'custom',
+                                addclass: 'notification-success',
+                                icon: 'fa fa-check'
+                            });
+                            $scope.showLoader = false;
+                            $scope.DataLoad($scope.dtFrom, $scope.dtTo);
+                        }
+                        else {
+                            $scope.showLoader = false;
+                            new PNotify({
+                                title: 'Notification',
+                                text: '!! Failure : ' + data.data,
+                                type: 'custom',
+                                addclass: 'notification-danger',
+                                icon: 'fa fa-exclamation-triangle'
+                            });
+                            $scope.DataLoad($scope.dtFrom, $scope.dtTo);
+                        }
+                    });
+            }
+        }        /* END : GRID Data Delete */        /* END : GRID Data Delete */
+    }]);
+
+
+
+</script>

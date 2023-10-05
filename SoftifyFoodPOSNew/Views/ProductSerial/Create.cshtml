@@ -1,0 +1,222 @@
+﻿@model SoftifyFoodPOSNew.Models.ProductSerial
+
+@{
+    ViewBag.Title = "Show Product By Serial";
+}
+
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    @using (Html.BeginForm())
+    {
+        <div class="" shortcuts="keyUp">
+
+            <section class="panel">
+
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-2">
+                            <span class="radio-custom radio-dark">
+                                @Html.RadioButton("flag", 1, new { @class = "form-control", @checked = "checked", @ng_model = "flag", @ng_click = "fncSearchClear()" })
+                                <label>Serial</label>
+                            </span>
+                        </div>
+
+                        <div class="col-md-2">
+                            <span class="radio-custom radio-dark">
+                                @Html.RadioButton("flag", 0, new { @class = " ", @ng_model = "flag", @ng_click = "fncSearchClear()" })
+                                <label>Product</label>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" id="PrdSearch" ng-model="SerialNo" class="form-control" placeholder="Search product" ng-click="fncSearchClear()" uib-typeahead="SerialNo.SerialNo for SerialNo in AutoCompleteDataLoad($viewValue) | limitTo:5" typeahead-on-select="GetProductInfo(row.entity, $item)">
+                                <input type="text" class="form-control hidden" ng-model="ProductId" />
+
+                                <span class="input-group-btn">
+                                    <button class="btn btn-secondary" type="button" style="padding:4px 12px"><i class="fa fa-search"></i> </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <hr />
+                    <div class="form-group">
+                        <span style="color:indigo; font-weight:bold">Product Information</span>
+                        <!-- Product info -->
+                        <div ui-grid="gridOptionsProduct" ui-grid-pinning ui-grid-exporter ui-grid-resize-columns class="grid"
+                             style="font-family: 'Open Sans', Arial, sans-serif; color: black; height: 15vh;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <span style="color:indigo; font-weight:bold">Purchase Information</span>
+                        <!-- UI-GRID -->
+                        <div ui-grid="gridOptionsPurchase" ui-grid-pinning ui-grid-exporter ui-grid-resize-columns class="grid"
+                             style="font-family: 'Open Sans', Arial, sans-serif; color: black; height: 25vh;"></div>
+                    </div>
+                    <div class="form-group">
+                        <span style="color:indigo; font-weight:bold">Sales Information</span>
+                        @*<section class="panel panel-default" ng-show="model[0].InvoiceId>0">*@
+                        <!-- UI-GRID -->
+                        <div ui-grid="gridOptionsSales" ui-grid-pinning ui-grid-exporter ui-grid-resize-columns class="grid"
+                             style="font-family: 'Open Sans', Arial, sans-serif; color: black; height: 35vh;"></div>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    }
+</section>
+
+
+
+
+<script>
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $interval) {
+        $scope.showLoader = false;
+
+        $scope.flag = "1";
+        $scope.SerialNoList = [];
+        $scope.SerialNo = "";
+
+        $scope.AutoCompleteDataLoad = function (SerialNo) {
+            if (SerialNo.length > 2) {
+                return $http({
+                    method: 'Post',
+                    url: '@Url.Action("GetProductAuto_Serial", "ProductSerial")',
+                    data: JSON.stringify({ id: $scope.flag, value: SerialNo })
+                }).then(function (response) {
+                    $scope.SerialNoList = response.data.Table;
+                    return $scope.SerialNoList;
+                }, function errorCallback(response) {
+                    console.log(response);
+                });
+            }
+        }
+
+        $scope.GetProductInfo = function (entity, selectedItem) {
+            console.log(selectedItem.ProductId);
+            console.log($scope.SerialNo);
+
+            $scope.ProductId = selectedItem.ProductId;
+
+            //$scope.model = [];
+
+            if ($scope.SerialNo != "" && $scope.SerialNo.length >= 2) {
+                $http({
+                    method: 'POST',
+                    url: '@Url.Action("GetProductInfo", "ProductSerial")',
+                    data: JSON.stringify({ id: $scope.flag, ProductId: selectedItem.ProductId })
+                }).
+                then(function (result) {
+                    //console.log(result.data);
+                    $scope.gridOptionsProduct.data = result.data.Table;
+                    $scope.gridOptionsPurchase.data = result.data.Table1;
+                    $scope.gridOptionsSales.data = result.data.Table2;
+                });
+            }
+        }
+
+        $scope.gridOptionsProduct = {
+            // Default: End
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+            },
+            enableColumnMenus: false
+        }
+
+        $scope.gridOptionsProduct.columnDefs = [
+            { name: 'Product Code', field: 'ProductCode', width: 150 },
+            { name: 'Product Name', field: 'ProductName', width: 250 },
+            { name: 'Model', field: 'Model', width: 150 },
+            { name: 'Brand', field: 'BrandName', width: 120 },
+            { name: 'Cost Price', field: 'CostPrice', width: 110 },
+            { name: 'Selling Price', field: 'SellingPrice', width: 110 },
+            { name: 'Last Price', field: 'LastGrrPrice', width: 110 },
+        ];
+
+        //purchse info
+        $scope.gridOptionsPurchase = {
+            // Default: End
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+            },
+            enableColumnMenus: false
+        }
+
+        $scope.gridOptionsPurchase.columnDefs = [
+            { name: 'Grr No', field: 'GrrNo', width: 150 },
+            { name: 'Purchase Date', field: 'dtGrr', width: 130 },
+            { name: 'Supplier', field: 'SupplierName', width: 230 },
+            { name: 'Serial No', field: 'SerialNo', width: 150 },
+            { name: 'Qty', field: 'QtyRcvd', width: 60 },
+            { name: 'Rate', field: 'UnitPrice', width: 90 },
+            { name: 'Amount', field: 'Amount', width: 90 }
+        ];
+
+        //Sales info
+        $scope.gridOptionsSales = {
+            // Default: End
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+            },
+            enableColumnMenus: false
+        }
+
+        $scope.gridOptionsSales.columnDefs = [
+            { name: 'Invoice No', field: 'InvoiceNo', width: 150 },
+            { name: 'Date', field: 'dtInvoice', width: 110 },
+            { name: 'Client Name', field: 'ClientName', width: 180 },
+            { name: 'Qty', field: 'Qty', width: 60 },
+            { name: 'Rate', field: 'SellingPrice', width: 90 },
+            { name: 'Amount', field: 'Amount', width: 90 },
+            { name: 'Warranty', field: 'Warranty', width: 150 },
+            { name: 'SerialNo', field: 'SerialNo', width: 150 },
+        ];
+
+        $scope.keyUp = function (key) {
+            if (key.keyCode == 17 || key.keyCode == 13) {
+                //$scope.model.srchDie = "";
+                $('#PrdSearch').focus().select();
+                //$('input[placeholder="Die No(Ctrl)"]').focus().select();
+                //else if (key.ctrlKey && key.shiftKey) {
+            }
+        };
+
+        $scope.fncSearchClear = function () {
+            $scope.SerialNo = "";
+        }
+
+    }]);
+
+    ngGridApp.directive('shortcuts', ['$document', '$rootScope', function ($document, $rootScope) {
+        $rootScope.shortcuts = [];
+
+        $document.on('keydown', function (e) {
+            // Skip if it focused in input tag.
+            //if (event.target.tagName !== "INPUT") {
+            $rootScope.shortcuts.forEach(function (eventHandler) {
+                if (event.target.tagName !== eventHandler)
+                    eventHandler(e.originalEvent, e)
+            });
+            //}
+        })
+
+        return {
+            restrict: 'A',
+            scope: {
+                'shortcuts': '&'
+            },
+            link: function (scope, element, attrs) {
+                $rootScope.shortcuts.push(scope.shortcuts());
+            }
+        };
+    }]);
+
+</script>

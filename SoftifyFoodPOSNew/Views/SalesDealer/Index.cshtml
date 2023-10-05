@@ -1,0 +1,210 @@
+﻿@{
+    ViewBag.Title = "Sales List";
+}
+<!-- start:  List page -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    <div class="panel-body">
+        <header class="p-xs mr-lg">
+            <div class="row mb-md">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.Label("From Date", htmlAttributes: new { @class = "control-label" })
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            <input type="text" name="dtFrom" id="" class="form-control" required="required" ng-model="dtFrom" datepicker />
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        @Html.Label("To Date", htmlAttributes: new { @class = "control-label" })
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            <input type="text" name="dtTo" id="" class="form-control" required="required" ng-model="dtTo" datepicker />
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-3 p-none mt-md pl-md pull-left">
+
+                        <button type="button" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger"
+                                ng-click="DataLoad()">
+                            <i class="fa fa-refresh" aria-hidden="true"></i> Load List
+                        </button>
+
+                        <a href="@Url.Action("Create", "POS")" class="mb-xs mt-xs mr-xs mt-sm btn  btn-default ">
+                            <i class="fa fa-plus" aria-hidden="true"></i> Add New
+                        </a>
+                    </div>
+
+
+                </div>
+            </div>
+        </header>
+
+        <div class="row">
+            <div class="col-md-12">
+                <!--    UI-GRID    -->
+                <div ui-grid="gridOptions" ui-grid-pinning ui-grid-expandable ui-grid-exporter ui-grid-resize-columns class="grid"></div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
+<script type="text/javascript">
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$rootScope', function ($scope, $http, $log, $filter, $timeout, $interval, $rootScope) {
+
+        $scope.showLoader = false;
+        $scope.disableFilter = false;
+        if ($scope.disableFilter)
+                $scope.disableFilter = true;
+
+        $scope.dtFrom = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.dtTo = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+
+        /* START : GRID Settings */
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10,10] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Sales List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+            // Default : start
+            expandableRowTemplate: "../Partial/expandableRowTemplate.html",
+            expandableRowHeight: 150,
+            expandableRowScope: {
+                subGridVariable: 'subGridScopeVariable'
+            },
+            enableFiltering: true,
+            showGridFooter: true,
+            // Default: End
+
+            onRegisterApi: function (gridApi) {
+                /*  Start : SubGridOptions Expandable code area */
+                gridApi.expandable.on.rowExpandedStateChanged($scope, function (row) {
+                    if (row.isExpanded) {
+                        row.entity.subGridOptions = {
+                            columnDefs: [
+                                { name: 'Product Name', field: 'ProductName', width: 350 },
+                                { name: 'ColorName', field: 'ColorName', width: 120 },
+                                { name: 'Specification', field: 'Spec', width: 200 },
+                                { name: 'Qty', field: 'Qty', width: 90 },
+                                { name: 'SellingPrice', field: 'SellingPrice', width: 120 },
+                                { name: 'Subtotal', field: 'Subtotal', width: 120 }
+                            ]
+                        }; $http.get('../SalesDealer/PrcLoadListExpand?id=' + row.entity.InvoiceId)
+                            .then(function (res) {
+                                row.entity.subGridOptions.data = res.data.Table;
+                            });
+                    }
+                });
+                /*  End : SubGridOptions Expandable code area */
+                //Refresh GRID
+                $scope.gridApi = gridApi, $interval(function () { }, 500, 10);
+            }
+        }
+        /* END : GRID Settings */
+
+        /*   START : grid Column */
+        $scope.gridOptions.columnDefs = [
+            , { name: 'InvoiceNo', field: 'InvoiceNo', width: 100 }
+            , { name: 'Date', field: 'dtInvoice', width: 120 }
+            , { name: 'Client Name', field: 'ClientName', width: 280 }
+            , { name: 'Net Payable', field: 'NetPayable', width: 100 }
+            , { name: 'Paid', field: 'Paid', width: 100 }
+            , { name: 'Due', field: 'Due', width: 100 }
+            , { name: 'SalesPerson', field: 'SalesPerson', width: 120 }
+            , {
+                name: 'Action', enableFiltering: false, width: 90,
+                cellTemplate:
+                    ' <div class="ml-sm">' +
+                        ' <a href="../POS/EditCommon/{{row.entity.InvoiceId}}" class="ml-xs black mr-md"><i class="fa fa-pencil fa-lg" aria-hidden="true"  title="Update Sales" data-placement="top" data-delay="500" data-toggle="tooltip"></i></a></span>' +
+
+                        ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(row.entity.InvoiceId,0)"><i class="fa fa-trash fa-lg" aria-hidden="true" title="delete item !!"></i></a>' +
+                        '    </div>'
+            }
+        ];
+        /*   END : grid Column */
+
+        /* START : GRID Data Load */
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../SalesDealer/PrcLoadList',
+                data: JSON.stringify({ dtFrom: $scope.dtFrom, dtTo: $scope.dtTo })
+            }).then(function (res) {
+                $scope.gridOptions.data = res.data.Table;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+        $scope.DataLoad($scope.dtFrom, $scope.dtTo);
+        /* END : GRID Data Load */
+
+        /* START : GRID Data Delete */
+        $scope.DeleteItem = function (InvoiceId) {
+            if (confirm('Do you want to Delete  ?')) {
+                var url = ""; var itemId = 0;
+                if (GrrId > 0) { url = "prcDeleteDataCommon/SalesDealer"; itemId = InvoiceId; }
+
+                $http.post(url, { itemId }).then(function (data) {
+                    if (data.data == 1) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data Deleted Successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.DataLoad($scope.dtFrom, $scope.dtTo);
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+                });
+            }
+
+        }
+        /* END : GRID Data Delete */
+    }]);
+
+
+
+</script>

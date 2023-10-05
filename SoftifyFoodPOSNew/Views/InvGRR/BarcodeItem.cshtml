@@ -1,0 +1,245 @@
+﻿
+
+@model SoftifyFoodPOSNew.Models.InvGRR
+@{
+    ViewBag.Title = "Barcode Print";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!-- start:  Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <form name="InvfrmProduct">
+        <div class="panel-body">
+            <div class="form-group">
+                <div class="form-group mb-sm">
+
+                    <div class="col-md-4">
+                        <label for="GrrId" class="control-label text-bold">Grr No </label>
+                        <select ng-model="model.GrrId" name="GrrId"
+                                ng-options="obj.GrrId as obj.GrrNo for obj in GrrList"
+                                style="width: 100%" required="" class="form-control" select2="" ng-change="GrrDataLoad(model.GrrId)">
+                            <option value="">--Select--</option>
+                        </select>
+                    </div>  
+                
+                </div>
+                    <div class="col-md-12">
+                        <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                             style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 35vh;" class="grid">
+                        </div>
+                    </div>
+
+                </div>
+
+            @*<div class="form-group">
+                <div class="col-md-2">
+                    <label class="col-sm-12 col-form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary" ng-click="InsertItem(model)"><i class="fa fa-print"></i> Preview</button>
+                </div>
+            </div>*@
+          
+        </div>
+        <!-- Panel End -->
+
+
+    </form>
+</section>
+
+
+<script>
+
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', 'Upload', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, Upload, $http, $log, $filter, $timeout, $interval, uiGridConstants) {
+        $scope.showLoader = false;
+        $scope.GrrList = [];
+
+        var url = window.location.href;
+        var urlsplit = url.split('=');
+
+        $scope.UrlGrrId = urlsplit[1];
+
+        // Main Array
+        $scope.model = { GrrId: 0, InvGRRSubList: [] }
+
+
+        /*  END : Load GetEditData  */
+
+        /*  START : Load Combo  */
+        $scope.GetCombo = function () {
+            $http({ method: 'Post', url: '@Url.Action("PrcLoadCombo", "InvGrr")' }).then(function (res) {
+
+                $scope.GrrList = res.data.Table1;
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+
+        };
+        $scope.GetCombo();
+
+
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10, 10] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Barcode", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+
+            enableFiltering: true,
+            showGridFooter: true,
+            enableColumnMenus: false,
+            // Default: End
+        }
+        $scope.gridOptions.columnDefs = [
+            { name: 'Grr No', field: 'GrrNo', width: 150 },
+
+            { name: 'Challan No', field: 'ChallanNo', width: 110 },
+            { name: 'Product Name', field: 'ProductName', width: 190 },
+            {
+                name: 'Qty', field: 'QtyRcv', width: 90, cellTemplate: ' <div>' +
+                    ' <input type="number" ng-model="row.entity.QtyRcv" class=from-control /></div>'
+            },
+             {
+                 name: 'Action', enableFiltering: false, width: 110,
+                 cellTemplate:
+                     ' <div class="ml-sm">' +
+
+                        ' <button type="button" class="btn btn-xs btn-danger" ng-click="grid.appScope.SaveBarcodeData(row.entity)"><i class="fa fa-print fa-sm" title="Barcode" data-placement="right" data-delay="500" data-toggle="tooltip"></i> Print </button>' +
+                        
+                     '  </div>'
+             },
+
+        ];
+
+
+        $scope.SaveBarcodeData = function (Parameter) {
+            $scope.showLoader = true;
+            $scope.model.InvGRRSubList.push(Parameter);
+
+            $http({
+                method: 'Post',
+                url: '@Url.Action("BarcodeItem", "InvGRR")',
+                data: JSON.stringify({ model: $scope.model })
+            }).then(function (data) {
+                if (data.data == 1) {
+                    window.setTimeout(function () {
+                        var url = '@Url.Action("RptBarcode", "InvGRR")';
+                        var Optrpt = data.data;
+                        window.open(url + "?rptType=" + "pdf", '_blank');
+                    });
+                    $scope.model = { GrrId: $scope.UrlGrrId, InvGRRSubList: [] }
+                }
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+
+                }
+
+                $scope.showLoader = false;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+
+            //console.log(Parameter);
+
+            //if (Parameter.ProductId > 0)
+            //    alert("ProductId " +Parameter.ProductId+ " has been deleted.");
+        }
+
+
+
+        /*   Load  : this area load date wise  */
+        $scope.GrrDataLoad = function (GrrId) {
+            if (GrrId > 0) {
+                $scope.showLoader = true;
+                $scope.gridOptions.data = [];
+                $http({
+                    method: 'Post',
+                    url: '@Url.Action("GetGRRBarcode", "InvGRR")',
+                    data: JSON.stringify({ id: GrrId })
+                }).then(function (data) {
+                    $scope.gridOptions.data = data.data;
+
+                    if ($scope.UrlGrrId > 0)
+                        $interval(function () {
+                            $scope.model.GrrId = $scope.UrlGrrId;
+                        }, 2000, 3);
+
+                    $scope.showLoader = false;
+                }, function (error) {
+                    alert(error);
+                    console.log(error);
+                });
+            }
+
+        }
+
+
+        $scope.GrrDataLoad($scope.UrlGrrId);
+
+
+
+
+        @*$scope.InsertItem = function (model) {
+            $scope.showLoader = true
+
+            $http.post("@Url.Action("BarcodeItem", "InvGrr")", { model: model }).then(function (data) {
+                if (data.data == "1") {
+                    window.setTimeout(function () {
+                        var url = '@Url.Action("RptBarcode", "Product")';
+                        var Optrpt = data.data;
+                        window.open(url + "?rptType=" + "pdf", '_blank');
+                    })
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+
+                }
+                $scope.showLoader = false
+            },
+                function (responseData) {
+                    console.log("Error !" + responseData);
+                });
+            $scope.gridApi.selection.clearSelectedRows();
+        };*@
+
+
+    }]);
+
+
+
+</script>

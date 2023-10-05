@@ -1,0 +1,100 @@
+﻿@model SoftifyFoodPOSNew.Models.LoginMenu
+@using System.Data;
+
+@{
+    ViewBag.Title = "Delete";
+    DataRow dr = (DataRow)ViewBag.LoginCategory;
+    
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <br />
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Login Menu - Details</h3>
+        </div>
+        <div class="panel-body">
+            @Html.ValidationSummary(true)
+            @Html.HiddenFor(model => model.MenuId)
+            <div class="row">
+                <div class="form-group">
+                    <div class="col-md-2">
+                        @Html.LabelFor(model => model.MenuName, new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-10">
+                        @Html.Label(@dr["MenuName"].ToString(), new { @class = "control-label" })
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="form-group">
+                    <div class="col-md-2">
+                        @Html.LabelFor(model => model.MenuController, new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.Label(@dr["MenuController"].ToString(), new { @class = "control-label" })
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="form-group">
+                    <div class="col-md-2">
+                        @Html.LabelFor(model => model.MenuLink, new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.Label(@dr["MenuLink"].ToString(), new { @class = "control-label" })
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="form-group">
+                    <div class="col-md-2">
+                        @Html.LabelFor(model => model.ParentId, new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.Label(@dr["parent"].ToString(), new { @class = "control-label" })
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="form-group">
+                    <div class="col-md-2">
+                        @Html.LabelFor(model => model.IsParent, new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.CheckBoxFor(model => model.IsParent, new { @class = "form-control" })
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="form-group">
+                    <div class="col-md-2">
+                        @Html.LabelFor(model => model.IsInactive, new { @class = "control-label pull-right" })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.CheckBoxFor(model => model.IsInactive, new { @class = "form-control" })
+                    </div>
+                </div>
+            </div>
+            <br />
+        </div>
+        <div class=" panel-footer clearfix">
+            <div class="form-group">
+                <div class="col-md-2">
+                    <input type="submit" value="Submit" class="btn btn-danger btn-block" />
+                </div>
+                <div class="col-md-2">
+                    @Html.ActionLink("Back to List", "Index", "", new { @class = "btn btn-info btn-block" })
+                </div>
+            </div>
+        </div>
+    </div>
+}
+

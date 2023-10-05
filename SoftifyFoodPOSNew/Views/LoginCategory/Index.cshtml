@@ -1,0 +1,58 @@
+﻿@model IEnumerable<SoftifyFoodPOSNew.Models.LoginCategory>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+@using (Html.BeginForm())
+{
+    <br/>
+    <fieldset>
+        <legend>
+            Category List
+            <span class="btn btn-sm btn-success pull-right clsCreate">
+                @Html.ActionLink("Create", "Create")
+            </span>
+        </legend>
+        <table class="table" id="myTable">
+            <thead>
+                <tr class="btn-primary">
+                    <th class="col-md-3">
+                        Category Name
+                    </th>
+                    <th class="col-md-2">
+                        Is Parent
+                    </th>
+                    <th class="col-md-2">
+                        Is Inactive
+                    </th>
+                    <th class ="col-md-2">
+                        Actions
+                        </th>
+</tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="small">
+                        <td class="col-md-3">
+                            @Html.DisplayFor(modelItem => item.CatName)
+                        </td>
+                        <td class="col-md-2">
+                            @Html.CheckBoxFor(model => item.IsParent)
+                        </td>
+                        <td class="col-md-2">
+                            @Html.CheckBoxFor(modelItem => item.IsInactive)
+                        </td>
+                        <td class="col-md-5">
+                            @Html.ActionLink("Details", "Details", new { id = item.CatId }, new { @class = "glyphicon glyphicon-list text-info" }) &nbsp;
+                            @Html.ActionLink("Edit", "Edit", new { id = item.CatId }, new { @class = "glyphicon glyphicon-edit text-warning" }) &nbsp;
+                            @Html.ActionLink("Delete", "Delete", new { id = item.CatId }, new { @class = "glyphicon glyphicon-trash text-danger" })
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </fieldset>
+}
+

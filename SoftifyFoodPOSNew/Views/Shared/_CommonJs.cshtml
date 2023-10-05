@@ -1,0 +1,18 @@
+﻿
+<!-- commonTopJs -->
+@Scripts.Render("~/bundles/commonTopJs")
+
+@if (SoftifyFoodPOSNew.Models.clsCommon.ControllerNameP == "Dashboard")
+{  <!-- DashboardJS-->
+    @Scripts.Render("~/bundles/dashboardJs")
+}
+
+@if (SoftifyFoodPOSNew.Models.clsCommon.ControllerNameP != "Dashboard")
+{  <!-- createEditIndexReportJs-->
+    @Scripts.Render("~/bundles/createEditIndexReportJs")
+}
+<!-- commonfooterJS-->
+ @Scripts.Render("~/bundles/commonfooterJs")
+
+
+

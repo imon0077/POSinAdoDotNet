@@ -1,0 +1,204 @@
+﻿@model SoftifyDocuSign.Models.OrderSheet
+@{
+    ViewBag.Title = "Daily Basis Order & Invoice Sheet (K Barkery)";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+<!-- start: Comparitive Statement Add page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    @Html.AntiForgeryToken()
+    <form name="OrderListFrom">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-12 mb-lg">
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.dtOrderSheet, "Date", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.TextBoxFor(model => model.dtOrderSheet, new { @class = "form-control", @id = "date", @ng_equired = "", @Value = "datepicker", @ReadOnly = "true", ng_model = "model.dtOrderSheet" })
+                    </div>
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.OutletName, "Outlet Name", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.TextBoxFor(model => model.OutletName, new { @class = "form-control", @id = "date", @ng_equired = "", ng_model = "model.OutletName", ng_disabled = "true" })
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="col-md-12">
+                <div ui-grid="gridOptions" ui-grid-selection ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 60vh;" class="grid">
+                </div>
+            </div>
+
+        </div>
+        <div ng-show="showLoader" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(102, 102, 102); z-index: 30001; opacity: 0.8;">
+            <img src="~/Content/assets/images/demo_wait.gif" alt="loading" style="position: absolute; top: 50%; left: 45%;" /> Loading..
+        </div>
+
+
+
+        <footer class="panel-footer">
+            <div class="row">
+                <div class="col-sm-9 col-sm-offset-3">
+                    <button class="btn btn-danger btn-wide mr-md" type="button" name="btnSubmit" ng-disabled="OrderListFrom.$invalid" ng-click="InsertItem(model)">
+                        Submit <i class="fa fa-arrow-circle-right"></i>
+                    </button>
+                    <a href="@Url.Action("Index", "OrderSheet")" class="btn btn-info">
+                        <i class="fa fa-arrow-circle-left"></i> Back to list
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </form>
+
+</section>
+<script type="text/javascript">
+
+    //start : angular controller
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$templateCache', function ($scope, $http, $log, $filter, $timeout, $interval, $templateCache) {
+
+        $scope.showLoader = false;
+        $scope.dataForPost = [];
+        $scope.model = { dtOrderSheet: $filter("date")(Date.now(), 'dd-MMM-yyyy'), OrderSheetSubList: [] }
+        //  start :  grid api gridOptions
+        $scope.gridOptions = {
+            showGridFooter: true,
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableFiltering:true,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Order Sheet", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+
+                gridApi.selection.on.rowSelectionChanged($scope, function (row) {
+                    $scope.countSelectRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                    console.log($scope.dataForPost);
+                });
+
+                gridApi.selection.on.rowSelectionChangedBatch($scope, function (row) {
+                    $scope.countAllRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                    console.log($scope.dataForPost);
+                });
+            },
+            data: []
+        }
+
+        // start : grid Column columnDefs
+        $scope.gridOptions.columnDefs = [
+            , { name: 'Code', field: 'Code', width: 100, enableColumnMenu: false }
+            , { name: 'Product Name', field: 'ProductName', width: 200, enableColumnMenu: false }
+            , { name: 'Category Name', field: 'prodCatName', width: 200, enableColumnMenu: false }
+            , {
+                name: 'Order', width: 90, enableColumnMenu: false, field: 'Order' }
+            , {
+                name: 'Delivery', width: 90, enableColumnMenu: false, field: "Delivery"
+            }
+            ,{
+                name: 'Receive', width: 90, enableColumnMenu: false, field: "ReceiveDelivery", cellTemplate: ' <div style="width:80px">' +
+                ' <input type="number" required="" ng-model="row.entity.ReceiveDelivery"   class="pl-sm" />' +
+                ' </div>'
+            }
+
+
+        ];
+        //start : Data Load | loadData
+        $scope.loadData = function () {
+            $scope.showLoader = true
+            $http({
+                method: 'Post',
+                url: '../GetMainData',
+            }).
+                then(function (data) {
+                    $scope.model = data.data.Table[0];
+                    $scope.gridOptions.data = data.data.Table1;
+                    $scope.showLoader = false
+                }, function (error) {
+                    alert(error);
+                    console.log(error);
+                });
+        }
+        //end : Data Load | loadData
+
+        $scope.loadData()
+        //start : Submit | SaveDODelivery | Insert | Post
+        $scope.InsertItem = function (model) {
+            $scope.model.OrderSheetSubList = $scope.dataForPost;
+
+            $scope.showLoader=true
+
+            $http.post("../DataUpdate", { model: model, Flag: "Received" }).then(function (data) {
+                console.log(data.data);
+
+                    if (data.data == 1) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data Update Successfully',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+
+                        $scope.showLoader = false
+                        $scope.loadData();
+                        window.setTimeout(function () {
+                            window.location.href = "../Index";
+                        },2000);
+                    }
+
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+
+                    }
+                    $scope.showLoader = false
+                    $scope.loadData();
+                    $scope.dataForPost = [];
+                },
+                function (responseData) {
+                    console.log("Error !" + responseData);
+                });
+            $scope.gridApi.selection.clearSelectedRows();
+        };
+
+
+    }]);
+    //end : angular controller
+
+</script>

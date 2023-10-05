@@ -1,0 +1,830 @@
+﻿@model SoftifyFoodPOSNew.Models.POS
+@{ ViewBag.Title = "Sales Register"; }
+
+<link href="~/Content/assets/stylesheets/POS.css" rel="stylesheet" />
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<style>
+    .gridmodal {
+        height: 300px;
+    }
+</style>
+
+<!-- start: POS Create page -->
+<section class="panel mb-xs" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <div class="" shortcuts="keyUp">
+
+        <form name="frmPOS" id="POSForm">
+            <div class="col-sm-12">               
+
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-3" style="margin-top:25px">
+                            @Html.LabelFor(model => model.dtInvoice, "Date :", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.dtInvoice, new { htmlAttributes = new { @class = "form-control",  @placeholder = "", @Required = "required", ng_model = "model.dtInvoice", datepicker = "" } })
+                            @Html.ValidationMessageFor(model => model.dtInvoice, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-md-3" style="margin-top:25px">
+                            <div class="form-group mb-none">
+                                <span class="col-md-4 radio-custom radio-dark">
+                                    @Html.RadioButtonFor(m => m.ItemType, "Barcode", new { @class = " ", @checked = "checked", @ng_model = "model.ItemType" })
+                                    <label>Barcode</label>
+                                </span>
+                                <span class="col-md-4 radio-custom radio-dark col-md-10 mb-xs">
+                                    @Html.RadioButtonFor(m => m.ItemType, "Item", new { @class = " ", @ng_model = "model.ItemType" })
+                                    <label>Product</label>
+                                </span>
+                            </div>
+                            <div class="form-group">
+                                <div class="barcode" ng-show="model.ItemType=='Barcode' ">
+                                    <input type="text" class="form-control" placeholder="Ctrl" id="ItemName" ng-model="model.Barcode" ng-change="ItemByBarcode()" autocomplete="off" ng-click="fncSearchClear()">
+                                </div>
+
+                                <div class="typeaheadcontainer" ng-show="model.ItemType=='Item' ">
+                                    <input type="text" name="ItemName" autocomplete="off"
+                                           class="typeaheadcontrol form-control"
+                                           ng-model="model.ProductName"
+                                           uib-typeahead="ProductName as ProductName.ProductName for ProductName in SearchItem($viewValue)| limitTo:5"
+                                           placeholder="Item Code/Item Name/ Barcode/ Model"
+                                           typeahead-editable="false"
+                                           id="ItemName"
+                                           ng-click="fncSearchClear()"
+                                           typeahead-on-select="GetFillData(row.entity, $item)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3" style="margin-top: 25px">
+                            @Html.LabelFor(model => model.ClientName, "Client Name :", htmlAttributes: new { @class = "control-label text-bold" })
+                          
+                            <div class="input-group">
+                                <select ng-model="model.ClientId"
+                                        select2=""
+                                        required=""
+                                        data-ng-options="d.ClientId as d.ClientName for d in ClientList"
+                                        ng-change="GetPrevDues()"
+                                        style="width: 100%"
+                                        class="form-control">
+                                    @*<option value="">--Please Select--</option>*@
+                                </select>
+                                
+                                <!-- Modal : Start -->
+                                <div class="input-group-addon black no-print" style="padding: 2px 8px;">
+                                    <a href="#" id="add-customer" class="external" data-toggle="modal" data-target="#myModal" tabindex="-1">
+                                        <i class="fa fa-user-circle" id="addIcon" style="font-size: 1.5em;"></i>
+                                    </a>
+                                    <div class="modal fade" id="myModal" role="dialog">
+                                        <div class="modal-dialog">
+
+                                            <div class="modal-content">
+                                                <div class="modal-header" style="background-color:#89CFF0">
+                                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                    <h4 class="modal-title pull-left">New Customer</h4>
+                                                </div>
+
+                                                <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <div class="col-md-6">
+                                                            <label class="control-label pull-left">Client Name</label>
+                                                            <input type="text" class="form-control ng-pristine ng-untouched ng-valid ng-empty" name="ClientName" ng-model="Customer.ClientName" autocomplete="off" />
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="control-label pull-left">Short Name</label>
+                                                            <input type="text" class="form-control ng-pristine ng-untouched ng-valid ng-empty" name="Phone" ng-model="Customer.shortName" autocomplete="off" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-md-6">
+                                                            <label class="control-label pull-left">Mobile No</label>
+                                                            <input type="text" class="form-control" name="Phone" ng-model="Customer.Mobile" autocomplete="off" />
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="control-label pull-left">Address</label>
+                                                            <textarea class="form-control" name="ClientAddress" ng-model="Customer.ClientAddress"></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" ng-disabled="!Customer.ClientName|| !Customer.Mobile" class="btn btn-danger" data-dismiss="modal" ng-click="SaveClient(Customer)">Submit</button>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Modal : End -->
+                            </div>
+                        </div>
+                    </div>                  
+
+                        <div class="form-group">
+                            <!-- GRID ROW Product Details -->
+                            <div class="col-md-12">
+                                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 35vh;" class="grid">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden">
+                            <!-- GRID ROW Product Details -->
+                            <div class="col-md-12">
+                                <div ui-grid="gridOptionsSerial" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 35vh;" class="grid">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-7 col-lg-offset-1">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label text-bold" for="ItemsCount">Total Items</label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <span class="text-bold" style="padding: 5px 10px; font-size: 14px;">{{model.TotalItems}} ({{model.TotalQty}}) </span>
+                                    </div>
+                                </div>
+
+                                <div class="pull-right" style="font-size: 16px; margin-top: 26px; padding-right: 50px;">
+                                    <div class="form-group">
+                                        <span class="text-bold text-success">Net Payable :</span>
+                                        <span class="text-bold text-success" style="padding: 5px 10px;">{{model.NetPayable}} </span>
+                                    </div>
+                                    <div class="form-group">
+                                        <span class="text-danger text-bold"> Due : </span>
+                                        <span class="text-danger text-bold"> {{model.Due}} </span>
+                                    </div>
+                                    <div class="form-group">
+                                        <span class="text-danger text-bold"> Prev. Due : </span>
+                                        <span class="text-danger text-bold"> {{ PrevDuesAmount | currency : "" }} </span>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-md-4">
+                                            <span class="text-bold">Paid [F2] : </span>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <input class="form-control" id="Paid" ng-init="model.Paid=0" ng-model="model.Paid" type="number" ng-required="0">
+                                        </div>
+
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-6">
+                                        <label class="control-label text-bold">Total </label>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <span class="text-bold" style="padding: 5px 10px; font-size: 14px;">{{model.TotalAmount}}  {{fncGrandtotal()}}</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-6">
+                                        <label class="control-label" for="Discount">Discount</label>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <input class="form-control" type="number" id="Discount" ng-init="model.Discount=0" ng-model="model.Discount">
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-6">
+                                        <label class="control-label" for="Tax">Tax(%)</label>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <input class="form-control" type="number" id="Percentage" ng-init="model.Percentage=0" ng-model="model.Percentage">
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-6">
+                                        <label class="control-label" for="Tax">Tax</label>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <input class="form-control" type="number" step="any" readonly="" id="Tax" ng-init="model.Tax=0" ng-model="model.Tax" ng-value="fncPercent()">
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-6">
+                                        <label class="control-label" for="Tax">Shipping</label>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <input class="form-control" type="number" ng-init="model.Shipping=0" ng-model="model.Shipping">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!----start: Invoice NO Modal--->
+                        <!---- Modal show after success-->
+                        <div class="modal fade" role="dialog" aria-labelledby="gridSystemModalLabel" data-backdrop="static" aria-hidden="true" id="static" data-keyboard="false">
+                            <div class="modal-dialog modal-sm" style="width:400px;">
+                                <div class="modal-content">
+                                    <div style="background-color:lightblue;font-weight:bold;" class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <h4 class="modal-title" id="gridSystemModalLabelEdit">Do You Want To Print?</h4>
+                                    </div>
+                                    <div class="modal-body pt-xlg pb-xlg" id="section-to-print">
+                                        <div style="text-align: center; vertical-align: middle; color: crimson; font-size: 18px; font-weight: bold;" class=".modalDiv" id="_VoucherNoModal">
+                                            {{InvNo}}
+                                        </div>
+
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <a href="#" data-dismiss="modal" class="btn btn-danger pull-left pl-xlg pr-xlg" id="" ng-click="clearFormData()">
+                                            <i class="fa fa-close"></i>    No
+                                        </a>
+
+                                        <a href="@Url.Action("RptSalesInvoice","POS")?id={{InvId}}" target="_blank" class="btn btn-primary pull-right pl-xlg pr-xlg" ng-click="clearFormData()">
+                                            <i class="fa fa-print"></i>Yes
+                                        </a>
+                                    </div>
+
+                                </div><!-- /.modal-content -->
+                            </div><!-- /.modal-dialog -->
+                        </div><!-- /.modal -->
+                        <!----End: Invoice NO Modal--->
+
+                    </div>
+
+                <div class="panel-footer mt-none pt-xs pb-xs">
+                    
+                    <div class="row mt-xs">
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-danger btn-wide pull-right" id="btnSubmit" style="width:100%" ng-click="InsertItem(model)" ng-disabled="model.NetPayable<1 || frmPOS.$invalid ">Submit</button>
+                        </div>
+                        <strong><small style="color:red;">{{message}}</small></strong>
+                        <strong ng-show="model.Paid>model.NetPayable"><small style="color:red;"> Inccorrect Paid Amount !!</small></strong>
+                    </div>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+</section>
+
+<script type="text/javascript">
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+        $scope.ClientList = [];
+        $scope.modalheader = "";
+        $scope.onSuccess = function () {
+            $('#static').modal('show');
+        }
+        $scope.clearFormData = function () { //reset button
+            $('#static').modal('hide');
+        };
+        $scope.Text = "";
+        $scope.exist = 0;
+        $scope.existIndex = -9;
+
+        /*  START : Load Combo  */
+        $scope.GetCombo = function () {
+            $http({ method: 'Post', url: '@Url.Action("PrcLoadCombo", "POS")' }).then(function (res) {
+                $scope.ClientList = res.data.Table;
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+        };
+
+        $scope.GetCombo();
+        /*  END : Load Combo  */
+
+        // Main Array
+        $scope.model = { InvoiceSubList: [], InvoiceSerialList: [], dtInvoice: $filter("date")(Date.now(), 'dd-MMM-yyyy'), ItemType: 'Barcode', ClientId: 1, Discount: 0, Tax: 0, Shipping: 0, Paid: 0, Due: 0 }
+
+
+        /*  START : Load Combo  */
+        $scope.PrcComboLoad = function () {
+            $http({ method: 'Post', url: '@Url.Action("PrcComboLoad", "Transfer")' }).then(function (res) {
+                $scope.WHList = res.data.Table;
+                $scope.TypeList = res.data.Table1;
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+        };
+
+        $scope.PrcComboLoad();
+        /*  END : Load Combo  */
+
+        $scope.PrevDuesAmount = 0;
+
+        /*   START :  ProductSub/ Item details */
+        $scope.gridOptions = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi,
+                    $interval(function () {
+                        $scope.gridApi.core.handleWindowResize();
+                    }, 500, 10);
+            },
+            data: $scope.InvoiceSubList,
+        }
+
+        /*   START : grid Column | ProductSub */
+        $scope.gridOptions.columnDefs = [
+            { name: 'Item Name', field: 'ProductNameShort', width: 350, enableColumnMenu: false },
+            {
+                name: 'Qty', field: 'Qty', width: 65, enableColumnMenu: false,
+                cellTemplate: ' <div>' +
+                    ' <input type="number" required="" ng-model="row.entity.Qty" ng-change="grid.appScope.fncCalc(row.entity)" class="pl-sm" />' +
+                    ' </div>'
+            },
+            {
+                name: 'Price', field: 'SellingPrice', width: 70, enableColumnMenu: false,
+                cellTemplate: ' <div>' +
+                    ' <input type="number" required="" ng-model="row.entity.SellingPrice" ng-change="grid.appScope.fncCalc(row.entity)" class="pl-sm" />' +
+                    ' </div>'
+            },
+
+            {
+                name: 'P. Info', field: 'ProductCode', enableColumnMenu: false, width: 85,
+                cellTemplate:
+                    ' <div class="text-center">' +                   
+                        '<span class="text-bold" ng-show="row.entity.IsShowGrrPrice == 1"> {{row.entity.CostPrice}} </span>' +
+                        ' <button type="button" class="btn btn-xs btn-danger" ng-click="grid.appScope.fncShowGrrPrice(row.entity)">Click</button>' +
+                    '</div>'
+            },         
+
+            {
+                name: 'Discount', field: 'PrdDiscount', width: 100, enableColumnMenu: false,
+                cellTemplate: ' <div>' +
+                    ' <input type="number" ng-model="row.entity.PrdDiscount" ng-change="grid.appScope.fncCalc(row.entity)" class="pl-sm" />' +
+                    ' </div>'
+            },
+            { name: 'Total', field: 'Amount', width: 70, enableColumnMenu: false },
+            { name: 'Stock', field: 'StockQty', width: 75, enableColumnMenu: false },
+            { name: 'SL#', field: 'RowNo', width: 65, enableColumnMenu: false },
+            
+            {
+                name: 'X', enableColumnMenu: false, width: 45,
+                cellTemplate:
+                        '<a href="javascript:void(0)" class="ml-md black" ng-click="grid.appScope.removeItem(row)"><i class="fa fa-close fa-sm text-danger" aria-hidden="true"></i></a>'
+            }
+        ];
+        /*   END : grid Column | ProductSub */
+
+        //grid serial
+        $scope.gridOptionsSerial = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi,
+                    $interval(function () {
+                        $scope.gridApi.core.handleWindowResize();
+                    }, 500, 10);
+            },
+            data: $scope.InvoiceSerialList
+        }
+
+        $scope.gridOptionsSerial.columnDefs = [
+            { name: 'ProductId', field: 'ProductId', width: 120, enableColumnMenu: false },
+            { name: 'IsWarranty', field: 'IsWarranty', width: 77, enableColumnMenu: false },
+            { name: 'IsSerial', field: 'IsSerial', width: 77, enableColumnMenu: false },
+            { name: 'SerialId', field: 'SerialId', width: 77, enableColumnMenu: false },
+            { name: 'SerialNo', field: 'SerialNo', width: 120, enableColumnMenu: false }
+        ];      
+
+        //End of grid serial
+        $scope.ItemByBarcode = function () {
+
+            if (angular.isDefined($scope.model.Barcode)) {
+                $http({
+                    method: 'POST',
+                    url: '@Url.Action("GetItemAutocomplete", "POS")',
+                    data: JSON.stringify({ Flag: $scope.model.Barcode, Flag2: "barcode" })
+                }).then(function (response) {
+                    if (response.data.length > 0) {
+                        $scope.GetFillData($scope.model.Barcode, response.data[0])
+                    }
+                }, function errorCallback(response) {
+                    console.log(response);
+                });
+            }
+        }
+
+    // Search Item
+        $scope.SearchItem = function (param) {
+            var output = [];
+            if (angular.isDefined(param)) {
+                if (param.length > 2) {
+                    $scope.showLoader = true;
+
+                    return $http({
+                        method: 'POST',
+                        url: '@Url.Action("GetItemAutocomplete", "POS")',
+                        data: JSON.stringify({ Flag: param })
+                    }).then(function (response) {
+                        $scope.showLoader = false;
+                        $scope.ItemList = response.data;
+                        return $scope.ItemList;
+
+                    }, function errorCallback(response) {
+                        console.log(response);
+                    });
+                    $scope.showLoader = false;
+                }
+            }
+            else {
+                //$scope.filterCountry = null;
+            }
+        }
+
+        $scope.GetFillData = function (entity, selectedItem) {
+            $scope.showLoader = false;
+            $scope.fncSearchClear();
+
+            if (angular.isDefined(selectedItem.ProductId)) {
+                if (selectedItem.ProductId > 0) {
+                    if (selectedItem.StockQty > 0) {
+                        // if same product in list then increase only qty and price
+                        if ($scope.gridOptions.data.length > 0) {
+                            for (var i = 0; i < $scope.gridOptions.data.length; i++) {
+                                if ($scope.gridOptions.data[i].ProductId === selectedItem.ProductId && $scope.gridOptions.data[i].GrrId === selectedItem.GrrId) {
+                                    $scope.exist = 1;
+                                    $scope.existIndex = i;
+
+                                    if ($scope.gridOptions.data[$scope.existIndex].Qty + 1 > selectedItem.StockQty) {
+                                        new PNotify({
+                                            title: 'Notification',
+                                            text: 'Sorry!! Item Out of Stock',
+                                            type: 'custom',
+                                            addclass: 'notification-danger',
+                                            icon: 'fa fa-exclamation-triangle'
+                                        });
+                                    }
+                                    else {
+                                        $scope.gridOptions.data[$scope.existIndex].Qty += 1;
+                                        $scope.gridOptions.data[$scope.existIndex].Amount = ($scope.gridOptions.data[$scope.existIndex].Qty * selectedItem.SellingPrice);
+                                    }
+                                }
+                            }
+
+                            if ($scope.exist === 0 && $scope.existIndex === -9) {
+                                $scope.PushNewRow(selectedItem);
+                            }
+
+                            $scope.exist = 0;
+                            $scope.existIndex = -9;
+                        }
+                        else {
+                            $scope.PushNewRow(selectedItem);
+                        }
+                    }
+                    //Stock Alert
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Sorry!! Item Out of Stock',
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+
+                }
+            }
+        }
+        // End Fill Data
+
+        $scope.PushNewRow = function (selectedItem) {
+
+            $scope.gridOptions.data.push({
+                RowNo: $scope.gridOptions.data.length + 1,
+                ProductNameShort: selectedItem.ProductNameShort,
+                ProductName: selectedItem.ProductName,
+
+                Qty: selectedItem.Qty,
+                CostPrice: selectedItem.CostPrice,
+                SellingPrice: selectedItem.SellingPrice,
+                Amount: (1 * selectedItem.SellingPrice),
+
+                PrdDiscount: 0,
+                ProductId: selectedItem.ProductId,
+                ProductCode: selectedItem.ProductCode,
+                BarCode: selectedItem.BarCode,
+                BrandName: selectedItem.BrandName,
+
+                QtyRcvd: selectedItem.QtyRcvd,
+                SoldQty: selectedItem.SoldQty,
+                StockQty: selectedItem.StockQty,
+
+                GrrId: selectedItem.GrrId,
+                GrrNo: selectedItem.GrrNo,
+            });
+        }
+
+        //Client
+        $scope.SaveClient = function (Customer) {
+            $scope.model.ClientId = 0; var custid = 0; $scope.ClientList = [];
+            $http.post('@Url.Action("prcDataSaveShortly", "Client")', { model: Customer }).then(function (result) {
+
+                if (result.data > 1) {
+                    $scope.GetCombo();
+                    $scope.Customer = {};
+                }
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + result.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                }
+
+            },
+            function (responseData) {
+                console.log("Error !" + responseData);
+            });
+        };
+        
+        // Show Grr Price
+        $scope.fncShowGrrPrice = function (row) {
+            if (row.IsShowGrrPrice == 1) {
+                row.IsShowGrrPrice = 0;
+            }
+            else {
+                row.IsShowGrrPrice = 1;
+            }
+        }
+
+        $scope.GetPrevDues = function () {
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetPrevDues", "POS")',
+                data: { id: $scope.model.ClientId }
+            }).then(function (result) {
+                $scope.PrevDuesAmount = (result.data[0].Column1 == null ? 0 : result.data[0].Column1);
+            }, function (error) {
+                alert(error);
+            });
+        }
+
+        //$scope.GetPrevDues();
+
+
+        /* START : Sub Total Calculation fncSubtotal */
+        $scope.fncCalc = function (rowentity) {
+            var Amount = 0, qty = 0, price = 0, discount = 0;
+            qty = rowentity.Qty;
+            price = rowentity.SellingPrice;
+            discount = rowentity.PrdDiscount;
+
+            if (qty < 0) {
+                new PNotify({
+                    title: 'Notification',
+                    text: 'Sorry!! Negative value not allowed',
+                    type: 'custom',
+                    addclass: 'notification-danger',
+                    icon: 'fa fa-exclamation-triangle'
+                });
+                rowentity.Qty=0;
+            }
+
+            if (qty > rowentity.StockQty) {
+                new PNotify({
+                    title: 'Notification',
+                    text: 'Sorry!! Item Out of Stock',
+                    type: 'custom',
+                    addclass: 'notification-danger',
+                    icon: 'fa fa-exclamation-triangle'
+                });
+                rowentity.Qty = 0;
+            }
+
+
+            if (qty > 0 && price > 0) {
+                Amount = (qty * price)
+            }
+            if (discount > 0 && Amount > 0) {
+                Amount = (Amount - discount);
+            }
+            rowentity.Amount = Amount;
+        }
+
+        /* END : Sub Total Calculation fncSubtotal*/
+
+        /* START : Grand Total Calculation fncGrandtotal*/
+        $scope.fncGrandtotal = function () {
+
+            var total = 0, tax = 0, shipping = 0, discount = 0, paid = 0, totalamount = 0;
+            var countItem = 0;
+            var countQty = 0;
+            $scope.model.Due = 0;
+            angular.forEach($scope.gridOptions.data, function (item) {
+                total += item.Amount;
+                countItem += 1;
+                countQty += item.Qty;
+            });
+            $scope.model.TotalAmount = total;
+            $scope.model.TotalItems = countItem;
+            $scope.model.TotalQty = countQty;
+
+            discount = $scope.model.Discount;
+            tax = $scope.model.Tax;
+            shipping = $scope.model.Shipping;
+            paid = $scope.model.Paid;
+
+            totalamount = (total + tax + shipping);
+            $scope.model.NetPayable = (totalamount);
+            $scope.model.Due = (totalamount);
+
+            if (discount > 0 && totalamount > 0) {
+                $scope.model.NetPayable = (totalamount - discount);
+                $scope.model.Due = (totalamount - discount);
+            }
+
+            if (paid > 0) {
+                if (paid > $scope.model.NetPayable)
+                {
+                    alert('Paid amount must be equal or less then net payable');
+                    $scope.model.Paid = 0;
+                } else {
+                    $scope.model.Due = Math.round(($scope.model.NetPayable - paid));
+                }
+
+               
+            }
+
+        }
+
+        /* END : Grand Total Calculation fncGrandtotal*/
+        $scope.fncPercent = function () {
+            $scope.model.Tax = 0;
+            var totalPercent = 0;
+
+            if ($scope.model.Percentage > 0)
+                totalPercent = Math.round(($scope.model.Percentage / 100) * $scope.model.TotalAmount).toFixed(2);
+            $scope.model.Tax = parseFloat(totalPercent);
+            return totalPercent;
+        }
+
+        /* START : Remove GRID Item */
+        $scope.removeItem = function (row) {
+            var index = $scope.gridOptions.data.indexOf(row.entity);
+            // Serial Delete
+            for (var i = $scope.gridOptionsSerial.data.length - 1; i >= 0; i--) {
+                if ($scope.gridOptionsSerial.data[i].ProductId == row.entity.ProductId) {
+                    $scope.gridOptionsSerial.data.splice(i, 1);
+                }
+            }
+            // Sub Data Delete
+            $scope.gridOptions.data.splice(index, 1);
+        }
+        /* END : Remove GRID Item */
+
+        /* START : Insert Item */
+        $scope.InsertItem = function (model) {
+            $scope.InvNo = '';
+            $scope.InvId = 0;
+            $scope.IsInvalid = false;
+
+            if ($scope.model.ClientId == 1 && $scope.model.Due > 0)
+            {
+                $scope.IsInvalid = true;
+                new PNotify({
+                    title: 'Notification',
+                    text: 'Alert! Due Sales not allowed for Walk-in Customer',
+                    type: 'custom',
+                    addclass: 'notification-danger',
+                    icon: 'fa fa-exclamation-triangle'
+                });
+            }
+            
+            for (var i = 0; i < $scope.gridOptions.data.length; i++)
+            {
+                if ($scope.gridOptions.data[i].Qty==0)
+                {
+                    $scope.IsInvalid = true;
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Alert! Please provide valid Quantity',
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                }
+               else if ($scope.gridOptions.data[i].SellingPrice == 0) {
+                    $scope.IsInvalid = true;
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Alert! Please provide valid Selling price',
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                }
+            }
+
+
+            //submit
+            if($scope.IsInvalid==false)
+            {
+                $scope.model.InvoiceSubList = $scope.gridOptions.data;
+                $scope.model.InvoiceSerialList = $scope.gridOptionsSerial.data;
+
+
+                $("#btnSubmit").attr('disabled', 'disabled');
+                $("#btnSubmit").text("Processing");
+
+                $http.post("@Url.Action("Create", "POS")", { model }).then(function (data) {
+                    if (data.data[1] > 0) {
+                        $scope.InvNo = data.data[0];
+                        $scope.InvId = data.data[1];
+
+                        $scope.gridOptions.data = [];
+                        $scope.gridOptionsSerial.data = [];
+                        $scope.model = { InvoiceSubList: [], InvoiceSerialList: [], dtInvoice: $filter("date")(Date.now(), 'dd-MMM-yyyy'), ClientId: 1, Discount: 0, Tax: 0, Shipping: 0, Paid: 0, Due: 0 }
+                        $scope.onSuccess();
+                        window.setTimeout(function () {
+                            var url = '@Url.Action("RptSalesInvoice", "POS")';
+                            window.open(url + "/" + InvId, 'popUpWindow', 'height=500,width=900,left=10,top=10,scrollbars=yes,menubar=no');
+                        }, 700)
+
+                        $scope.showLoader = false;
+                        $("#btnSubmit").text("Submit");
+                        $("#btnSubmit").removeAttr('disabled');
+                    }
+
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+
+                        $("#btnSubmit").text("Submit");
+                        $("#btnSubmit").removeAttr('disabled');
+                    }
+                });
+            }
+
+        }
+        /* END : Insert Item */
+
+
+        /* END : Insert Item */
+        $scope.keyUp = function (key) {
+            if (key.keyCode == 17) {
+                $('#ItemName').focus().select();
+            }
+            else if (key.keyCode == 113) {
+                $('#Paid').focus().select();
+            }
+                //click submit button
+            else if (key.ctrlKey && key.keyCode == 13) {
+                $("#btnSubmit").trigger("click")
+            }
+                //press esc button to no print
+            else if (key.keyCode == 27) {
+                $("#btnClose").trigger("click")
+            }
+        };
+
+        $scope.fncSearchClear = function () {
+            $scope.model.ProductName = "";
+            $scope.model.Barcode = "";
+        }
+    }
+]);
+
+
+    ngGridApp.directive('shortcuts', ['$document', '$rootScope', function ($document, $rootScope) {
+        $rootScope.shortcuts = [];
+
+        $document.on('keydown', function (e) {
+            // Skip if it focused in input tag.
+            $rootScope.shortcuts.forEach(function (eventHandler) {
+                if (event.target.tagName !== eventHandler)
+                    eventHandler(e.originalEvent, e)
+            });
+        })
+
+        return {
+            restrict: 'A',
+            scope: {
+                'shortcuts': '&'
+            },
+            link: function (scope, element, attrs) {
+                $rootScope.shortcuts.push(scope.shortcuts());
+            }
+        };
+    }]);
+</script>

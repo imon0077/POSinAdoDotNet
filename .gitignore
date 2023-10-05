@@ -1,0 +1,7 @@
+/node_modules
+/SoftifyFoodPOSNew/bin
+/SoftifyFoodPOSNew/obj
+/.vs
+**/.vs
+**/bin
+**/obj

@@ -1,0 +1,213 @@
+﻿@using System.Data
+@model  SoftifyFoodPOSNew.Models.Transaction
+@{
+    ViewBag.Title = "Monthly Report";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<!-- start: Client Add Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <div class="panel-body">
+
+        <header class="p-xs mr-lg">
+            <div class="row">
+                <div class="col-md-3">
+                    @Html.Label("From Date", htmlAttributes: new { @class = "control-label" })
+                    @Html.Editor("dtFrom", new { htmlAttributes = new { @class = "form-control", @id = "date", datepicker = "", ng_model = "dtFrom", @placeholder = "", @required = "required" } })
+                </div>
+
+                <div class="col-md-3">
+                    @Html.Label("To Date", htmlAttributes: new { @class = "control-label" })
+                    @Html.Editor("dtTo", new { htmlAttributes = new { @class = "form-control", @id = "date1", ng_model = "dtTo", @placeholder = "", datepicker = "", @required = "required" } })
+                </div>
+            </div>
+            <hr />
+            <div class="row mt-md">
+                <div class="col-md-4 pl-xs">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            @Html.Label("Report Format", htmlAttributes: new { @class = "control-label text-bold" })
+                        </div>
+                        <div class="col-md-3">
+                            <span class="radio-custom radio-dark">
+                                @Html.RadioButton("rptType", "pdf", new { @class = " ", @checked = "checked" })
+                                <label>Pdf</label>
+                            </span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <span class="radio-custom radio-dark">
+                                @Html.RadioButton("rptType", "Word", new { @class = "form-control" })
+                                <label>Word</label>
+                            </span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <span class="radio-custom radio-dark">
+                                @Html.RadioButton("rptType", "Excel", new { @class = " " })
+                                <label>Excel</label>
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="col-sm-2 p-none mt-sm pull-left">
+                    @*<a href="@Url.Action("RptMonthlyReport","InvRptMonthlyReport")?FromDate={{dtFrom}}&ToDate={{dtTo}} & rptType={{rptType}}" class="btn btn-danger pl-xlg pr-xlg" id="" target="_blank">
+                        <i class="fa fa-print"></i> Preview
+                    </a>*@
+                    <form action="RptMonthlyReport" method="post" name="RptMonthlyReport" target="_blank">
+                        <input type="hidden" name="FromDate" value="{{dtFrom}}">
+                        <input type="hidden" name="ToDate" value="{{dtTo}}">
+                        <input type="hidden" name="rptFormat" value="{{rptType}}">
+
+                        <button type="submit" formtarget="_blank" class="btn btn-danger pl-xlg pr-xlg">
+                            <i class="fa fa-print" aria-hidden="true"></i> Preview
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </header>
+
+    </div>
+        <br>
+
+</section>
+
+
+<script>
+
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+
+        $scope.FromDate = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.ToDate = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+    }]);
+
+
+    ngGridApp.directive("select2", function ($timeout, $parse) {
+        return {
+            restrict: 'AC',
+            require: 'ngModel',
+            link: function (scope, element, attrs) {
+                $timeout(function () {
+                    element.select2();
+                    element.select2Initialized = true;
+                });
+
+                var refreshSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.trigger('change');
+                    });
+                };
+
+                var recreateSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.select2('destroy');
+                        element.select2();
+                    });
+                };
+
+                scope.$watch(attrs.ngModel, refreshSelect);
+
+                if (attrs.ngOptions) {
+                    var list = attrs.ngOptions.match(/ in ([^ ]*)/)[1];
+                    // watch for option list change
+                    scope.$watch(list, recreateSelect);
+                }
+
+                if (attrs.ngDisabled) {
+                    scope.$watch(attrs.ngDisabled, refreshSelect);
+                }
+            }
+        };
+    });
+
+    // this datepicker also work chcnge event in angular js
+    ngGridApp.directive('datepicker', function ($filter) {
+        return {
+            restrict: 'A',
+            require: 'ngModel',
+            compile: function () {
+                return {
+                    pre: function (scope, element, attrs, ngModelCtrl) {
+                        var format, dateObj;
+                        format = (!attrs.dpFormat) ? 'dd-M-yyyy' : attrs.dpFormat;
+                        if (!attrs.initDate && !attrs.dpFormat) {
+                            // If there is no initDate attribute than we will get todays date as the default
+                            dateObj = new Date();
+
+                            //scope[attrs.ngModel] = dateObj.getDate() + '/' + (dateObj.getMonth() + 1) + '/' + dateObj.getFullYear();
+                            scope[attrs.ngModel] = $filter("date")(dateObj, 'dd-MMM-yyyy')
+
+                        } else if (!attrs.initDate) {
+                            // Otherwise set as the init date
+                            scope[attrs.ngModel] = attrs.initDate;
+                        } else {
+                            // I could put some complex logic that changes the order of the date string I
+                            // create from the dateObj based on the format, but I'll leave that for now
+                            // Or I could switch case and limit the types of formats...
+                        }
+                        // Initialize the date-picker
+                        $(element).datepicker({
+                            format: format,
+                        }).on('changeDate', function (ev) {
+                            // To me this looks cleaner than adding $apply(); after everything.
+                            scope.$apply(function () {
+                                ngModelCtrl.$setViewValue(ev.format(format));
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    ngApp.directive('datetimez', function () {
+        return {
+            require: '?ngModel',
+            restrict: 'A',
+            link: function (scope, element, attrs, ngModel) {
+                if (!ngModel) return;
+
+                ngModel.$render = function () {
+                    element.val(ngModel.$viewValue || '');
+                };
+
+                function read() {
+                    var value = element.val();
+                    ngModel.$setViewValue(value);
+                    //console.log(scope.dueDate);
+                }
+
+                var options = scope.$eval(attrs.datetimez) || { format: 'DD-MMM-YYYY hh:mm A', defaultDate: new Date(), sideBySide: true, };
+                if (element.next().is('.input-group-addon')) {
+                    var parentElm = $(element).parent();
+                    parentElm.datetimepicker(options);
+
+                    parentElm.on('dp.change', function () {
+                        scope.$apply(read);
+                    });
+                } else {
+                    element.datetimepicker(options);
+
+                    element.on('dp.change', function () {
+                        scope.$apply(read);
+                    });
+                }
+
+                read();
+            }
+        };
+    });
+
+</script>

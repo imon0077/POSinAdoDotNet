@@ -1,0 +1,137 @@
+﻿@using System.Data;
+@{
+    DataTable dt = new DataTable();
+    dt = ViewBag.daSetList;
+}
+@using (Html.BeginForm())
+{
+    @*<section class="panel">
+
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-none">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>Time In </th>
+                                <th>Time Out</th>
+                                <th>Late Time</th>
+                                <th>Status</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @foreach (DataRow dr in dt.Rows)
+                            {
+
+                                <tr>
+
+                                    <td>@dr["EmpName"].ToString()</td>
+                                    <td>@dr["dtDate"].ToString()</td>
+                                    <td>
+                                        <div class="progress progress-sm progress-half-rounded m-none mt-xs light">
+                                            <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">
+                                                @dr["TimeIn"].ToString()
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="label label-warning">
+
+                                       @dr["TimeOut"].ToString()
+                                    </span>
+                                    </td>
+                                    <td><span class="label label-warning">@dr["LateTime"].ToString()</span></td>
+                                    <td>@dr["Status"].ToString()</td>
+                            </tr>
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>*@
+    <section class="panel">
+        <div class="panel-body">
+            <div class="invoice">
+                <header class="clearfix">
+                    <div class="row">
+                        <div class="col-sm-6 mt-md">
+                            <h2 class="h2 mt-none mb-sm text-dark text-bold">Report : Daily @dt.Rows[0]["Caption"].ToString()</h2>
+                            <h4 class="h4 m-none text-dark text-bold">Date : @dt.Rows[0]["dtDate"].ToString()</h4>
+                        </div>
+                        <div class="col-sm-6 text-right mt-md mb-md">
+                            <address class="ib mr-xlg">
+                                Softify Technologies Ltd
+                                <br />
+                                Sanmar RL Park View, Khulshi, CTG
+                                <br />
+                                Phone: +880 1616 010000
+                                <br />
+                                Hello@Softifytech.com
+                            </address>
+                            <div class="ib">
+                                <img src="~/Content/assets/images/logo.png" alt="Logo" height="40" />
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+
+                <div class="table-responsive">
+                    <table class="table table-striped mb-none">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>Time In </th>
+                                <th>Time Out</th>
+                                <th>Late Time</th>
+                                <th>Status</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @foreach (DataRow dr in dt.Rows)
+                            {
+
+                                <tr>
+
+                                    <td>@dr["EmpName"].ToString()</td>
+                                    <td>@dr["dtDate"].ToString()</td>
+                                    <td>
+                                        <span class="label label-success">
+                                            @dr["TimeIn"].ToString()
+                                        </span>
+
+
+                                    </td>
+                                    <td>
+                                        <span class="label label-warning">
+
+                                            @dr["TimeOut"].ToString()
+                                        </span>
+                                    </td>
+                                    <td><span class="label label-danger">@dr["LateTime"].ToString()</span></td>
+                                    <td>@dr["Status"].ToString()</td>
+                                </tr>
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </div>
+            <hr />
+            <div class="text-right mr-lg">
+
+                <a href="#" data-dismiss="modal" class="btn btn-default">Close</a>
+                <a href="#" class="btn btn-primary ml-sm"><i class="fa fa-print"></i> Print</a>
+            </div>
+        </div>
+    </section>
+}

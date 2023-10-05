@@ -1,0 +1,244 @@
+﻿@model SoftifyFoodPOSNew.Models.Supplier
+@{
+    ViewBag.Title = "Supplier List";
+}
+
+<!-- js/css files -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+<!-- /js/css files -->
+<style>
+    .grid {
+        height: 68vh;
+    }
+</style>
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+<!-- start: Supplier Entry  page -->
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <form name="SupplierForm">
+        <div class="row">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-4">
+
+                        <div class="col-md-12">
+                            @Html.HiddenFor(model => model.supplierId, new { @class = "control-label ", ng_model = "Supplier.supplierId", ng_value = "Supplier.supplierId" })
+
+                            @Html.LabelFor(model => model.supplierName, "Name", htmlAttributes: new { @class = "control-label" })
+                            @Html.EditorFor(model => model.supplierName, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "Supplier.supplierName" } })
+                            @Html.ValidationMessageFor(model => model.supplierName, "", new { @class = "text-danger" })
+
+                            @Html.LabelFor(model => model.SupplierAddress, "Address", htmlAttributes: new { @class = "control-label" })
+                            @Html.TextAreaFor(model => model.SupplierAddress, new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "Supplier.SupplierAddress", @rows = 4 })
+                            @Html.ValidationMessageFor(model => model.SupplierAddress, "", new { @class = "text-danger" })
+
+
+                            @Html.LabelFor(model => model.SupplierPhone, "Phone", htmlAttributes: new { @class = "control-label " })
+                            @Html.EditorFor(model => model.SupplierPhone, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "Supplier.SupplierPhone" } })
+                            @Html.ValidationMessageFor(model => model.SupplierPhone, "", new { @class = "text-danger" })
+
+                            @Html.LabelFor(model => model.SupplierMobile, "Mobile", htmlAttributes: new { @class = "control-label " })
+                            @Html.EditorFor(model => model.SupplierMobile, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "Supplier.SupplierMobile" } })
+                            @Html.ValidationMessageFor(model => model.SupplierMobile, "", new { @class = "text-danger" })
+
+                            @Html.LabelFor(model => model.SupplierEmail, "Email", htmlAttributes: new { @class = "control-label " })
+                            @Html.EditorFor(model => model.SupplierEmail, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "Supplier.SupplierEmail" } })
+                            @Html.ValidationMessageFor(model => model.SupplierEmail, "", new { @class = "text-danger" })
+
+
+                            @Html.LabelFor(model => model.CountryId, "Country", htmlAttributes: new { @class = "control-label " })
+                            @Html.DropDownList("CountryId", new SelectList(ViewBag.CountryList, "Id", "Name"), "---Please Select---", new { @class = "form-control", select2 = "", @style = "width:100%", ng_model = "Supplier.CountryId" })
+
+                        </div>
+
+                        <div class="col-md-12 mt-md ">
+                            <button class="btn btn-danger btn-block col-md-12" type="button" name="btnSubmit" ng-click="SaveData(model)" ng-disabled="SupplierForm.$invalid">
+                                Submit <i class="fa fa-arrow-circle-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+
+
+                    <!-- : loading..... -->
+                    <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                        <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 50%; left: 70%; width: 8%;">
+                    </div>
+
+                    <div class="col-md-8 mt-md">
+                        <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                             style="font-family: 'Open Sans', Arial, sans-serif; color: #595959 !important;" class="grid"></div>
+                    </div>
+                </div>
+
+            </div>  <!-- ng-init End-->
+        </div>
+
+    </form>
+</section>
+
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', function ($scope, $http, $log, $filter, $timeout) {
+
+        $scope.Supplier = {};
+        $scope.UpdateData = function (model) {
+            console.log(model);
+            $scope.Supplier = angular.copy(model);
+            $scope.Supplier.CountryId = $scope.Supplier.CountryId.toString();
+        };
+        $scope.showLoader = false;
+
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Supplier List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+            enableFiltering: true,
+            showGridFooter: true,
+            // Default: End
+            // Register : API [ for collapsable window ]
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $timeout(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 200);
+            }
+        }
+
+        $scope.gridOptions.columnDefs = [
+            , { name: 'Name ', field: 'supplierName', width: 250 }
+            , { name: 'Address', field: 'SupplierAddress', width: 200 }
+            , { name: 'Phone', field: 'SupplierPhone', width: 110 }
+            , { name: 'SupplierMobile', field: 'SupplierMobile', width: 130 }
+            , { name: 'SupplierEmail', field: 'SupplierEmail', width: 130 }
+            , {
+                name: 'Action', width: 90, cellTemplate:
+                    '<a href="javascript:void(0)" class="ml-xs black" ng-click="grid.appScope.UpdateData(row.entity)"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></a>' +
+                        '<a href="javascript:void(0)" class="ml-xs black ml-md" ng-confirm-click="Are you sure to delete this record ?" confirmed-click="grid.appScope.DeleteItem(row.entity.supplierId)"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></a>'
+            }
+        ];
+
+        /*   Load  : this area load date wise  */
+
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../MiniSupplier/GetSupplierList/'
+            }).then(function (data) {
+                $scope.gridOptions.data = data.data;
+                $scope.showLoader = false;
+            });
+        };
+        $scope.DataLoad();
+        /*   Load  : this area Save wise  */
+
+
+        $scope.SaveData = function () {
+            $http.post("../MiniSupplier/Index", { model: $scope.Supplier }).then(function (data) {
+
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.DataLoad();
+                    $scope.Supplier = {};
+                } // Notification: Save Successfully
+                else if (data.data == "2") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Updated Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.DataLoad();
+                    $scope.Supplier = {};
+                } // Notification: update Successfully
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $scope.DataLoad();
+                    $scope.Supplier = {};
+                }
+            },
+                function (responseData) {
+
+                    console.log("Error !" + responseData);
+                });
+        };
+
+        $scope.DeleteItem = function (itemId) {
+            console.log(itemId);
+            $http.post("prcDeleteData/MiniSupplier", { itemId }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Deleted Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.DataLoad();
+                    $scope.Supplier = {};
+                }
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $scope.DataLoad();
+                    $scope.Supplier = {};
+                }
+            });
+        }
+    }]);
+
+
+</script>
+
+

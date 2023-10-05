@@ -1,0 +1,298 @@
+﻿@model List<SoftifyFoodPOSNew.Models.MenuPermission>
+@{ ViewBag.Title = "Menu Permission"; }
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+    <style>
+        .checkbox-custom label:before {
+            top: 74%;
+        }
+
+        .checkbox-custom input[type="checkbox"]:checked + label:after {
+            top: 74%;
+        }
+    </style>
+     
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationMessage("CustomError")
+<section class="panel" ng-app="ngApp" ng-controller="MenuPermissionctrl">
+    
+    @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="col-md-12">
+                @Html.Label("User Name: ", htmlAttributes: new {@class = "control-label text-bold col-md-2 pull-left"})
+                <div class="form-group col-md-5">
+                    @Html.DropDownList("id", new SelectList(ViewBag.UsersList, "Id", "Name"), "--Select User--", new {@class = "form-control", ng_model = "model.id", select2 = "", style = "width:100%"})
+                </div>
+                <button type="button" class="btn btn-warning" ng-click="UserMenuInfo(model.id)">Load <i class="fa fa-refresh" aria-hidden="true"></i></button>
+            </div>
+
+            <hr style="padding-bottom: 0px"/>
+
+            <div class="col-md-8">
+                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize ui-grid-selection
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 65vh;" class="grid">
+                </div>
+            </div>
+
+            <div class="col-md-12 mt-md">
+                <button class="btn btn-primary btn-wide" type="button" name="btnSubmit" ng-click="SaveAccept()">
+                    Submit <i class="fa fa-arrow-circle-right"></i>
+                </button>
+            </div>
+
+        </div>
+
+</section>
+<script type="text/javascript">
+    /*$(document).ready(function () {
+        var h = $(window).height(); 
+        $('.testclass').css('height', h);
+    });*/
+    
+
+    var ngApp = angular.module('ngApp', ['ngTouch', 'ui.grid', 'ui.grid.expandable', 'ui.grid.selection',
+        'ui.grid.pinning', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.autoResize', 'ui.grid.saveState', 'ui.grid.cellNav']);
+
+    //start : angular controller
+    ngApp.controller('MenuPermissionctrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval','$templateCache', function ($scope, $http, $log, $filter, $timeout, $interval,$templateCache) {
+        $scope.IsUpdateAll = false; $scope.IsDeleteAll = false; $scope.IsMasterAll = false;
+       
+        $scope.dataForPost = [];
+
+        //  start :  grid api gridOptions
+        $scope.gridOptions = {
+            // EXPORT : END
+            enableFiltering: true,
+            showGridFooter: true,
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+
+                gridApi.selection.on.rowSelectionChanged($scope, function (row) {
+                    $scope.countSelectRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                    console.log($scope.dataForPost); 
+                });
+
+                gridApi.selection.on.rowSelectionChangedBatch($scope, function (row) {
+                    $scope.countAllRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                    console.log($scope.dataForPost);
+                });
+            },
+            data: []
+        }
+        //  end :  grid api gridOptions
+
+        //start : Select All
+        $scope.SelectAll = function (flag, status) {
+            console.log(status);
+            for (var i = 0; i < $scope.dataForPost.length; i++) {
+                if (flag === 'Update') {
+                    $scope.dataForPost[i].IsUpdate = status;
+                }
+                else if (flag === 'Delete') {
+                    $scope.dataForPost[i].IsDelete = status;
+                }
+                else if (flag === 'Master') {
+                    $scope.dataForPost[i].IsMaster = status;
+                }
+            }
+        }
+        //end : Select All
+
+        // start : grid Column columnDefs
+        $scope.gridOptions.columnDefs = [
+            { name: 'Menu Name', field: 'MenuName', width: 230, enableColumnMenu: false }
+            , { name: 'Menu Controller', enableFiltering: false, field: 'MenuController', width: 140, enableColumnMenu: false }
+            , { name: 'Menu Link', enableFiltering: false, field: 'MenuLink', width: 120, enableColumnMenu: false }
+            ,{
+                field: 'Update', name: "Update", width: 60, 
+                headerCellTemplate:
+                 "<div>" +
+                    "<label class='ml-sm mt-xs text-bold'>Update<br/></label>" +
+                    "<span class=\"checkbox-custom checkbox-text-dark checkbox-default ml-md\">" +
+                        "<input  type=\"checkbox\" ng-model=\"IsUpdateAll\" id=\"a1\" ng-click=\"grid.appScope.SelectAll('Update',IsUpdateAll)\">" +
+                        "<label for=\"a1\"></label>" +
+                    "</span>"+
+                "<div>",
+                cellTemplate:
+                    "<span class=\"checkbox-custom checkbox-text-dark checkbox-default ml-md \">" +
+                        "<input  type=\"checkbox\" ng-model=\"row.entity.IsUpdate\" id=\"{{row.entity.MenuId+'a'}}\" ng-click=\"$event.stopPropagation();getExternalScopes().showMe(row.entity.IsUpdate)\" ng-disabled=\"row.isSelected==false\">" +
+                        "<label for=\"{{row.entity.MenuId+'a'}}\"></label>" +
+                   "</span>" 
+
+                    //'<input type="checkbox" ng-model="row.entity.IsUpdate" ng-click="$event.stopPropagation();getExternalScopes().showMe(row.entity.IsUpdate)">'
+            },
+            {
+                field: 'Delete', enableFiltering: false, name: "Delete", width: 60, enableColumnMenu: false,
+                headerCellTemplate:
+                    "<div>" +
+                        "<label class='ml-sm mt-xs text-bold'>Delete<br/></label>" +
+                    "<span class=\"checkbox-custom checkbox-text-dark checkbox-default ml-md\">" +
+                        "<input  type=\"checkbox\" ng-model=\"IsDeleteAll\" id=\"b1\" ng-click=\"grid.appScope.SelectAll('Delete',IsDeleteAll)\">" +
+                        "<label for=\"b1\"></label>" +
+                        "</span>"+
+                "<div>",
+                cellTemplate: '' +
+                    //'<input type="checkbox" ng-model="row.entity.IsDelete" ng-click="$event.stopPropagation();getExternalScopes().showMe(row.entity.IsDelete)">'
+                    "<span class=\"checkbox-custom checkbox-text-dark checkbox-default ml-md mt-sm\">" +
+                    "<input  type=\"checkbox\" ng-model=\"row.entity.IsDelete\" id=\"{{row.entity.MenuId+'b'}}\" ng-disabled=\"row.isSelected==false\" ng-click=\"$event.stopPropagation();getExternalScopes().showMe(row.entity.IsDelete)\">" +
+                    "<label for=\"{{row.entity.MenuId+'b'}}\"></label>" +
+                    "</span>"
+            },
+            {
+                field: 'Master', enableFiltering: false, name: "Master", width: 60, enableColumnMenu: false,
+                headerCellTemplate:
+                    "<div>" +
+                        "<label class='ml-sm mt-xs text-bold'>Master<br/></label>" +
+                    "<span class=\"checkbox-custom checkbox-text-dark checkbox-default ml-md\">" +
+                        "<input  type=\"checkbox\" ng-model=\"IsMasterAll\" id=\"c1\" ng-click=\"grid.appScope.SelectAll('Master',IsMasterAll)\">" +
+                        "<label for=\"c1\"></label>" +
+                        "</span>"+
+                "<div>",
+                cellTemplate:
+                    //'<input type="checkbox" ng-model="row.entity.IsMaster" ng-click="$event.stopPropagation();getExternalScopes().showMe(row.entity.IsMaster)">'
+                    "<span class=\"checkbox-custom checkbox-text-dark checkbox-default ml-md\">" +
+                        "<input  type=\"checkbox\" ng-model=\"row.entity.IsMaster\" id=\"{{row.entity.MenuId+'c'}}\" ng-disabled=\"row.isSelected==false\" ng-click=\"$event.stopPropagation();getExternalScopes().showMe(row.entity.IsMaster)\">" +
+                        "<label for=\"{{row.entity.MenuId+'c'}}\"></label>" +
+                        "</span>"
+            }
+            
+        ];
+        // end : grid Column columnDefs
+
+
+        $scope.model = { MPMenuList :[]}
+
+        //start : Submit | SaveAccept | Insert | Post
+        $scope.SaveAccept = function () {
+            $scope.model.MPMenuList = $scope.dataForPost;
+            console.log($scope.model);
+            $http.post("../ReadWritePermission/prcMenuPermissionGrid", { model: $scope.model, userId: $scope.model.id }).then(function (data) {
+                    if (data.data == 1) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: ' Successfully Update.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.UserMenuInfo($scope.model.id);
+                    }
+
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+
+                    }
+                },
+                function (responseData) {
+                    console.log("Error !" + responseData);
+                });
+        };
+        //end : Submit | SaveAccept | Insert | Post
+
+        //start : Data Load | UserMenuInfo
+        $scope.UserMenuInfo = function (userId) {
+            console.log(userId);
+            $scope.IsUpdateAll = false; $scope.IsDeleteAll = false; $scope.IsMasterAll = false;
+            $http({
+                    method: 'Post',
+                    url: '../ReadWritePermission/GetData',
+                    data: JSON.stringify({ Id: userId })
+                }).
+                then(function (data) {
+                    $scope.gridOptions.data = data.data.Table;
+                    $timeout(function () {
+                        for (var i = 0; i < $scope.gridOptions.data.length; i++) {
+                            if ($scope.gridOptions.data[i].isAllow === 1) {
+                                $scope.gridApi.selection.selectRow($scope.gridOptions.data[i]);
+                                $scope.gridOptions.data[i].IsUpdate = Boolean(Number($scope.gridOptions.data[i].IsUpdate));
+                                $scope.gridOptions.data[i].IsDelete = Boolean(Number($scope.gridOptions.data[i].IsDelete));
+                                $scope.gridOptions.data[i].IsMaster = Boolean(Number($scope.gridOptions.data[i].IsMaster));
+                            }
+                        }
+                    });
+                }, function (error) {
+                    alert(error);
+                    console.log(error);
+                });         
+        }
+        //end : Data Load | UserMenuInfo
+
+    }]);
+    //end : angular controller
+
+    //start : select2 directive
+    ngApp.directive("select2", function ($timeout, $parse) {
+        return {
+            restrict: 'AC',
+            require: 'ngModel',
+            link: function (scope, element, attrs) {
+                $timeout(function () {
+                    element.select2();
+                    element.select2Initialized = true;
+                });
+
+                var refreshSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.trigger('change');
+                    });
+                };
+
+                var recreateSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.select2('destroy');
+                        element.select2();
+                    });
+                };
+
+                scope.$watch(attrs.ngModel, refreshSelect);
+
+                if (attrs.ngOptions) {
+                    var list = attrs.ngOptions.match(/ in ([^ ]*)/)[1];
+                    // watch for option list change
+                    scope.$watch(list, recreateSelect);
+                }
+
+                if (attrs.ngDisabled) {
+                    scope.$watch(attrs.ngDisabled, refreshSelect);
+                }
+            }
+        };
+    });
+    //end : select2 directive
+
+    //unused
+    ngApp.filter('mapGender', function() {
+            var genderHash = {
+                1: 'male',
+                2: 'female'
+            };
+    });
+
+    //unused
+    ngApp.directive('myCustomFilter', function() {
+            return {
+                templateUrl:
+                    '<select class="form-control" ng-model="colFilter.condition" ng-options="option.id as option.value for option in colFilter.options"></select>'
+            };
+        });
+
+</script>

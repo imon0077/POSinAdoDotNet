@@ -1,0 +1,631 @@
+﻿@using System.Data
+@model  SoftifyFoodPOSNew.Models.ReceiptPaymentSingle
+@{
+    ViewBag.Title = "Collection / Payment";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<!-- start: Client Add Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    @Html.AntiForgeryToken()
+    <form name="frmProfileRecv">
+        <div class="row">
+            <div class="panel-heading">
+                <div class="typeaheadcontainer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="col-md-4">
+                                @Html.LabelFor(model => model.RecvPayType, "Payment Type", htmlAttributes: new { @class = "control-label text-bold" })
+                            </div>
+                            <div class="col-md-8">
+                                <select ng-model="model.RecvPayType"
+                                        select2=""
+                                        required=""
+                                        data-ng-options="d.PayType as d.PayType for d in PayTypeCombo"
+                                        style="width: 100%" ng-change="GetJobBrand(model.RecvPayType)"
+                                        class="typeaheadcontrol form-control">
+                                    <option value="">==Please Select==</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label class="control-label text-bold" for="CatManName" ng-show="model.RecvPayType=='Payment'">Supplier Name</label>
+                            </div>
+                            <div class="col-md-8">
+                                <span ng-if="model.RecvPayType=='Payment'">
+                                    <select ng-model="model.SupplierId"
+                                            ng-change="getSupInfo(model.SupplierId)||GetSupplierDue(model.SupplierId)"
+                                            select2=""
+                                            required=""
+                                            data-ng-options="d.SupplierId as d.SupplierName for d in SupplierCombo"
+                                            style="width: 100%"
+                                            class="typeaheadcontrol form-control">
+                                        <option value="">==Please Select==</option>
+                                    </select>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label class="control-label text-bold" for="CatManName" ng-show="model.RecvPayType=='Collection'">Client Name</label>
+                            </div>
+                            <div class="col-md-8">
+                                <span ng-if="model.RecvPayType=='Collection'">
+                                    <select ng-model="model.ClientId"
+                                            ng-change="getClientInfo(model.ClientId)"
+                                            select2=""
+                                            required=""
+                                            data-ng-options="d.ClientId as d.shortName for d in ClientCombo"
+                                            style="width: 100%"
+                                            class="typeaheadcontrol form-control">
+                                        <option value="">--Please Select--</option>
+                                    </select>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-body" ng-show="SupplierInfo.length !=0 ">
+            <div class="row">
+                    <div class="col-md-7">
+
+                            <div class="row">
+                                <div class="col-md-5"><h3 class="control-label text-bold">Supplier Name</h3></div><div class="col-md-1"><h3>:</h3></div>
+                                <div class="col-md-5"><h3 class="control-label text-muted">{{SupplierInfo[0].SupplierName}}</h3></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-5"><label class="control-label text-bold">Supplier Address</label></div><div class="col-md-1">:</div>
+                                <div class="col-md-5"><label class="control-label text-muted">{{SupplierInfo[0].SupplierAddress}}</label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-5"><label class="control-label text-bold">Supplier Mobile</label></div><div class="col-md-1">:</div>
+                                <div class="col-md-5"><label class="control-label text-muted">{{SelectedList.SupplierPhone}}</label></div>
+                            </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="form-group" style="padding: 0px 15px; font-size: 16px;" ng-show="SupplierInfo.length !=0 ">
+                        <div class="col-md-7">
+                            <label class="control-label text-bold black">Due Amount </label>
+                        </div>
+                        <div class="col-md-5">
+                            <span class="text-danger text-bold">{{model.DueAmount}}</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label text-bold black" for="PayMode">Payment Mode</label>
+                        </div>
+                        <div class="col-md-8">
+                                <select ng-model="model.PayMode"
+                                        select2=""
+                                        required=""
+                                        data-ng-options="d.varName as d.varName for d in PaymodeCombo"
+                                        style="width: 100%"
+                                        class="typeaheadcontrol form-control">
+                                    <option value="">==Please Select==</option>
+                                </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label text-bold black" for="PayMode">Account Name</label>
+                        </div>
+                        <div class="col-md-8">
+                            <select ng-model="model.HeadId"
+                                    select2=""
+                                    required=""
+                                    data-ng-options="d.HeadId as d.HeadName for d in BankCombo"
+                                    style="width: 100%"
+                                    class= "form-control">
+                                <option value="">==Please Select==</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group mb-xs">
+                        <div class="col-md-4">
+                            <label class="control-label text-bold black mt-xs" for="Amount">Amount</label>
+                        </div>
+                        <div class="col-md-8 pr-xlg">
+                            <input class="form-control pos-input" id="Amount" ng-init="model.Amount=0" ng-model="model.Amount" type="number">
+                        </div>
+                    </div>
+                    <div class="form-group mb-xs">
+                        <div class="col-md-4">
+                            <label class="control-label text-bold black mt-xs" for="Amount">Cheque No</label>
+                        </div>
+                        <div class="col-md-8 pr-xlg">
+                            <input class="form-control pos-input" id="Amount" ng-init="model.Amount=0" ng-model="model.Amount" type="number">
+                        </div>
+                    </div>
+                    <div class="form-group mb-xs">
+                        <div class="col-md-4">
+                            <label class="control-label text-bold black mt-xs" for="Amount">Remaks</label>
+                        </div>
+                        <div class="col-md-8 pr-xlg">
+                            <input class="form-control pos-input" id="Amount" ng-init="model.Amount=0" ng-model="model.Amount" type="number">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <footer class="panel-footer">
+            <div class="row">
+                <div class="col-sm-9 col-sm-offset-3">
+                    <button class="btn btn-danger btn-wide" type="button" name="btnSubmit" ng-disabled="frmProfileRecv.$invalid||hasDuplicate()==true" ng-click="InsertItem(model)">
+                        Submit <i class="fa fa-arrow-circle-right"></i>
+                    </button>
+
+                    <a href="@Url.Action("Index","ReceiptPayment")" class="btn btn-default">
+                        <i class="fa fa-arrow-circle-left"></i> Back to list
+
+                    </a>
+
+
+                </div>
+            </div>
+        </footer>
+    </form>
+</section>
+
+
+<script>
+
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+
+        $scope.PayTypeCombo = [];
+        $scope.BankCombo = [];
+        $scope.ClientCombo = [];
+        $scope.SupplierCombo = [];
+        $scope.SupplierInfo = [];
+        $scope.PaymodeCombo = [];
+        $scope.CashCombo = [];
+        $scope.data = [
+  { RecvPayType: '', DueAmount: 0, Amount: 0, PayMode: '', ChequeNo: '', Remarks: '' }
+        ];
+
+        $scope.model = { dtRecv: $filter("date")(Date.now(), 'dd-MMM-yyyy'), RecvPayType: 'Payment', DueAmount:0,Amount:0,PayMode:'',ChequeNo:'',Remarks:''}
+
+        $scope.getCombo = function () {
+            // Product List
+            $http({
+                method: 'POST',
+                url: '../ReceiptPayment/GetComboLoad'
+            }).
+                then(function (result) {
+                    $scope.PayTypeCombo = result.data.Table;
+                    $scope.BankCombo = result.data.Table1;
+                    $scope.ClientCombo = result.data.Table2;
+                    $scope.SupplierCombo = result.data.Table3;
+                    $scope.PaymodeCombo = result.data.Table4;
+                    $scope.CashCombo = result.data.Table5;
+                    console.log(result.data);
+                });
+        }
+        $scope.getCombo();
+
+        $scope.getSupInfo = function (Id) {
+            $http({
+                method: 'POST',
+                url: '../ReceiptPayment/GetInfo',
+                data: JSON.stringify({ Id: Id ,flag : 'Supplier' })
+            }).
+                then(function (result) {
+                    $scope.SupplierInfo = result.data.Table;
+                    console.log($scope.SupplierInfo);
+                });
+        }
+        $scope.getClientInfo = function (Id) {
+            $http({
+                method: 'POST',
+                url: '../ReceiptPayment/GetInfo',
+                data: JSON.stringify({ Id: Id ,flag: 'Client' })
+            }).
+                then(function (result) {
+                    $scope.ClientInfo = result.data;
+                    console.log(result.data);
+                });
+        }
+
+        //   1.:  grid api
+        $scope.gridOptions = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 200, 10);
+            },
+            data: $scope.data
+        }
+        $scope.GetJobBrand = function () {
+
+            $scope.gridOptions.data = [];
+
+            $scope.gridOptions.data = [
+                {
+                    PayMode: '',
+                    ClientId: '',
+                    SupplierId: '',
+                    Bank: '',
+                    Cash: '',
+
+                    DueAmount: 0,
+                    Amount: 0,
+
+
+                    ChequeNo: '',
+                    Remarks: ''
+                }
+            ];
+
+
+        }
+        $scope.GetTotal = function (RowEntity) {
+            var Total = 0;
+            for (i = 0; i < $scope.gridOptions.data.length; i++) {
+                Total = Total + $scope.gridOptions.data[i].Amount;
+            }
+            //console.log(Total);
+            return Total;
+        }
+        //$scope.GetDueTotal = function (RowEntity) {
+        //    var Due = 0;
+        //    for (i = 0; i < $scope.gridOptions.data.length; i++) {
+        //        Due = $scope.gridOptions.data[i].DueAmount - $scope.gridOptions.data[i].Amount;
+        //    }
+        //    console.log(Due);
+        //    return Due;
+        //}
+
+
+            //$scope.gridOptions.data.DueAmount = $scope.gridOptions.data.DueAmount - $scope.gridOptions.data.Amount;
+            //console.log(gridOptions.data.DueAmount);
+
+
+
+
+
+
+        //$scope.GetClintSuplier = function (RowEntity) {
+        //    if (model.ReceiptPaymentSub.TranType == "Advance") {
+        //        console.log($scope.gridOptions.data.TranType)
+        //        return $scope.gridOptions.data.SupplierId;
+        //    }
+        //    else if (model.ReceiptPaymentSub.TranType == "Billpay") {
+        //        console.log($scope.gridOptions.data.TranType)
+        //        return $scope.gridOptions.data.ClientId;
+        //    }
+        //}
+        //$scope.Getvisible = function (RowEntity) {
+        //    console.log($scope.gridOptions.data.PayMode)
+        //    return $scope.gridOptions.data.HeadId;
+        //}
+
+        //function loadData() {
+        //    $http.get('ReceiptPayment/GetDueAmount/')
+        //    .success(function (data) {
+        //        $scope.gridOptions.data = data;
+        //    });
+
+        //}
+        //    loadData();
+
+        $scope.GetDueAmount = function (rowentity) {
+            if (rowentity.ClientId > 0) {
+                $http({
+                    method: 'Post',
+                    url: '../ReceiptPayment/GetDueAmount',
+                    data: JSON.stringify({ ClientId: rowentity.ClientId })
+                }).then(function (result) {
+                    rowentity.DueAmount = result.data.Table[0].Due;
+                    console.log(result.data)
+                });
+            }
+        };
+
+        $scope.GetSupplierDue = function (SupId) {
+            console.log(SupId);
+            if (SupId > 0) {
+                $http({
+                    method: 'Post',
+                    url: '../ReceiptPayment/GetSupDueAmount',
+                    data: JSON.stringify({ SupplierId: SupId })
+                }).then(function (result) {
+                     $scope.model.DueAmount = result.data.Table[0].Due;
+                    console.log(result.data)
+                });
+            }
+        };
+
+
+        /// data push grid
+        $scope.addItem = function () {
+            $scope.gridOptions.data.push({
+                PayMode: '',
+                ClientId: '',
+                Bank: '',
+                Cash: '',
+
+                DueAmount: 0,
+                Amount: 0,
+
+                ChequeNo: '',
+                Remarks: ''
+            });
+        };
+        //$scope.addItem();
+
+        //2.:  grid Column
+        $scope.gridOptions.columnDefs = [
+            //{
+            //    name: 'Transfer Type', width: 180, enableColumnMenu: false,
+            //    cellTemplate: ' <div>' +
+            //        ' <select class="form-control input-sm" ng-model="row.entity.TranType" style = "width:100%;"ng-change="grid.appScope.GetClintSuplier(row.entity)" required=""(row.entity)" select2="" data-ng-options="d.TranType as d.TranType for d in grid.appScope.TranTypeCombo" ng-disable="!grid.appScope.model.RecvPayType">' +
+            //        '<option value="">--- Please Select ---</option>' +
+            //        ' </select>' +
+            //        ' </div>'
+            //},
+
+              {
+                  name: 'Client/Suplier', width: 280, enableColumnMenu: false,
+                  cellTemplate:
+                      '<span ng-if="grid.appScope.model.RecvPayType==\'Payment\'">' +
+                       ' <div>' +
+                      ' <select class="form-control input-sm" ng-model="row.entity.SupplierId" style = "width:100%;"  required="" select2="" data-ng-options="d.SupplierId as d.SupplierName for d in grid.appScope.SupplierCombo" ng-change="grid.appScope.GetSupplierDue(row.entity)">' +
+                      '<option value="">--- Please Select ---</option>' +
+                      ' </select>'
+                      +
+                      ' </div>'
+                  + '</span>'
+                  + '<span ng-if="grid.appScope.model.RecvPayType==\'Collection\'">' +
+                    ' <div>' +
+                      ' <select class="form-control input-sm" ng-model="row.entity.ClientId" style = "width:100%;" required="" select2="" data-ng-options="d.ClientId as d.shortName for d in grid.appScope.ClientCombo" ng-change="grid.appScope.GetDueAmount(row.entity)">' +
+                      '<option value="">--- Please Select ---</option>' +
+                      ' </select>'
+                      +
+                      ' </div>'
+                  + '</span>'
+
+              },
+              //ng-click="<a href="../ReceiptPayment/GetDueAmount/{{row.entity.ClientId}} ng-disabled="!row.entity.TranType""
+
+
+
+            {
+                name: 'Due Amount', width: 120, enableColumnMenu: false,
+                cellTemplate: ' <div>' +
+                    ' <input type="number" step="any" disabled="" ng-model="row.entity.DueAmount"class="pl-sm"/>' +
+                    ' </div>'
+            },
+            {
+                name: 'Amount', width: 90, enableColumnMenu: false,
+                cellTemplate: ' <div>' +
+                    ' <input required="" type="number" step="any" ng-model="row.entity.Amount" ng-change="grid.appScope.GetTotal(row.entity)" class="pl-sm" />' +
+                    ' </div>'
+            },
+              {
+                  name: 'Payment Mode', width: 140, enableColumnMenu: false,
+                  cellTemplate: ' <div>' +
+                      ' <select class="form-control input-sm" ng-model="row.entity.PayMode" style = "width:100%;" required="" select2="" data-ng-options="d.varName as d.varName for d in grid.appScope.PaymodeCombo">' +
+                      '<option value="">--- Please Select ---</option>' +
+                      ' </select>' +
+                      ' </div>'
+              },
+
+              {
+                  name: 'Account Name', width: 130, enableColumnMenu: false,
+                  cellTemplate:
+                      '<span ng-if="row.entity.PayMode==\'Bank\'">' +
+                       ' <div>' +
+                      ' <select class="form-control input-sm" ng-model="row.entity.HeadId" style = "width:100%;"  required="" select2="" data-ng-options="d.HeadId as d.HeadName for d in grid.appScope.BankCombo">' +
+                      '<option value="">--- Please Select ---</option>' +
+                      ' </select>'
+                      +
+                      ' </div>'
+                  + '</span>'
+                  + '<span ng-if="row.entity.PayMode==\'Cash\'">' +
+                    ' <div>' +
+                      ' <select class="form-control input-sm" ng-model="row.entity.HeadId" style = "width:100%;" required="" select2="" data-ng-options="d.HeadId as d.HeadName for d in grid.appScope.CashCombo">' +
+                      '<option value="">--- Please Select ---</option>' +
+                      ' </select>'
+                      +
+                      ' </div>'
+                  + '</span>'
+
+              },
+            {
+                name: 'ChequeNo', width: 120, enableColumnMenu: false,
+                cellTemplate: ' <div>' +
+                    ' <input type="text" ng-model="row.entity.ChequeNo" class="pl-sm" />' +
+                    ' </div>'
+            },
+            {
+
+                name: 'Remarks', width: 100, enableColumnMenu: false,
+                cellTemplate: ' <div>' +
+                    ' <input type="text" ng-model="row.entity.Remarks" class="pl-sm" />' +
+                    ' </div>'
+            },
+            {
+                name: ' ', enableColumnMenu: false, width: 40,
+                cellTemplate:
+                    '<a href="javascript:void(0)" class="ml-md black" ng-click="grid.appScope.removeItem(row)"><i class="fa fa-close fa-sm" aria-hidden="true"></i></a>'
+            }
+        ];
+
+        /*   For Remove Item */
+        $scope.removeItem = function (row) {
+            var index = $scope.gridOptions.data.indexOf(row.entity);
+            if (index == 0) {
+            } else {
+                $scope.gridOptions.data.splice(index, 1);
+            }
+        }
+
+        $scope.InsertItem = function (model) {
+            $scope.model.ReceiptPaymentSubList = $scope.gridOptions.data;
+            console.log(model);
+            $http.post("../ReceiptPayment/Create", { model: $scope.model }).then(function (data) {
+                if (data.data == 1) {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.gridOptions.data = [{
+                    }];
+                    $scope.model = { dtRecv: $filter("date")(Date.now(), 'dd-MMM-yyyy'), ProductionProfileRecvSubList: $scope.gridOptions.data }
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+
+                }
+            });
+        }
+
+
+
+    }]);
+
+
+    ngGridApp.directive("select2", function ($timeout, $parse) {
+        return {
+            restrict: 'AC',
+            require: 'ngModel',
+            link: function (scope, element, attrs) {
+                $timeout(function () {
+                    element.select2();
+                    element.select2Initialized = true;
+                });
+
+                var refreshSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.trigger('change');
+                    });
+                };
+
+                var recreateSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.select2('destroy');
+                        element.select2();
+                    });
+                };
+
+                scope.$watch(attrs.ngModel, refreshSelect);
+
+                if (attrs.ngOptions) {
+                    var list = attrs.ngOptions.match(/ in ([^ ]*)/)[1];
+                    // watch for option list change
+                    scope.$watch(list, recreateSelect);
+                }
+
+                if (attrs.ngDisabled) {
+                    scope.$watch(attrs.ngDisabled, refreshSelect);
+                }
+            }
+        };
+    });
+
+    // this datepicker also work chcnge event in angular js
+    ngGridApp.directive('datepicker', function ($filter) {
+        return {
+            restrict: 'A',
+            require: 'ngModel',
+            compile: function () {
+                return {
+                    pre: function (scope, element, attrs, ngModelCtrl) {
+                        var format, dateObj;
+                        format = (!attrs.dpFormat) ? 'dd-M-yyyy' : attrs.dpFormat;
+                        if (!attrs.initDate && !attrs.dpFormat) {
+                            // If there is no initDate attribute than we will get todays date as the default
+                            dateObj = new Date();
+
+                            //scope[attrs.ngModel] = dateObj.getDate() + '/' + (dateObj.getMonth() + 1) + '/' + dateObj.getFullYear();
+                            scope[attrs.ngModel] = $filter("date")(dateObj, 'dd-MMM-yyyy')
+
+                        } else if (!attrs.initDate) {
+                            // Otherwise set as the init date
+                            scope[attrs.ngModel] = attrs.initDate;
+                        } else {
+                            // I could put some complex logic that changes the order of the date string I
+                            // create from the dateObj based on the format, but I'll leave that for now
+                            // Or I could switch case and limit the types of formats...
+                        }
+                        // Initialize the date-picker
+                        $(element).datepicker({
+                            format: format,
+                        }).on('changeDate', function (ev) {
+                            // To me this looks cleaner than adding $apply(); after everything.
+                            scope.$apply(function () {
+                                ngModelCtrl.$setViewValue(ev.format(format));
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    ngApp.directive('datetimez', function () {
+        return {
+            require: '?ngModel',
+            restrict: 'A',
+            link: function (scope, element, attrs, ngModel) {
+                if (!ngModel) return;
+
+                ngModel.$render = function () {
+                    element.val(ngModel.$viewValue || '');
+                };
+
+                function read() {
+                    var value = element.val();
+                    ngModel.$setViewValue(value);
+                    //console.log(scope.dueDate);
+                }
+
+                var options = scope.$eval(attrs.datetimez) || { format: 'DD-MMM-YYYY hh:mm A', defaultDate: new Date(), sideBySide: true, };
+                if (element.next().is('.input-group-addon')) {
+                    var parentElm = $(element).parent();
+                    parentElm.datetimepicker(options);
+
+                    parentElm.on('dp.change', function () {
+                        scope.$apply(read);
+                    });
+                } else {
+                    element.datetimepicker(options);
+
+                    element.on('dp.change', function () {
+                        scope.$apply(read);
+                    });
+                }
+
+                read();
+            }
+        };
+    });
+
+</script>

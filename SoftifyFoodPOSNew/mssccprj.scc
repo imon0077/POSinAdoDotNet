@@ -1,0 +1,21 @@
+SCC = This is a Source Code Control file
+
+[GTRSecurity.csproj]
+SCC_Aux_Path = "\\10.10.32.153\vss$"
+SCC_Project_Name = "$/CIMS_Security/GTRSecurity.root/GTRSecurity/GTRSecurity", LOLAAAAA
+
+[SoftifyHRM.csproj]
+SCC_Aux_Path = "\\192.168.0.115\sorce"
+SCC_Project_Name = "$/SoftifyWebHRMtheme/Softify.root/Softify/SoftifyHRM", GSPAAAAA
+
+[SoftifyRecruitment.csproj]
+SCC_Aux_Path = "F:\Source Safe\sorce"
+SCC_Project_Name = "$/Recruitment/Softify.root/Softify/SoftifyRecruitment", KHJCAAAA
+
+[SoftifyGarmentsERP.csproj]
+SCC_Aux_Path = "\\192.168.0.115\sorce"
+SCC_Project_Name = "$/SoftifyGarmentsERP/SoftifyGarmentsERP.root/SoftifyGarmentsERP/SoftifyGarmentsERP", HHGDAAAA
+
+[SoftifyDealer.csproj]
+SCC_Aux_Path = "\\192.168.0.115\vss"
+SCC_Project_Name = "$/SoftifyDealer/SoftifyDealer.root/SoftifyDealer/SoftifyDealer", EPZDAAAA

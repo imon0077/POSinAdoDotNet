@@ -1,0 +1,102 @@
+﻿@using SoftifyFoodPOSNew.Models.Helpers
+@model IEnumerable<SoftifyFoodPOSNew.Models.LoginUser>
+@{
+    ViewBag.Title = "User List";
+}
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+<!-- start: Employee List page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <section class="panel">
+        <header class="panel-heading">
+            <div class="form-group">
+                <div class="col-sm-3 p-none mt-md pl-md pull-left">
+                    <a href="@Url.Action("Create", "LoginUser")" class="btn btn-primary" style="margin-top:5px">
+                        Add New <i class="fa fa-plus" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+
+        </header>
+
+        <div class="panel-body">
+            <!-- : loading..... -->
+            <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+            </div>
+            <!--    UI-GRID    -->
+            <div ui-grid="gridOptions" ui-grid-pinning ui-grid-exporter ui-grid-resize-columns class="grid"
+                 style="font-family: 'Open Sans', Arial, sans-serif; color: black;width: 100%;height: 65vh;">
+            </div>
+        </div>
+    </section>
+</section>
+<!-- end: Employee List Page -->
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$rootScope', function ($scope, $http, $log, $filter, $timeout, $interval, $rootScope) {
+        $scope.showLoader = false;
+
+        // arrray ininialized:
+        $scope.UserList = [{
+            UserName: '',
+            DisplayName: ''
+        }];
+
+        //   1.:  grid api
+        $scope.gridOptions = {
+            onRegisterApi: function (gridApi) {
+                $rootScope.gridApi = gridApi,
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+                data: $scope.UserList;
+            },
+
+            enableFiltering: true,
+            showGridFooter: true
+        }
+
+        //   2.:  grid Column
+        $scope.gridOptions.columnDefs = [
+             { name: 'User Name', field: 'UserName', width: 120 },
+             { name: 'Display Name', field: 'DisplayName', width: 180 },
+             { name: 'Branch Name', field: 'BranchName', width: 220 },
+             {
+                 name: 'Action', enableFiltering: false, width: 60,
+                 cellTemplate:
+                     ' <div class="ml-sm">' +
+                         ' <a href="../LoginUser/Edit/{{row.entity.LUserId}}" class="ml-xs black"><i class="fa fa-pencil fa-lg" aria-hidden="true"  title="Update user" data-placement="top" data-delay="500" data-toggle="tooltip"></i></a></span>' +
+                         '    </div>'
+             }
+        ];
+
+
+        $scope.loadData = function () {
+            // reset exsiting data
+            $scope.showLoader = true;
+            $scope.gridOptions.data = [];// reset exsiting data
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetUserList", "LoginUser")'
+            }).
+            then(function (result) {
+                $scope.gridOptions.data = result.data;
+                console.log(result.data);
+                result.data = null;
+                $scope.showLoader = false;
+            });
+
+        }
+
+        $scope.loadData();
+
+    }]);
+</script>

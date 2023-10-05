@@ -1,0 +1,140 @@
+﻿@using System.Data
+@{
+    ViewBag.Title = "Client List";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+<section ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    @using (Html.BeginForm())
+    {
+        <section class="panel">
+
+            <div class="row">
+                <div class="col-md-6">
+                    <a href="@Url.Action("Create", "Client")" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger ">
+                        <i class="fa fa-plus" aria-hidden="true"></i> Add New
+                    </a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <!--    UI-GRID    -->
+                <div ui-grid="gridOptions" ui-grid-pinning ui-grid-exporter ui-grid-resize-columns class="grid"
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: black;width: 100%;height: 100%; height:65vh"></div>
+            </div>
+        </section>
+    }
+</section>
+
+
+
+
+<script type="text/javascript">
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', function ($scope, $http, $log, $filter, $timeout) {
+        $scope.showLoader = false;
+
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10, 10] },
+            exporterPdfTableHeaderStyle: { fontSize: 7, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Client List", style: 'headerStyle', fontSize: 9, bold: false },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { fontSize: 15, bold: true };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: true };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : ENND
+            enableFiltering: true,
+            showGridFooter: true,
+            // Default: End
+        }
+
+        $scope.gridOptions.columnDefs = [
+            { name: 'Code', field: 'ClientCode', width: 100, enableColumnMenu: false },
+            { name: 'Client Name', field: 'ClientName', width: 150, enableColumnMenu: false },
+            { name: 'Short Name', field: 'shortName', width: 150, enableColumnMenu: false },
+            { name: 'Client Address', field: 'ClientAddress', width: 140, enableColumnMenu: false },
+            {
+                name: 'Action', enableFiltering: false, enableColumnMenu: false, width: 100,
+                cellTemplate:
+                    ' <div class="ml-sm">' +
+                        ' <a href="../Client/Edit/{{row.entity.ClientId}}" class="ml-xs black mr-md"><i class="fa fa-pencil fa-lg" aria-hidden="true"  title="Update" data-placement="top" data-delay="500" data-toggle="tooltip"></i></a>' +
+
+                        '<span ng-if="row.entity.TotalInvoice==0 ">' +
+                        ' <a href="javascript:void(0)" class="text-danger ml-md" ng-click="grid.appScope.DeleteItem(row.entity)"><i class="fa fa-trash fa-lg text-danger" aria-hidden="true" title="delete item !!"></i></a>' +
+                          '</span>' +
+                    '    </div>'
+            },
+            { name: 'Area Name', field: 'AreaName', width: 150, enableColumnMenu: false },
+            { name: 'Zone Name', field: 'Zonename', width: 120, enableColumnMenu: false },
+            { name: 'OP Balnce', displayName:'OP Balance', field: 'OPBalance', width: 110, enableColumnMenu: false },
+            { name: 'Mobile', field: 'Mobile', width: 110, enableColumnMenu: false },
+            { name: 'Web', field: 'Web', width: 110, enableColumnMenu: false, visible:false }
+        ];
+
+        $scope.loadData = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetClientList", "Client")'
+            }).then(function (data) {
+                $scope.gridOptions.data = data.data;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+        $scope.loadData();
+
+        $scope.DeleteItem = function (rowEntity) {
+            console.log(rowEntity);
+            $scope.showLoader = true;
+            if (confirm('Do you want to Delete  ?')) {
+                $http.post("@Url.Action("prcDeleteData", "Client")", { ItemId: rowEntity.ClientId })
+                    .then(function (data) {
+                        if (data.data == 1) {
+                            new PNotify({
+                                title: 'Notification',
+                                text: 'Data Deleted Successfully.',
+                                type: 'custom',
+                                addclass: 'notification-success',
+                                icon: 'fa fa-check'
+                            });
+                            $scope.showLoader = false;
+                            $scope.loadData();
+                        }
+                        else {
+                            $scope.showLoader = false;
+                            new PNotify({
+                                title: 'Notification',
+                                text: '!! Failure : ' + data.data,
+                                type: 'custom',
+                                addclass: 'notification-danger',
+                                icon: 'fa fa-exclamation-triangle'
+                            });
+                        }
+                    });
+            }
+        }
+
+    }]);
+
+
+
+</script>
+

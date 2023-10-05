@@ -1,0 +1,236 @@
+﻿@model SoftifyFoodPOSNew.Models.AccDepositWithdraw
+@{
+    ViewBag.Title = "Deposit & Withdraw";
+}
+
+<header class="page-header">
+    <h2> @ViewBag.Title </h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start:  Create page -->
+<section class="panel" ng-app="ngApp" ng-controller="chkPaymentCtrl">
+    @using (Html.BeginForm("Create", "AccDepositWithdraw", FormMethod.Post, new { @class = "", name = "frmPayment" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="panel-body">
+           
+            <div class="form-group">
+                <div class="col-md-12">
+                    @Html.Label("Transaction Type", htmlAttributes: new { @class = "control-label text-bold" })
+                </div>
+
+                <div class="col-md-2">
+                    <span class="radio-custom radio-dark">
+                        @Html.RadioButton("TrnType", "Deposit", new { @class = " ", @checked = "checked", ng_model = "model.TrnType" })
+                        <label style="color:black">Cash Deposit</label>
+                    </span>
+                </div>
+
+                <div class="col-md-2">
+                    <span class="radio-custom radio-dark">
+                        @Html.RadioButton("TrnType", "Withdraw", new { @class = "form-control", ng_model = "model.TrnType" })
+                        <label style="color:black">Withdraw</label>
+                    </span>
+                </div>                
+            </div>
+
+
+            <div class="form-group">
+                <div class="col-md-4 col-sm-12">
+                    @Html.Label("", "Transaction Date", htmlAttributes: new { @class = "control-label text-bold" }) <span class="text-danger"> * </span>
+                    @Html.TextBoxFor(model => model.dtTrn, new { @class = "form-control", @ng_model = "model.dtTrn", @Disabled="", @required = "", @data_plugin_datepicker = "", autocomplete = "off" })
+                </div>
+            </div>
+
+            <!-- Withdraw from bank to Cash -->
+            <div class="form-group" ng-if="model.TrnType=='Withdraw'">   
+                <div class="col-md-4 col-sm-12">
+                    @Html.LabelFor(model => model.FromHeadId, "Bank A/C Head", htmlAttributes: new { @class = "control-label text-bold" }) <span class="text-danger"> * </span>
+                    <select ng-model="model.FromHeadId"
+                            select2=""
+                            required=""
+                            data-ng-options="d.HeadId as d.HeadName for d in BankList"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    @Html.LabelFor(model => model.ToHeadId, "Cash Head", htmlAttributes: new { @class = "control-label text-bold" }) <span class="text-danger"> * </span>
+                    
+                    <select ng-model="model.ToHeadId"
+                            select2=""
+                            required=""
+                            data-ng-options="d.HeadId as d.HeadName for d in CashList"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                </div>
+
+            </div>
+
+
+            <!-- Deposit From Cash To Bank -->
+            <div class="form-group" ng-if="model.TrnType=='Deposit'">
+                <div class="col-md-4 col-sm-12">
+                    @Html.LabelFor(model => model.FromHeadId, "Cash Head", htmlAttributes: new { @class = "control-label text-bold" }) <span class="text-danger"> * </span>
+                    <select ng-model="model.FromHeadId"
+                            select2=""
+                            required=""
+                            data-ng-options="d.HeadId as d.HeadName for d in CashList"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    @Html.LabelFor(model => model.ToHeadId, "Bank A/C Head", htmlAttributes: new { @class = "control-label text-bold" }) <span class="text-danger"> * </span>
+
+                    <select ng-model="model.ToHeadId"
+                            select2=""
+                            required=""
+                            data-ng-options="d.HeadId as d.HeadName for d in BankList"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-2 col-sm-12">
+                    @Html.LabelFor(model => model.ChequeNo, "Cheque No", htmlAttributes: new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.ChequeNo, new { @class = "form-control", @ng_model = "model.ChequeNo", @ng_disabled = "model.TrnType=='Deposit'" })
+                    @Html.ValidationMessageFor(model => model.ChequeNo)
+                </div>
+                <div class="col-md-2 col-sm-12">
+                    @Html.LabelFor(model => model.dtCheque, "Cheque Date", htmlAttributes: new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.dtCheque, new { @class = "form-control", @ng_model = "model.dtCheque", @ng_disabled = "model.TrnType=='Deposit'", @data_plugin_datepicker = "", autocomplete = "off" })
+                    @Html.ValidationMessageFor(model => model.dtCheque)
+                </div>
+
+                <div class="col-md-2 col-sm-12">
+                    @Html.LabelFor(model => model.Amount, "Amount", htmlAttributes: new { @class = "control-label" }) <span class="text-danger"> * </span>
+                    @Html.TextBoxFor(model => model.Amount, new { @class = "form-control", @required = "", @ng_model = "model.Amount", @type = "number", @autocomplete = "off" })
+                </div>
+
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-7 col-sm-12">
+                    @Html.LabelFor(model => model.Remarks, new { @class = "control-label" })
+                    @Html.TextAreaFor(model => model.Remarks, new { @class = "form-control", @rows = "3", @id = "Remark", @ng_model = "model.Remarks" })
+                    @Html.ValidationMessageFor(model => model.Remarks)
+                </div>
+            </div>
+
+        </div>
+
+
+        <footer class="panel-footer">
+            <div class="form-group">
+                <div class="col-sm-9 col-sm-offset-3">
+
+                    <button class="btn btn-danger btn-wide mr-md" type="button" name="btnSubmit" id="btnSubmit" ng-click="InsertItem(model)" ondblclick="this.disabled = 'true'; this.value = 'please wait..';" ng-disabled="frmPayment.$invalid">
+                        Submit <i class="fa fa-arrow-circle-right"></i>
+                    </button>
+
+                    <a href="@Url.Action("Index", "AccDepositWithdraw")" class="btn btn-primary">
+                        <i class="fa fa-arrow-circle-left"></i> Back to list
+                    </a>
+
+                </div>
+            </div>
+        </footer>
+
+    }
+</section>
+
+
+<script type="text/javascript">
+
+    ngApp.controller('chkPaymentCtrl', function ($scope, $http, $filter) {
+
+        $scope.model = { dtTrn: $filter("date")(Date.now(), 'dd-MMM-yyyy'), FromHeadId: '', ToHeadId: '', TrnType: 'Deposit', ChequeNo: '', dtCheque: '', Amount: 0 }
+       
+        $scope.BankList = [];
+        $scope.CashList = [];
+
+        $scope.LoadAccCombo = function () {
+            $http({
+                method: 'Post',
+                url: '../Expenses/GetComboLoad'
+            }).then(function (result) {
+                $scope.BankList = result.data.Table1;
+                $scope.CashList = result.data.Table2;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+
+        $scope.LoadAccCombo();
+
+
+        //Form submit
+        $scope.InsertItem = function (model) {
+            $("#btnSubmit").attr('disabled', 'disabled');
+            $("#btnSubmit").text("Processing");
+
+            if ($scope.model.TrnType == 'Withdraw' && ($scope.model.ChequeNo == '' || $scope.model.dtCheque == '')) {
+                new PNotify({
+                    title: 'Notification',
+                    text: 'Please Provide Cheque Number & Cheque date ',
+                    type: 'custom',
+                    addclass: 'notification-danger',
+                    icon: 'fa fa-exclamation-triangle'
+                });
+                $scope.showLoader = false;
+                $("#btnSubmit").text("Submit");
+                $("#btnSubmit").removeAttr('disabled');
+            }
+            else {
+                $http.post("@Url.Action("Create", "AccDepositWithdraw")", { model: $scope.model }).then(function (data) {
+                var res = data.data.match(/saved/g);
+                if (res != null) {
+                    new PNotify({
+                        title: 'Notification',
+                        text: data.data,
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.showLoader = false;
+                    $scope.model = {};
+                    $scope.model = { dtTrn: $filter("date")(Date.now(), 'dd-MMM-yyyy'), FromHeadId: '', ToHeadId: '', TrnType: 'Deposit', ChequeNo: '', dtCheque: '', Amount: 0 }
+                    $("#btnSubmit").text("Submit");
+                    $("#btnSubmit").removeAttr('disabled');
+                }
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $scope.showLoader = false;
+                    $("#btnSubmit").text("Submit");
+                    $("#btnSubmit").removeAttr('disabled');
+                }
+            });
+            }
+        };
+
+    });
+
+
+</script>

@@ -1,0 +1,181 @@
+﻿@using System.Data
+@model  SoftifyFoodPOSNew.Models.Transaction
+@{
+    ViewBag.Title = "Due Report";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<!-- start: Client Add Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="col-md-5">
+                    <div class="col-md-12">
+                        @Html.Label("Report Format", htmlAttributes: new { @class = "control-label text-bold" })
+                    </div>
+                    <div class="col-md-6">
+                        <span class="radio-custom radio-dark">
+                            @Html.RadioButton("LedgerStatus", "Supplier", new { @class = " ", ng_model = "OptCriteria", ng_change = "DataLoad()" })
+                            <label style="color:black">Supplier Ledger</label>
+                        </span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <span class="radio-custom radio-dark">
+                            @Html.RadioButton("LedgerStatus", "Customer", new { @class = "form-control", ng_model = "OptCriteria", ng_change = "DataLoad()" })
+                            <label style="color:black">Customer Ledger</label>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-3 hidden">
+                    @Html.Label("Date", htmlAttributes: new { @class = "control-label" })
+                    @Html.Editor("dtFrom", new { htmlAttributes = new { @class = "form-control", @id = "date", datepicker = "", ng_model = "dtFrom", @placeholder = "", @required = "required" } })
+                </div>
+
+                @*<div class="col-md-2">
+                    <button type="button" class="mb-xs mt-xs mr-xs mt-sm btn btn-info btn-block mt-lg" ng-click="DataLoad()">
+                        <i class="fa fa-refresh" aria-hidden="true"></i> Load to List</button>
+                </div>*@
+
+                <div class="col-md-2" style="margin-top:20px">
+                    @*<a href="@Url.Action("RptLedgerDueStatus","Transaction")?LedgerStatus={{OptCriteria}}" class="btn btn-primary pl-xlg pr-xlg" id="" target="_blank">
+                        <i class="fa fa-print"></i> Preview
+                    </a>*@
+                    @*<form action="RptLedgerDueStatus" method="post" name="RptLedgerDueStatus" target="_blank">
+                        <input type="hidden" name="LedgerStatus" value="{{OptCriteria}}">
+                        <input type="hidden" name="rptFormat" value="pdf" autocomplete="off">
+
+                        <button type="submit" formtarget="_blank" class="btn btn-danger pl-xlg pr-xlg">
+                            <i class="fa fa-print" aria-hidden="true"></i> Preview
+                        </button>
+                    </form>*@
+                </div>
+               
+
+            </div>
+        </div>
+
+        <hr class="mt-sm mb-sm">
+        <div class="row">
+            <div class="col-md-12">
+                <!-- : loading..... -->
+                <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                    <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                </div>
+
+                <div ui-grid="gridOptions" ui-grid-pinning ui-grid-exporter ui-grid-resize-columns class="grid"
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: black;width: 100%;height: 100%; height:65vh"></div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<script>
+
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+        $scope.showLoader = false;
+        $scope.FromDate = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.DataList = [];
+        $scope.OptCriteria = "Supplier";
+
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10, 10] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Due List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+
+            enableFiltering: true,
+            showGridFooter: true,
+            // Default: End
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+            }
+        }
+
+        $scope.DataLoad = function () {
+            $scope.gridOptions.data = [];
+            $scope.showLoader = true;
+            var criteria = "";
+            criteria = $scope.OptCriteria;
+
+            if (criteria == 'Supplier') {
+                $http({
+                    method: 'Post',
+                    url: '@Url.Action("GetSupplierDueData", "Transaction")'
+                }).then(function (data) {
+                    $scope.gridOptions.data = data.data;
+                    $scope.showLoader = false;
+                }, function (error) {
+                    alert(error);
+                    //console.log(error);
+                });
+            }
+            else {
+                $http({
+                    method: 'Post',
+                    url: '@Url.Action("GetCustomerDueData", "Transaction")'
+                }).then(function (data) {
+                    $scope.gridOptions.data = data.data;
+                    $scope.showLoader = false;
+                }, function (error) {
+                    alert(error);
+                    //console.log(error);
+                });
+            }
+
+        }
+
+
+        $scope.DataLoad();
+
+        $scope.gridOptions.columnDefs = [
+            { name: 'Code', field: 'Code', width: 100 },
+            { name: 'Name', field: 'Name', width: 200 },
+            { name: 'OP(S)', displayName: 'OP(S)', field: 'SupplierOPBalance', width: 90 },
+            { name: 'OP(C)', displayName: 'OP(C)', field: 'ClientOPBalance', width: 90 },
+            { name: 'Purchase', field: 'PurchaseAmount', width: 100 },
+            { name: 'Payment', field: 'Payment', width: 100 },
+            { name: 'Sales', field: 'SellAmount', width: 100 },
+            { name: 'Collection', field: 'Collections', width: 100 },
+            { name: 'Coll. Discount', field: 'CollectionDiscount', width: 100 },
+            { name: 'Return (Pur)', field: 'PurchaseReturn', width: 100 },
+            { name: 'Return (Sell)', field: 'SellReturn', width: 100 },
+            { name: 'Due', field: 'DueAmount', width: 100 },
+        ];
+
+    }]);
+
+</script>

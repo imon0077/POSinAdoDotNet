@@ -1,0 +1,190 @@
+﻿
+@using SoftifyFoodPOSNew.Models.Helpers
+@using System.Data;
+@using Newtonsoft.Json
+@{
+    ViewBag.Title = "Dashboard";
+
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start: Client Add Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    <form name="Dashborad">
+        <div class="row no-print">
+            <div class="col-md-4 col-lg-4 col-xl-6">
+                <section class="panel panel-featured-left panel-featured-primary">
+                    <div class="panel-body">
+                        <div class="widget-summary widget-summary-md">
+                            <div class="widget-summary-col widget-summary-col-icon">
+                                <div class="summary-icon bg-primary">
+                                    <i class="" style="font-weight:bold; font-style:normal"><span>P</span></i>
+                                </div>
+                            </div>
+                            <div class="widget-summary-col">
+                                <div class="summary">
+                                    <h4 class="title">
+                                        Total Product
+                                    </h4>
+                                    <div class="info">
+                                        <strong class="amount">
+                                            {{model.totalProduct}}
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="summary-footer">
+                                    <span class="text-muted text-uppercase">Total Bueyr PO</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-md-4 col-lg-4 col-xl-6">
+                <section class="panel panel-featured-left panel-featured-secondary">
+                    <div class="panel-body">
+                        <div class="widget-summary widget-summary-md">
+                            <div class="widget-summary-col widget-summary-col-icon">
+                                <div class="summary-icon bg-secondary">
+                                    <i class="" style="font-weight:bold; font-style:normal"><span>M</span></i>
+                                </div>
+                            </div>
+                            <div class="widget-summary-col">
+                                <div class="summary">
+                                    <h4 class="title">
+                                        Total MR
+                                    </h4>
+                                    <div class="info">
+                                        <strong class="amount">
+                                            {{model.totalMR}} Tk.
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="summary-footer">
+                                    <span class="text-muted text-uppercase"> Total MR</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+           
+            <div class="col-md-4 col-lg-4 col-xl-6">
+                <section class="panel panel-featured-left panel-featured-warning">
+                    <div class="panel-body">
+                        <div class="widget-summary widget-summary-md">
+                            <div class="widget-summary-col widget-summary-col-icon">
+                                <div class="summary-icon bg-warning">
+                                    <i class="" style="font-weight:bold; font-style:normal"><span>T</span></i>
+                                </div>
+                            </div>
+                            <div class="widget-summary-col">
+                                <div class="summary">
+                                    <h4 class="title">
+                                        Total Transfer
+                                    </h4>
+                                    <div class="info">
+                                        <strong class="amount">
+                                            {{model.totalTransfer}} Tk.
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="summary-footer">
+                                    <span class="text-muted text-uppercase">Purchase Order</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+
+
+        </div>
+
+        <div class="row no-print">
+            <div class="col-md-12">
+                <section class="panel">
+                    <header class="panel-heading">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <h2 class="panel-title">Product  Search</h2>
+                            </div>
+              
+                        </div>
+
+
+                    </header>
+                    <div class="panel-body">
+                            <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #595959 !important;" class="grid"></div>
+                        </div>
+                </section>
+            </div>
+        </div>
+
+
+
+    </form>
+</section>
+<script>
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$rootScope', function ($scope, $http, $log, $filter, $timeout, $interval, $rootScope) {
+        $scope.model = { TtlBuyerPO: '', TtlIndent: '', TtlPO: '', TtlSrr: '' };
+        $scope.gridOptions = {
+            enableFiltering: true,
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $timeout(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 200);
+            }
+        }
+
+        $scope.gridOptions.columnDefs = [
+            , { name: 'ProductName', field: 'ProductName', width: 200 }
+            , { name: 'Qty', field: 'Qty', width: 90 }
+            , { name: 'Bin Name', field: 'BinName', width: 90 }
+            , { name: 'Brand', field: 'BrandName', width: 90 }
+            , { name: 'Supplier', field: 'SupplierName', width: 90 }
+            , { name: 'SellPrice', field: 'SellPrice', width: 90 }
+
+
+        ];
+        $scope.GetDashboard = function () {
+            // Count Data
+            $http({
+                method: 'GET',
+                url: '../Dashboard/GetDashboardData'
+            }).
+            then(function (result) {
+                console.log(result);
+                $scope.model.totalProduct = result.data.Table[0].totalProduct;
+                $scope.model.totalMR = result.data.Table1[0].totalMR;
+                $scope.model.totalTransfer = result.data.Table2[0].totalTransfer;
+            });
+        }
+        $scope.GetDashboard(); // Call Counting Data
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../MiniProduct/GetProductSearch'
+            }).then(function (data) {
+                $scope.gridOptions.data = data.data.Table;
+                $scope.showLoader = false;
+            });
+        };
+        $scope.DataLoad();
+        /*   Load  : this area Save wise  */
+    }]);
+
+
+</script>

@@ -1,0 +1,65 @@
+﻿@model SoftifyFoodPOSNew.Models.LoginCategory
+
+@{
+    ViewBag.Title = "Create";
+}
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <br />
+    <div class="panel panel-success">
+        <div class="panel-heading">
+            <h3 class="panel-title">Login Category- Create</h3>
+        </div>
+        <div class="panel-body">
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label class="control-label pull-right">Name :</label>
+                </div>
+                <div class="col-md-9">
+                    @Html.TextBoxFor(model => model.CatName, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.CatName)
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label class="control-label pull-right">Parent Name :</label>
+                </div>
+                <div class="col-md-9">
+                    @Html.DropDownList("ParentId", new SelectList(ViewBag.Parents, "Id", "Name"), new { @class = "form-control btn-block" })
+                    @Html.ValidationMessageFor(model => model.ParentId)
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label class="control-label pull-right">Is Parent :</label>
+                </div>
+                <div class="col-md-9">
+                    @Html.CheckBoxFor(model => model.IsParent, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.IsParent)
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label class="control-label pull-right">Is Inactive :</label>
+                </div>
+                <div class="col-md-9">
+                    @Html.CheckBoxFor(model => model.IsInactive, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.IsInactive)
+                </div>
+            </div>
+        </div>
+
+        <div class=" panel-footer clearfix">
+            <div class="form-group">
+                <div class="col-md-6">
+                    <input type="submit" value="Submit" class="btn btn-success btn-lg" />
+                    @Html.ActionLink("Back to List", "Index", "", new { @class = "btn btn-info btn-lg" })
+                </div>
+            </div>
+        </div>
+    </div>
+
+}

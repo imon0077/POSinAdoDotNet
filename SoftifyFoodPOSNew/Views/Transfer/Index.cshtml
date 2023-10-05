@@ -1,0 +1,328 @@
+﻿@{
+    ViewBag.Title = "Transfer List";
+}
+<!-- start:  List page -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    <div class="panel-body">
+        <header class="p-xs mr-lg">
+            <div class="row mb-md">
+                <div class="col-md-12">
+                    <div class="col-md-3">
+                        @Html.Label("From Date", htmlAttributes: new { @class = "control-label" })
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            <input type="text" name="dtFrom" id="dtFrom" class="form-control" required="required" autocomplete="off" ng-model="dtFrom" datepicker />
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        @Html.Label("To Date", htmlAttributes: new { @class = "control-label" })
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                            <input type="text" name="dtTo" id="dtTo" class="form-control" autocomplete="off" required="required" ng-model="dtTo" datepicker />
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-4 p-none mt-md pull-left">
+
+                        <button type="button" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger"
+                                ng-click="DataLoad()">
+                            <i class="fa fa-refresh" aria-hidden="true"></i> Load List
+                        </button>
+
+                        <a href="@Url.Action("Create", "Transfer")" class="mb-xs mt-xs mr-xs mt-sm btn  btn-default ">
+                            <i class="fa fa-plus" aria-hidden="true"></i> Add New
+                        </a>
+                    </div>
+
+
+                </div>
+            </div>
+        </header>
+
+        <div class="row">
+            <div class="col-md-12">
+                <!-- : loading..... -->
+                <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                    <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                </div>
+                <!--    UI-GRID    -->
+                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;height:65vh;" class="grid"></div>
+            </div>
+        </div>
+        <div class="col-lg-offset-9">
+            <label class="control-label text-bold" style="color:red">Total Amount: {{fncTotalAmount()|currency:" Tk ":2}} </label>
+        </div>
+
+        <!--Modla Start-->
+        <div class="black no-print">
+            <div class="modal fade" id="myModal" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">
+                                Transfer No: <span style="color:orangered">{{modalheader}}</span>
+                                
+                            </h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="form-group">
+
+                                    <div class="col-md-12">
+
+                                        <div class="col-md-12">
+                                            <div ui-grid="gridTransfer" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 33vh;" class="grid">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div class="col-md-3">
+                                <button class="btn btn-warning" type="button" name="btnSubmit" data-dismiss="modal">
+                                    Close<i class="fa fa-times"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!--Modal End-->
+    </div>
+
+</section>
+
+
+<script type="text/javascript">
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+
+        $scope.modalheader = "";
+        $scope.TransferId = 0;
+        $scope.showLoader = false;
+        $scope.disableFilter = false;
+
+        if ($scope.disableFilter)
+                $scope.disableFilter = true;
+
+        $scope.dtFrom = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.dtTo = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.rptFormat = 'pdf';
+        $scope.pdf = true;
+        $scope.xlsx = false;
+        $scope.doc = false;
+
+        /* START : GRID Settings */
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [10, 10, 10,10] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Transfer List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+
+            enableFiltering: true,
+            showGridFooter: true,
+            enableColumnMenus: false
+            // Default: End
+
+        }
+        /* END : GRID Settings */
+
+        /*   START : grid Column */
+        $scope.gridOptions.columnDefs = [
+            { name: 'Transfar No', field: 'TransferNo', width: 120 },
+            { name: 'Date', field: 'dtTransfar', width: 100 },
+            { name: 'From', field: 'WHFrom', width: 100 },
+            { name: 'To', field: 'WHTo', width: 100 },
+            { name: 'Remarks', field: 'Remarks', width: 150 },
+            { name: 'Status', field: 'Status', width: 80 },
+            { name: 'Qty', field: 'Qty', width: 60 },
+            {
+                name: 'Amount', field: 'Amount', width: 85,
+                cellTemplate: ' <div class="text-right mr-sm text-bold" >{{row.entity.Amount}}</div>'
+            },
+
+           
+            {
+                name: 'Action', enableFiltering: false, width: 110,
+                cellTemplate:
+                        '<div>' +
+                         //'<span ng-if="row.entity.isAccept===0">' +
+                            ' <a href="../Transfer/Edit/{{row.entity.TransferId}}" class="ml-xs black mr-md"><i class="fa fa-pencil fa-lg" aria-hidden="true" title="Update Transfer" data-placement="top" data-delay="500" data-toggle="tooltip"></i></a>' +
+
+                            ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(row.entity)"><i class="fa fa-trash fa-lg" aria-hidden="true" title="delete item !!"></i></a></span>' +
+                          +
+                        ' </div>'
+            },
+            {
+                name: 'Details', width: 112, enableColumnMenu: false, cellTemplate: '' +
+                    ' <button type="button" class="" style="width:100%" data-toggle="modal" data-target="#myModal" ng-click="grid.appScope.GridReload(row.entity)">Details</button>'
+            },
+        ];
+        /*   END : grid Column */
+
+        $scope.fncTotalAmount = function () {
+            var total = 0;
+            angular.forEach($scope.gridOptions.data, function (item) {
+                total += item.NetPayable;
+            });
+            return Math.round(total);
+        }
+
+        $scope.SetRptType = function (rptFormat) {
+
+            $scope.doc = true
+            $scope.rptFormat = rptFormat;
+            if (rptFormat == 'Word') {
+                $scope.doc = true
+                $scope.pdf = false
+                $scope.xlsx = false
+
+            }
+            else if (rptFormat == 'pdf') {
+                $scope.pdf = true
+                $scope.doc = false
+                $scope.xlsx = false
+            } else {
+                $scope.xlsx = true
+                $scope.doc = false
+                $scope.pdf = false
+            }
+            $scope.rptFormat = rptFormat;
+        }
+
+        /* START : GRID Data Load */
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $scope.gridOptions.data = [];
+            $http({
+                method: 'Post',
+                url: '@Url.Action("PrcLoadList", "Transfer")',
+                data: JSON.stringify({ dtFrom: $scope.dtFrom, dtTo: $scope.dtTo })
+            }).then(function (res) {
+                //console.log(res.data);
+                $scope.gridOptions.data = res.data;
+                $scope.showLoader = false;
+            }, function (error) {
+                alert(error);
+                //console.log(error);
+            });
+        }
+        $scope.DataLoad();
+        /* END : GRID Data Load */
+
+        /* START : GRID Settings */
+        $scope.gridTransfer = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+            },
+            data: [],
+            enableColumnMenus: false,
+        }
+
+        /* END : GRID Settings */
+
+        /*   START : grid Column */
+        $scope.gridTransfer.columnDefs = [
+            { name: 'Product Name', field: 'ProductName', width: 120 },
+            { name: 'Qty', field: 'Qty', width: 100 },
+            { name: 'Rate', field: 'UnitPrice', width: 100 },
+            { name: 'Amount', field: 'Amount', width: 100 },
+        ];
+        /*   END : grid Column */
+
+        $scope.GridReload = function (RowEntity) {
+
+            $scope.modalheader = RowEntity.TransferNo;
+            $scope.TransferId = RowEntity.TransferId;            
+            $scope.gridTransfer.data = [];
+            $http({
+                method: 'POST',
+                url: '@Url.Action("GetTransferDataListtoView", "Transfer")',
+                data: { id: RowEntity.TransferId }
+            }).then(function (result) {
+                console.log(result.data);
+                $scope.gridTransfer.data = result.data;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+
+        /* START : GRID Data Delete */
+        $scope.DeleteItem = function (rowEntity) {
+            console.log(rowEntity);
+            $scope.showLoader = true;
+            if (confirm('Do you want to Delete  ?')) {
+                $http.post("PrcDeleteData/transfer", { ItemId: rowEntity.TransferId })
+                    .then(function (data) {
+                        if (data.data == 'Data Deleted Successfully.') {
+                            new PNotify({
+                                title: 'Notification',
+                                text: 'Data Deleted Successfully.',
+                                type: 'custom',
+                                addclass: 'notification-success',
+                                icon: 'fa fa-check'
+                            });
+                            $scope.showLoader = false;
+                            $scope.DataLoad($scope.dtFrom, $scope.dtTo);
+                        }
+                        else {
+                            $scope.showLoader = false;
+                            new PNotify({
+                                title: 'Notification',
+                                text: '!! Failure : ' + data.data,
+                                type: 'custom',
+                                addclass: 'notification-danger',
+                                icon: 'fa fa-exclamation-triangle'
+                            });
+                            $scope.DataLoad($scope.dtFrom, $scope.dtTo);
+                        }
+                    });
+            }
+        }        /* END : GRID Data Delete */        /* END : GRID Data Delete */
+    }]);
+
+
+
+</script>

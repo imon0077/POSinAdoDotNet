@@ -1,0 +1,426 @@
+﻿@model SoftifyFoodPOSNew.Models.ProductSerial
+
+@{
+    ViewBag.Title = "Show Product By Serial";
+}
+<!DOCTYPE html>
+<html ng-app="search">
+
+<head>
+    <meta charset="UTF-8">
+    <title>dynamic form</title>
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.3/ui-bootstrap-tpls.js"></script>
+
+</head>
+
+<style>
+    .navbar-search {
+        /* width: 75%; */
+        width: 100%;
+        margin: 0 auto 20px;
+    }
+
+        .navbar-search > .input-group {
+            width: 100%;
+        }
+
+        .navbar-search .input-group .form-control {
+            border-width: 2px;
+            border-style: solid;
+            border-right: 0;
+            border-color: #c13832;
+            height: 53px !important;
+        }
+
+        .navbar-search .input-group .input-group-addon {
+            border: solid #c13832;
+            border-width: 2px 0;
+            background-color: #fff;
+            padding: 6px 3px !important;
+        }
+
+    .input-group-btn {
+        position: relative;
+        font-size: 0;
+        white-space: nowrap;
+    }
+
+    navbar-search .input-group-btn:last-child > .btn {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+
+    .navbar-search .input-group .btn {
+        border-width: 2px;
+        border-style: solid;
+        border-left: 0;
+        color: #fff;
+        background-color: #c13832;
+        /* padding: 12px 30px; */
+        font-size: 18px;
+        height: 53px;
+        /* border-radius: 25px; */
+    }
+</style>
+
+<body ng-controller="SearchController">
+    <div class="row">
+        <div class="col-md-12">
+
+
+            <section class="panel">
+
+                <div class="panel-body">
+                    <div class="col-md-8">
+                        <div class="navbar-search">
+                            <div class="input-group">
+                                <strong>
+                                    <input type="text" ng-model="SerialNo" class="form-control" uib-typeahead="SerialNo.SerialNo for SerialNo in AutoCompleteDataLoad($viewValue) | limitTo:5"
+                                           typeahead-on-select="GetSerialInfo()">
+                                </strong>
+                                <div class="input-group-addon search-categories">
+                                </div>
+                                <div class="input-group-btn">
+                                    <button type="button" class="btn btn-secondary" id="search_button"><i class="fa fa-barcode fa-lg"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="panel panel-default" ng-show="model[0].SerialId>0">
+                <div class="panel-heading">
+                    <strong> PRODUCT INFO</strong>
+                </div>
+                <div class="panel-body">
+
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ProductName, "Product Name:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].ProductName}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ProductCode, "Product Code:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].ProductCode}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.BrandName, "Brand Name:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].BrandName}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.prodCatName, "Category Name:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].prodCatName}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.prodSCatName, "SCategory Name:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].prodSCatName}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.SellingPrice, "Selling Price:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].SellingPrice}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.CostPrice, "Cost Price:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].CostPrice}}</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="panel panel-default" ng-show="model[0].InvoiceId>0">
+                <div class="panel-heading">
+                    <strong> INVOICE INFO</strong>
+                </div>
+                <div class="panel-body">
+
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.InvoiceNo, "Invoice No:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].InvoiceNo}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.dtInvoice, "Invoice Date:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].dtInvoice}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ClientName, "Client Name:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].ClientName}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.TotalAmount, "Total Amount:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].TotalAmount}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.NetPayable, "NetPayable:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].NetPayable}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Paid, "Paid:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].Paid}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Due, "Due:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].Due}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Qty, "Qty:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].Qty}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.SoldPrice, "SoldPrice:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].SoldPrice}}</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="panel panel-default" ng-show="model[0].GrrId>0">
+                <div class="panel-heading">
+                    <strong> PURCHASE INFO</strong>
+                </div>
+                <div class="panel-body">
+
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.GrrNo, "GrrNo:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].GrrNo}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.dtGrr, "Purchase Date:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].dtGrr}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.SupplierName, "Supplier Name:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].SupplierName}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ChallanNo, "Challan No:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].ChallanNo}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Receiver, "Receiver:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].Receiver}}</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="panel panel-default" ng-show="model[0].GrrId>0">
+                <div class="panel-heading">
+                    <strong> RETURN INFO</strong>
+                </div>
+                <div class="panel-body">
+
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ReturnNo, "Return No:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].ReturnNo}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ReturnType, "Return Type:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].ReturnType}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ClientName, "Client Name:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].ClientName}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ProductName, "Product Name:", htmlAttributes: new { @class = "col-sm-5 control-label", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].ProductName}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.SalQty, "SalQty:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].SalQty}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ReturnQty, "Return Qty:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].ReturnQty}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Amount, "Amount:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].Amount}}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Total, "Total:", htmlAttributes: new { @class = "col-sm-5 control-label ", style = "font-weight:bold" })
+                            <div class="col-md-7">
+                                <label class="control-label"> {{model[0].Total}}</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    @*<input type="text" ng-model="SerialNo" uib-typeahead="object.name for object in objects | filter: {name:$viewValue} | limitTo:8">*@
+</body>
+</html>
+
+
+
+<script>
+    var app = angular.module('search', ['ui.bootstrap']);
+    app.controller('SearchController', function ($scope, $http, $filter, $interval) {
+
+        $scope.SerialNoList = [];
+        $scope.SerialNo = "";
+
+        $scope.typeaheadSelected = function (model, SerialNo, rowRenderIndex) {
+            console.log(2222);
+            model.SerialNo = SerialNo;
+            for (var i = 0; i < $scope.SerialNoList.length; i++) {
+                if ($scope.SerialNoList[i].SerialNo == SerialNo.SerialNo) {
+                    $scope.model.data[rowRenderIndex].SerialNo = $scope.SerialNoList[i].SerialNo;
+                }
+            }
+        };
+
+        $scope.AutoCompleteDataLoad = function (SerialNo) {
+            console.log(SerialNo.length);
+            if (SerialNo.length > 3) {
+                return $http({
+                    method: 'Post',
+                    url: '@Url.Action("LoadProductCombo", "ProductSerial")',
+                    data: JSON.stringify({ value: SerialNo })
+                }).then(function (response) {
+                    $scope.SerialNoList = response.data.Table;
+                    console.log($scope.SerialNoList);
+                    return $scope.SerialNoList;
+                }, function errorCallback(response) {
+                    console.log(response);
+                });
+
+            }
+        }
+        $scope.GetSerialInfo = function () {
+            console.log($scope.SerialNo);
+            $scope.model = [];
+            if ($scope.SerialNo != "" && $scope.SerialNo.length >= 3)
+                console.log(12121);
+                $http({
+                    method: 'POST',
+                    url: '../ProductSerial/GetSerialInfo',
+                    data: JSON.stringify({ term: $scope.SerialNo })
+                }).
+                    then(function (result) {
+                        //console.log(result.data);
+                        $scope.model = result.data.Table;
+
+                    });
+            //$scope.SerialNo = "";
+        }
+
+    });
+</script>

@@ -1,0 +1,343 @@
+﻿@using System.Data
+@model SoftifyFoodPOSNew.Models.ProductSerial
+@{
+    ViewBag.Title = "Product";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <div class="panel-body">
+        <!-- : loading..... -->
+        <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+            <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 40%; left: 50%; width: 8%;">
+        </div>
+        <!-- UI-GRID -->
+                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize ui-grid-selection
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: black;width: 100%;height: 75vh;">
+
+                </div>
+        <footer class="panel-footer">
+            <div class="row">
+                <div class="col-md-9 col-md-offset-3 mt-md">
+                    <button class="btn btn-primary btn-wide" type="button" ng-disabled="dataForPost==false" name="btnSubmit" ng-click="SaveAccept()">
+                        Submit <i class="fa fa-arrow-circle-right"></i>
+                    </button>
+
+                </div>
+            </div>
+        </footer>
+    </div>
+</section>
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$rootScope', '$interval', 'modal', function ($scope, $http, $log, $filter, $timeout, $rootScope, $interval, modal) {
+        $scope.showLoader = false;
+        $scope.model = { ProductSubList: [], GatePurchaseReturnSerial: [] }
+        $scope.data = [{ CurrentStock:'' }];
+        $rootScope.ProductId = 0;
+        var myModal = new modal();
+
+
+        /* START : GRID Settings */
+        $scope.gridOptions = {
+            // EXPORT : END
+            enableFiltering: true,
+            showGridFooter: true,
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+
+                gridApi.selection.on.rowSelectionChanged($scope, function (row) {
+                    $scope.countSelectRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                });
+
+                gridApi.selection.on.rowSelectionChangedBatch($scope, function (row) {
+                    $scope.countAllRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                });
+            },
+            data: $scope.data
+        }
+
+        $rootScope.gridOptionsModal1 = {
+            onRegisterApi: function (gridmodalApi) {
+                $rootScope.gridmodalApi = gridmodalApi,
+                    $interval(function () {
+                        $rootScope.gridmodalApi.core.handleWindowResize();
+                    }, 500, 10);
+                $rootScope.gridmodalApi.grid.registerRowsProcessor($rootScope.modalFilterByRowId, 200);
+
+            },
+
+            data: [],
+            enableFiltering: true,
+            showGridFooter: true,
+            enableSelectAll: false
+        }
+
+        $scope.gridOptions.columnDefs = [
+            , { name: 'Name', field: 'ProductName', width: 500, enableColumnMenu: false }
+            , { name: 'Item Code', field: 'ProductCode', width: 150, enableColumnMenu: false }
+            , { name: 'Stock Qty', field: 'StockQty', width: 100, enableColumnMenu: false, enableFiltering: false, }
+              , {
+                  name: 'Current Stock', field: 'CurrentStock', width: 150, enableColumnMenu: false,
+                  cellTemplate:
+                      '<div ng-if="row.entity.IsSerial==true">' +
+                           '<strong class=""> ' + '<button type="button" class=""  ng-disabled="row.isSelected===false" ng-model="row.entity.CurrentStock" ng-click="grid.appScope.showModal(row)" style="width:100%" >{{row.entity.CurrentStock}}</button>' +
+                      '</div>' +
+                    '<div ng-if="row.entity.IsSerial!=true">' +
+                          ' <input type="number" ng-model="row.entity.CurrentStock" ng-disabled="row.isSelected===false"  class="pl-sm"/>' +
+                    '</div>'
+              }
+            //  ,{
+            //      name: 'Current Stock', width: 150, enableColumnMenu: false, enableFiltering: false,
+            //    cellTemplate: ' <div>' +
+            //     ' <input type="text" ng-model="row.entity.CurrentStock" ng-disabled="row.isSelected===false" class="pl-sm" />' +
+            //     ' </div>'
+            //},
+        ];
+
+        $rootScope.gridOptionsModal1.columnDefs = [
+          {
+              name: 'Row',
+              enableColumnMenu: false, visible: false,
+              width: 200, cellTemplate: '<div>' + 'appscope{{grid.appScope.ProductId}}' + 'row.entity{{row.entity.ProductId}}' + '</div>'
+          },
+
+            {
+                name: ' ',
+                enableColumnMenu: false, enableFiltering: false,
+                width: 80, cellTemplate: '' +
+               "<span class=\"checkbox-custom checkbox-text-dark checkbox-default ml-md mt-sm\" \">" +
+               "<input  type=\"checkbox\" ng-model=\"row.entity.IsSelect\" id=\"{{row.entity.SerialId+'b'}}\" ng-click=\"$event.stopPropagation();getExternalScopes().showMe(row.entity.IsSelect); grid.appScope.addSerial(row.entity)\" >" +
+               "<label for=\"{{row.entity.SerialId+'b'}}\" ></label>" +
+               "</span>"
+            },
+
+        { name: 'SerialNo', field: 'SerialNo', width: 150, enableColumnMenu: false },
+        { name: 'Validity', field: 'Validity', width: 300, enableColumnMenu: false },
+
+        ];
+
+        $rootScope.addSerial = function (rowEntity) {
+            for (let i = 0; i < $scope.gridOptions.data.length; i++) {
+                if ($scope.gridOptions.data[i].ProductId == rowEntity.ProductId) {
+                    if (rowEntity.IsSelect != true) {
+                        $scope.gridOptions.data[i].CurrentStock -= 1;
+                    } else {
+                        $scope.gridOptions.data[i].CurrentStock += 1;
+                    }
+                }
+            }
+        }
+
+        $scope.showModal = function (row) {
+            myModal.open(); // 1 = modal1
+            $rootScope.modalHeader = "Procuct Serial";
+            $rootScope.ProductId = row.entity.ProductId;
+            $http({
+                method: 'Post',
+                url: '../ProductSerial/GetSerialLoad',
+                data: JSON.stringify({ ProductId: row.entity.ProductId })
+            }).then(function (res) {
+                $rootScope.gridOptionsModal1.data = res.data.Table1;
+                $scope.showLoader = false;
+                console.log(res.data);
+            }, function (error) {
+                alert(error);
+                console.log(error);
+                $scope.showLoader = false;
+            });
+
+
+        }  //modal End
+
+        /* START : GRID Data Load */
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../ProductSerial/GetProductList'
+            }).then(function (res) {
+                $scope.gridOptions.data = res.data.Table;
+                //$rootScope.gridOptionsModal1.data = res.data.Table1;
+                $scope.showLoader = false;
+                console.log(res.data);
+            }, function (error) {
+                alert(error);
+                console.log(error);
+                $scope.showLoader = false;
+            });
+        }
+        $scope.DataLoad();
+        /* END : GRID Data Load */
+
+        $scope.GetSerial = function (Id) {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../SalesReturn/GetClientComboLoad',
+                data: JSON.stringify({ ProductId: Id })
+            }).then(function (result) {
+                $rootScope.gridOptionsModal1.data = result.data.Table1;
+                $scope.showLoader = false;
+            }, function (error) {
+                console.log(error);
+            });
+        }
+
+
+        $rootScope.SerialGenerate = function (row) {
+            var check = 0; var count = 0;
+
+            if (row.entity.IsSerial == true) {
+                if ($rootScope.gridOptionsModal2.data.length == 0) {
+                    for (var k = 0; k < $rootScope.gridOptionsModal1.data.length; k++) {  // Bin length
+                        if ($rootScope.gridOptionsModal1.data[k].IsSerial == true) {
+                            for (var l = 0; l < $rootScope.gridOptionsModal1.data[k].BinQty; l++) {  // total Qty
+                                $rootScope.gridOptionsModal2.data.push({
+                                    BinId: $rootScope.gridOptionsModal1.data[k].BinId,
+                                    BinName: '',
+                                    SerialNo: '',
+                                    ProductId: $rootScope.gridOptionsModal1.data[k].ProductId
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // SERIAL CHECK  =   0
+                for (let index = 0; index < $rootScope.gridOptionsModal2.data.length; index++) {
+                    $scope.ProductIdCheck = $rootScope.gridOptionsModal2.data[index].ProductId;
+                    $scope.BinIdCheck = $rootScope.gridOptionsModal2.data[index].BinId;
+                    if ($scope.ProductIdCheck == row.entity.ProductId && $scope.BinIdCheck == row.entity.BinId) {
+                        count = count + 1
+                    }
+                }
+
+                /* SERIAL GENERATE AUTO */
+                if (row.entity.BinQty > 0 && $rootScope.gridOptionsModal2.data.length > 0) {
+                    var realvalue = row.entity.BinQty - count;
+                    if (realvalue > 0) {
+                        for (let j = count; j < row.entity.BinQty; j++) {
+                            $rootScope.gridOptionsModal2.data.push({
+                                BinId: row.entity.BinId,
+                                BinName: '',
+                                SerialNo: '',
+                                ProductId: row.entity.ProductId
+                            });
+                        }
+                    }
+                    else if (realvalue < 0) {
+                        var del = count - row.entity.BinQty
+                        for (var k = del - 1; k >= 0; k--) {
+                            $rootScope.gridOptionsModal2.data.splice(k, 1);
+                        }
+                    }
+                }
+            } // End : Is Serial
+
+        }
+
+
+
+        $scope.SaveAccept = function () {
+            $scope.model.ProductSubList = $scope.dataForPost;
+            $scope.model.GateProductSerial = $rootScope.gridOptionsModal1.data;
+            console.log($rootScope.gridOptionsModal1.data);
+            $http.post("../ProductSerial/prcDataSave", { model: $scope.model })
+                .then(function (data) {
+                    if (data.data == 1) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: ' Successfully Save.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.DataLoad();
+                        $scope.model.ProductSubList = [];
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+
+                    }
+                },
+                function (responseData) {
+                    console.log("Error !" + responseData);
+                });
+        };
+
+
+
+        // START : Modal Filter By RowId
+        $rootScope.modalFilterByRowId = function (renderableRows) {
+            renderableRows.forEach(function (row) {
+                var match = false;
+                ['ProductId'].forEach(function (field) {
+                    if (row.entity[field] == $rootScope.ProductId) {
+                        match = true;
+                    }
+                });
+                if (!match) {
+                    row.visible = false;
+                }
+            });
+            return renderableRows;
+        };
+        // END : Modal Filter By RowId
+
+    }]);
+
+
+
+    ngGridApp.factory('modal', ['$compile', '$rootScope', function ($compile, $rootScope) {
+        return function () {
+            var elm;
+            var modal = {
+                open: function () {
+
+                    var html = '' +
+                        '<div class="modal" ng-style="modalStyle">{{modalStyle}}' +
+                        '<div class="modal-dialog"><div class="modal-content">' +
+                        '<div class="modal-header pt-xs pb-xs"><strong>{{modalHeader}}</strong></div>' +
+                        '<div class="modal-body pt-xs pb-xs">' +
+                        '<div id="grid1" ui-grid="gridOptionsModal1" class="gridmodal mt-xs"></div></div>' +
+                        '<div class="modal-footer pt-xs pb-xs">' +
+                        '<button id="buttonClose" class="btn btn-primary btn-sm" ng-click="close()">OK</button>' +
+                        '</div></div></div></div>';
+                    elm = angular.element(html);
+                    angular.element(document.body).prepend(elm);
+
+                    $rootScope.close = function () {
+                        modal.close();
+                    };
+                    $rootScope.modalStyle = { "display": "block" };
+                    $compile(elm)($rootScope);
+                },
+                close: function () {
+                    if (elm) {
+                        elm.remove();
+                    }
+                }
+            };
+
+            return modal;
+        };
+    }]);
+
+
+</script>

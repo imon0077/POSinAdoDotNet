@@ -1,0 +1,410 @@
+﻿@model SoftifyFoodPOSNew.Models.Transfer 
+@{ ViewBag.Title = "Product Transfer"; }
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+
+<!-- start:  Create page -->
+<section class="panel mb-xs" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <div class="" shortcuts="keyUp">
+        <form name="frmPOS" id="POSForm">           
+                <div class="panel-body pt-xs">
+                    <div class="form-group mb-xs">
+                        <div class="col-md-3">
+                            @Html.LabelFor(model => model.dtTransfar, "Transfer Date :", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.dtTransfar, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @required = "",  ng_model = "model.dtTransfar", datepicker = "" } })
+                            @Html.ValidationMessageFor(model => model.dtTransfar, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="TransfarTo" class="control-label text-bold">Transfer From</label>
+                            <select ng-model="model.WHFrom" name="WHFrom"
+                                    ng-disabled="fieldWHFrom"
+                                    ng-options="obj.WHId as obj.WHName for obj in WHList"                                  
+                                    style="width: 100%" required="" class="form-control" select2="">
+                                <option value="">---Please Select---</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="TransfarTo" class="control-label text-bold">Transfer To</label>
+                            <select ng-model="model.WHTo" name="WHTo"
+                                      ng-disabled="fieldWHTo"
+                                    ng-options="obj.WHId as obj.WHName for obj in WHList"
+                                    ng-change="fncCheckWarehouse()"
+                                    style="width: 100%" required="" class="form-control" select2="">
+                                <option value="">---Please Select---</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            @Html.LabelFor(model => model.Remarks, "Lot No :", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.Remarks, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.Remarks" } })
+                            @Html.ValidationMessageFor(model => model.Remarks, "", new { @class = "text-danger" })
+                        </div>
+                       
+                        </div>
+                    <div class="form-group mb-xs" style="margin-bottom:0px">
+                        <div class="col-md-4">
+                            <div class="typeaheadcontainer">
+                                <input type="text" name="item"
+                                       class="typeaheadcontrol form-control"
+                                       ng-model="model.ProductName"
+                                       uib-typeahead="ProductName as Item.ProductName for Item in searchItem($viewValue)| limitTo:5"
+                                       placeholder="Search Product Name/ Brand"
+                                       typeahead-editable="false"
+                                       id="ProductName"
+                                       autocomplete="off"
+                                       typeahead-on-select="fillData(row.entity, $item)" style="cursor:pointer; border:1px solid yellowgreen" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-offset-1 col-md-2 text-center" readonly="" ng-model="TotalQty">
+                            <label style="font-weight:bold; color:black; margin-top:12px">Total Qty:</label><strong style="color:red">{{GetTotalQty()}}</strong>
+                        </div>
+                        <div class="col-md-2" readonly="" ng-model="TotalAmount">
+                            <label style="font-weight:bold; color:black; margin-top:12px">Amount:</label><strong style="color:red">{{fncGrandtotal()}}</strong>
+                        </div>
+                    </div>
+                    <div class="form-group mb-xs">
+                       
+
+                       
+                       
+                    </div>
+                    <div class="form-group mb-xs">
+                        <!-- GRID ROW Product Details -->
+                        <div class="col-md-12" style="margin-top:10px">
+                            <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                 style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 65vh;" class="grid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Panel End -->
+                <div class="panel-footer">
+                    <div class="row">
+                        <div class="col-sm-9 col-sm-offset-3">
+                            <button class="btn btn-danger btn-wide mr-md" type="button" id="btnSubmit" name="btnSubmit" ng-click="InsertItem(model)" ng-disabled="frmPOS.$invalid || model.NetPayable<1">
+                                Submit <i class="fa fa-arrow-circle-right"></i>
+                            </button>
+                            <a href="@Url.Action("Index", "Transfer")" class="btn btn-default">
+                                <i class="fa fa-arrow-circle-left"></i> Back to list
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+   
+</section>
+
+
+<script type="text/javascript">
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+
+        // Main Array
+        $scope.model = { TransferSubList: [], dtTransfar: $filter("date")(Date.now(), 'dd-MMM-yyyy') }
+
+        $scope.fieldWHFrom = false;
+        $scope.fieldWHTo = false;
+        $scope.dtTransfar = false;
+        $scope.btnResetR = true;
+        
+        /*  START : Load Combo  */
+        $scope.PrcComboLoad = function () {
+            $http({ method: 'Post', url: '@Url.Action("PrcComboLoad", "Transfer")' }).then(function (res) {
+                $scope.WHList = res.data.Table;
+                $scope.TypeList = res.data.Table1;
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+        };
+
+        $scope.PrcComboLoad();
+        /*  END : Load Combo  */
+
+        // Search Item
+        $scope.searchItem = function (param) {
+
+            if (angular.isDefined(param)) {
+                if (param.length > 1) {
+                    $scope.showLoader = true;
+                    return $http({
+                        method: 'POST',
+                        url: '@Url.Action("GetItem", "Transfer")',
+                        data: JSON.stringify({ value: param })
+                    }).then(function (response) {
+                        $scope.showLoader = false;
+                        $scope.ItemList = response.data;
+                        return $scope.ItemList;
+                    }, function errorCallback(response) {
+                        console.log(response);
+                        $scope.showLoader = false;
+                    });
+                }
+            }
+        }
+        // End Search Item
+
+        // Fill Data
+        $scope.fillData = function (entity, selectedItem) {
+            $scope.showLoader = false;
+            $scope.model.ProfileName = selectedItem.ProductName;
+
+            if (selectedItem.ProductId > 0) {
+                //debugger
+                $scope.gridOptions.data.push({
+                    RowNo: $scope.gridOptions.data.length + 1,
+                    ProductId: selectedItem.ProductId,
+                    ProductName: selectedItem.ProductName,
+                    ProductCode: selectedItem.ProductCode,
+                    Qty: 0,
+                    UnitPrice: 0,
+                    Amount: 0,
+
+                });
+            }
+
+            var rownumberID = 0;
+            window.setTimeout(function () {
+                if ($scope.gridOptions.data.length > 0) {
+                    rownumberID = $scope.gridOptions.data.length - 1;
+                    $("#" + rownumberID).focus().select();
+                }
+                else {
+                    $("#" + rownumberID).focus().select();
+                }
+            }, 100, 2);
+        }
+        // End Fill Data
+
+        /*   For  total op Qty */
+        $scope.CalcAmount = function (rowEntity) {
+
+            var Amount = 0, qty = 0, price = 0;
+            qty = rowEntity.Qty;
+            price = rowEntity.UnitPrice;
+
+            if (qty > 0 && price > 0) {
+                Amount = (qty * price)
+            }
+
+            rowEntity.Amount = Amount;
+        }
+
+
+        /*   For  total op Qty */
+        $scope.CountPrdQty = function (ProductId, rowEntity) {
+            var total = 0;
+            angular.forEach($rootScope.gridOptionsModal.data,
+                function (item) {
+                    if (item.ProductId == ProductId) {
+                        total += item.Qty;
+                    }
+                });
+            rowEntity.Amount = total * rowEntity.Price;
+
+            return total;
+        }
+
+        /* END : GRID Columns */
+        $scope.GetTotalQty = function () {
+
+            var total = 0;
+            angular.forEach($scope.gridOptions.data, function (item) {
+                total += item.Qty;
+            });
+            return Math.round(total);
+            console.log(total);
+        }
+
+        /* Calculate Total Amount */
+        $scope.fncGrandtotal = function () {
+
+            var total = 0;
+            angular.forEach($scope.gridOptions.data, function (item) {
+                total += item.Amount;
+            });
+            return Math.round(total);
+        }
+
+
+        /* End Total Amount */
+        
+      
+        $scope.PrcComboLoad();
+        /*  END : Load Combo  */
+
+        /*   START :  ProductSub/ Item details */
+        $scope.gridOptions = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi,
+                    $interval(function () {
+                        $scope.gridApi.core.handleWindowResize();
+                    }, 500, 10);
+            },
+            data: [],
+            enableFiltering: true,
+            showGridFooter:true,
+            enableColumnMenus:false,
+        }
+
+        /*   START : grid Column | ProductSub */
+        $scope.gridOptions.columnDefs = [
+          { name: 'Id', field: 'ProductId', displayName: 'Id', width: 60, visible: false },
+          { name: 'SL#', field: 'RowNo', width: 60, enableColumnMenu: false },
+          { name: 'Product Name', field: 'ProductName', width: 180 },
+          { name: 'Product Code', field: 'ProductCode', width: 180 },
+          {
+              name: 'Qty', width: 80, field: 'Qty', cellTemplate: ' <div>' +
+              '<strong> <input type="number" required="" id=\"{{grid.renderContainers.body.visibleRowCache.indexOf(row)}}\" ng-model="row.entity.Qty" class="pl-sm" ng-change="grid.appScope.CalcAmount(row.entity)"/> </strong>' +
+              ' </div>'
+          },
+          {
+              name: 'Price', width: 80, field: 'UnitPrice', cellTemplate: ' <div>' +
+              '<strong> <input type="number" ng-model="row.entity.UnitPrice" class="pl-sm" ng-change="grid.appScope.CalcAmount(row.entity)"/> </strong>' +
+              ' </div>'
+          },
+          {
+              name: 'Amount', width: 90, cellTemplate: '<div>' +
+                      '<strong><input type="number" ng-model="row.entity.Amount" class="pl-sm" disabled="" /></strong>' +
+              '</div>'
+          },
+           {
+               name: ' ', enableColumnMenu: false, width: 40,
+               cellTemplate:
+               '<a href="javascript:void(0)" class="ml-md" ng-click="grid.appScope.removeItem(row)"><i class="fa fa-close fa-sm text-danger" aria-hidden="true"></i></a>'
+           }
+
+        ];
+        /*   END : grid Column | ProductSub */
+
+        /*   For Remove Item */
+        $scope.removeItem = function (row) {
+            var index = $scope.gridOptions.data.indexOf(row.entity);
+            if (index == 0) {
+                //minimum fill one row
+            } else {
+                $scope.gridOptions.data.splice(index, 1);
+            }
+        }
+
+        /* START : Sub Total Calculation fncSubtotal */
+        $scope.fncCalc = function (rowentity) {
+            var Amount = 0, qty = 0, price = 0, stock=0;
+            qty = rowentity.Qty;
+            price = rowentity.UnitPrice;
+            stock = rowentity.StockQty;
+
+            //if (qty > stock) {
+            //    alert("Insufficient stock");
+            //    rowentity.Qty = 0;
+            //    qty = 0;
+            //    rowentity.Amount = 0;
+            //}
+            if (qty > 0 && price > 0) {
+                Amount = (qty * price)
+            }
+
+            rowentity.Amount = Amount;
+        }
+
+        /* END : Sub Total Calculation fncSubtotal*/
+
+
+        $scope.fncCheckWarehouse = function () {
+            var whIdF = 0, whIdT = 0
+            whIdF = $scope.model.WHFrom;
+            whIdT = $scope.model.WHTo;
+
+            if (whIdF > 0 && whIdT > 0) {
+                if (whIdF == whIdT) {
+                    alert("Sorry!! warehouse already exists");
+                    $scope.model.WHTo = 0;
+                }
+            }
+
+        }
+
+        /* START : Insert Item */
+        $scope.InsertItem = function (model) {
+            $scope.model.TransferSubList = $scope.gridOptions.data;
+            $http.post("@Url.Action("Create", "Transfer")", { model: $scope.model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data saved successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.model = { TransferSubList: [], dtTransfar: $filter("date")(Date.now(), 'dd-MMM-yyyy') }
+                    $scope.gridOptions.data = [];
+
+                }
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+
+                }
+            });
+        }
+        /* END : Insert Item */
+
+
+        $scope.keyUp = function (key) {
+            if (key.ctrlKey && key.altKey) {
+                $('#ItemName').focus().select();
+            }
+                //click submit button
+            else if (key.ctrlKey && key.keyCode == 13) {
+                $("#btnSubmit").trigger("click")
+            }
+            //press print No
+            else if (key.keyCode == 27) {
+                $("#btnClose").trigger("click")
+            }
+        };
+
+        $scope.fncSearchClear = function () {
+            $scope.model.ProductName = "";
+        }
+    }
+    ]);
+
+   
+
+
+    ngGridApp.directive('shortcuts', ['$document', '$rootScope', function ($document, $rootScope) {
+        $rootScope.shortcuts = [];
+
+        $document.on('keydown', function (e) {
+            // Skip if it focused in input tag.
+            //if (event.target.tagName !== "INPUT") {
+            $rootScope.shortcuts.forEach(function (eventHandler) {
+                if (event.target.tagName !== eventHandler)
+                    eventHandler(e.originalEvent, e)
+            });
+            //}
+        })
+
+        return {
+            restrict: 'A',
+            scope: {
+                'shortcuts': '&'
+            },
+            link: function (scope, element, attrs) {
+                $rootScope.shortcuts.push(scope.shortcuts());
+            }
+        };
+    }]);
+</script>

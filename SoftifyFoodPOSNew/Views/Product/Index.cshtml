@@ -1,0 +1,198 @@
+﻿@{
+    ViewBag.Title = " Product List  ";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <div class="panel-body">
+        <!-- : loading..... -->
+        <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+            <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 40%; left: 50%; width: 8%;">
+        </div>
+        <!-- UI-GRID -->
+        <div ui-grid="gridOptions" ui-grid-pinning ui-grid-expandable ui-grid-exporter ui-grid-resize-columns class="grid"
+             style="font-family: 'Open Sans', Arial, sans-serif; color: black; height: 75vh;"></div>
+    </div>
+    @*<div class="col-md-12">
+        <div class="col-lg-offset-9">
+            <label class="control-label text-bold" style="color:red">Total Stock Amount: {{fncGrandtotal()}} </label>
+        </div>
+    </div>*@
+</section>
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+        $scope.showLoader = false;
+
+        /* START : GRID Settings */
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Product List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+
+            // Default : start
+            //expandableRowTemplate: "../Partial/expandableRowTemplate.html",
+            //expandableRowHeight: 150,
+            //expandableRowScope: {
+            //    subGridVariable: 'subGridScopeVariable'
+            //},
+            enableFiltering: true,
+            showGridFooter: true,
+            // Default: End
+
+            /*   SubGridOptions : Start  */
+            onRegisterApi: function (gridApi) {
+                // Expandable code area
+                gridApi.expandable.on.rowExpandedStateChanged($scope, function (row) {
+                    //if (row.isExpanded) {
+                    //    row.entity.subGridOptions = {
+                    //        columnDefs: [
+                    //            { name: 'Serial', field: 'Serial', width: 250 },
+                    //            { name: 'warranty', field: 'warranty', width: 100 },
+
+                    //        ]
+                    //    }; $http.get('../Product/GetSerialByProduct?productid=' + row.entity.ProductId)
+                    //        .then(function (data) {
+                    //            row.entity.subGridOptions.data = data.data;
+                    //        });
+                    //}
+                });
+                // this code ready for array data POST after select
+                $scope.gridApi = gridApi,
+           $interval(function () {
+               $scope.gridApi.core.handleWindowResize();
+           }, 500, 10);
+            },
+
+        }
+
+
+        $scope.GetAmount = function (rowentity) {
+            rowentity.AMOUNT = rowentity.StockQty * rowentity.TP;
+        }
+        /* END : GRID Settings */
+
+        /* START : GRID Columns */
+        $scope.gridOptions.columnDefs = [
+            { name: 'Name', field: 'ProductName', width: 250 },
+            { name: 'Code', field: 'ProductCode', width: 80 },
+            //{ name: 'Barcode', field: 'Barcode', width: 120 },
+            { name: 'Category', field: 'prodCatName', width: 140 },
+            { name: 'SubCategory', field: 'prodSCatName', width: 100, visible: false },
+            { name: 'Unit', field: 'unitName', width: 70 },
+            //{ name: 'Weight', field: 'Weight', width: 90 },
+            //{ name: 'Model', field: 'Model', width: 80 },
+            //{ name: 'Brand', field: 'BrandName', width: 120 },
+            { name: 'Stock', field: 'StockQty', width: 90 },
+            { name: 'Sell Price', field: 'SellingPrice', width: 150 },
+            { name: 'Pur. Rate', field: 'CostPrice', width: 110 },
+
+            {
+                name: 'Action', enableFiltering: false, width: 100,
+                cellTemplate:
+                        '    <div class="ml-sm"> ' +
+                        '           <a href="../Product/Edit/{{row.entity.ProductId}}">' +
+                        '                <i class="fa fa-edit text-danger mr-sm fa-lg" aria-hidden="true" title="Update" data-placement="right" data-delay="500" data-toggle="tooltip"></i>' +
+                                 '</a>' +
+                        '<span ng-if="row.entity.StockQty==0 ">' +
+                            '<a href="javascript:void(0)" class="text-danger fa-lg" ng-click="grid.appScope.DeleteItem(row.entity.ProductId, grid.renderContainers.body.visibleRowCache.indexOf(row))"><i class="fa fa-trash ml-sm" aria-hidden="true" title="delete item !!"></i>' +
+                         '</a>' +
+                        '</span>' +
+
+                        '    </div>'
+            },
+            { name: 'Entry By', field: 'EntryBy', width: 150 }
+
+        ];
+        /* END : GRID Columns */
+        $scope.fncGrandtotal = function () {
+            var total = 0;
+            angular.forEach($scope.gridOptions.data, function (item) {
+                total += item.AMOUNT;
+            });
+            return Math.round(total);
+        }
+
+        /* START : GRID Data Load */
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '@Url.Action("PrcLoadList", "Product")'
+            }).then(function (res) {
+                $scope.gridOptions.data = res.data.Table;
+                $scope.showLoader = false;
+                console.log(res.data);
+            }, function (error) {
+                alert(error);
+                console.log(error);
+                $scope.showLoader = false;
+            });
+        }
+        $scope.DataLoad();
+        /* END : GRID Data Load */
+
+
+
+        /* START : GRID Data Delete */
+        $scope.DeleteItem = function (itemId, index) {
+            $scope.showLoader = true;
+            if (confirm("Are you sure to delete this record ?")) {
+                $http.post("@Url.Action("PrcDeleteData", "Product")", { itemId }).then(function (res) {
+                    if (res.data == "1") {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data deleted successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.gridOptions.data.splice(index, 1);
+                        $scope.showLoader = false;
+                        $scope.DataLoad();
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + res.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                        $scope.showLoader = false;
+                    }
+                });
+
+            }
+
+        }
+        /* END : GRID Data Delete */
+
+    }]);
+
+</script>

@@ -1,0 +1,665 @@
+﻿@model SoftifyFoodPOSNew.Models.POS
+@{ ViewBag.Title = "Create Sales"; }
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+<style>
+    .gridmodal {
+        width: 550px;
+        height: 260px;
+    }
+</style>
+
+<!-- start:  Create page -->
+<section class="panel mb-xs" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    <!-- Alert Message -->
+
+    <!--<div class="row">
+        <div class="col-sm-12">
+            <div class="column">
+                <a href="#" class="btn btn-danger mb-md mr-md"><i class="ti-align-justify"> </i> Manage Invoice </a> 
+            </div>
+        </div>
+    </div>--> <!-- end : row-->
+
+
+    <!--Add Invoice -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel panel-bd lobidrag">               
+                <form action="#" class="form-vertical" id="validate" name="insert_invoice" enctype="multipart/form-data" method="post" accept-charset="utf-8">
+                    <div class="panel-body">
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="customer_name" class="col-sm-4 control-label text-right">Customer Name <i class="text-danger">*</i></label>
+                                    <div class="col-sm-8">
+                                        <select ng-model="model.ClientId" ng-disabled="ClientList.length == 0" ng-init="model.ClientId=1"
+                                                ng-options="obj.ClientId as obj.ClientName for obj in ClientList"
+                                                style="width: 100%" required="" class="form-control" select2=""></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label for="invoice_date" class="col-sm-4 control-label text-right">Date <i class="text-danger">*</i></label>
+                                    <div class="col-md-8">
+                                        <div class="input-group">
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </span>
+                                            @Html.EditorFor(model => model.dtInvoice, new {htmlAttributes = new {@class = "form-control", ng_model = "model.dtInvoice", datepicker = "", required = "", @autocomplete = "off"}})
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!-- end row-->
+
+                        <!-- start : stock row-->
+                        <div class="row mt-sm" ng-if="gridStock.data.length>0">
+                            <div class="col-md-6">
+                                <div ui-grid="gridStock" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 30vh;" class="grid">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end : stock row-->
+
+                        <div class="row"> 
+                            <div class="col-md-12 mt-sm"> Len = {{gridStock.data.length}}
+                                <button class="mb-xs btn-sm btn-primary pull-right" type="button" ng-click="addProductSub()">
+                                    Add<i class="fa fa-plus ml-sm"></i>
+                                </button>
+
+                            </div>
+                            <div class="col-md-12">
+                                <div ui-grid="gridOptionsProductSub" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                                </div>
+                            </div>
+                        </div><!-- end row-->
+
+                        <!-- Calculation ROW -->
+                        <div class="row mt-sm">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label" for="ItemsCount">Items</label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <span class="text-bold" style="padding: 5px 10px; font-size: 14px;">{{model.TotalItems}} ({{model.TotalQty}}) </span> 
+                                    </div>
+                                </div>
+
+                                <div class="form-group pull-right" style="font-size: 16px; margin-top: 55px; padding-right: 50px;">
+                                    <span class="text-danger text-bold"> Due : </span>
+                                    <span class="text-danger text-bold"> {{model.Due}} </span>
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-3 pull-right">
+
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-5">
+                                        <label class="control-label">Total </label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <span class="text-bold" style="padding: 5px 10px; font-size: 14px;">{{model.TotalAmount}}  {{fncGrandtotal()}}</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-5">
+                                        <label class="control-label" for="Discount">Discount</label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <input class="form-control pos-input" id="Discount" ng-init="model.Discount=0" ng-model="model.Discount" type="number">
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-5">
+                                        <label class="control-label" for="Tax">Tax</label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <input class="form-control pos-input" style="" id="Tax" ng-init="model.Tax=0" ng-model="model.Tax" type="number">
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-5">
+                                        <label class="control-label" for="Tax">Shipping</label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <input class="form-control pos-input" ng-init="model.Shipping=0" ng-model="model.Shipping" type="number">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <!-- end : Calculation row-->
+
+                    </div>
+                    <!-- end : Panel-Body -->
+                    
+                    <div class="panel-footer mt-none pt-xs pb-xs">
+                        <!-- TotalPayable ROW -->
+                        <div class="row" style="padding: 0px 0px; font-weight: bold; background: #f4f4f4; color: #000; border-bottom: 1px solid #ccc;">
+                            <div class="col-md-6">
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-4">
+                                        <span class="text-bold" style="">Net Payable</span>
+                                    </div>
+
+                                    <div class="col-md-8 pull-left">
+                                        <span class="text-bold" style="padding: 5px 10px;">{{model.NetPayable}} </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 pull-right">
+                                <div class="form-group mb-xs">
+                                    <div class="col-md-5">
+                                        <span class="text-bold" style="padding: 5px 10px; font-size: 14px;">Paid </span>
+                                    </div>
+
+                                    <div class="col-md-7 pull-right">
+                                        <input class="form-control pos-input" id="Paid" ng-init="model.Paid=0" ng-model="model.Paid" type="number">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-xs">
+                            <div class="col-md-3 pull-right">
+                                <button type="button" class="btn btn-danger btn-wide mr-lg" style="width:100%" ng-click="InsertItem(model)">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end : panel-footer -->
+                </form> <!-- end form-->
+            </div> <!-- end Panel-->
+        </div>
+    </div> <!-- end row-->
+
+
+</section>
+
+
+<script>
+
+    $(window).on('load', function () {
+        $('html').addClass('sidebar-left-collapsed');
+    });
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$rootScope', 'modal', function ($scope, $http, $log, $filter, $timeout, $interval, $rootScope, modal) {
+
+        $scope.SizeList = [];
+        $scope.UnitList = [];
+        $scope.CategoryList = [];
+        $scope.SubCategoryList = [];
+        $scope.BrandList = [];
+        $scope.ColorList = [];
+        $scope.ProdTypeList = [];
+        $scope.ThicknessList = [];
+        $scope.WireHouseList = [];
+        $rootScope.BinList = [];
+        $scope.ClientList = [];
+        $scope.ProductList = [];
+
+        var myModal = new modal();
+        $rootScope.RowId = 0;
+        $rootScope.modalHeader = "Product Color";
+
+
+
+        /*   START : grid api | gridStock  */
+        $scope.gridStock = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi,
+                    $interval(function () {
+                        $scope.gridApi.core.handleWindowResize();
+                    }, 500, 10);
+            }
+        }
+        /*   END : grid api | gridStock */
+
+
+        /*   START : grid Column | gridStock */
+        $scope.gridStock.columnDefs = [        
+              { name: 'Brand', field: 'Brand', width: 120 }
+            , { name: 'Thickness', field: 'Thickness', width: 120 }
+            , { name: 'ColorName', field: 'ColorName', width: 120 }
+            , { name: 'Size', field: 'Size', width: 100 }        
+            , { name: 'Qty', field: 'Qty', width: 100 }
+        ];
+        /*   END : grid Column | gridStock */
+         
+
+        /*  START : fncGetStock */
+        $scope.fncGetStock = function (rowentity) {
+            
+            angular.forEach($scope.SizeList, function (item) {
+                if (rowentity.SizeId == item.SizeId) { 
+                    rowentity.ProductSubId = item.ProductSubId; 
+                } 
+            });
+            console.log(rowentity.ProductId);
+            $http({
+                method: 'Post',
+                url: '../SalesDealer/PrcGetStock',
+                data: JSON.stringify({ id: rowentity.ProductId, subId: rowentity.ProductSubId }) 
+            })
+            .then(function (res) {
+                $scope.gridStock.data = res.data.Table;
+            },
+            function (ex) { 
+                console.log(ex);
+            });
+        }; 
+        /*  END : fncGetStock  */
+
+
+
+        // arrray ininialized:
+        $scope.InvProductSubList = [{
+            BrandId: 0,
+            ProdType: '',
+            ProductId: 0,
+            ProductSubId: 0,
+            ThicknessId: 0,
+            ColorId: 0,
+            CuttingSizeId: 0,
+            SizeId: 0,
+            SellingPrice: 0,
+            Qty: 0,
+            Discount: 0,
+            Subtotal: 0 
+        }];
+        
+
+        // Main Array
+        $scope.model = { dtInvoice: $filter("date")(Date.now(), 'dd-MMM-yyyy'), InvoiceSubList: [] }
+        $rootScope.modaldata = [];
+         
+        /// data push grid
+        $scope.addProductSub = function () {
+            $scope.gridOptionsProductSub.data.push({
+                BrandId: 0,
+                ProdType: '',
+                ProductId: 0,
+                ProductSubId: 0,
+                ThicknessId: 0,
+                ColorId: 0,
+                CuttingSizeId: 0,
+                SizeId: 0,
+                SellingPrice: 0, 
+                Qty: 0,
+                Discount: 0,
+                Subtotal: 0
+            });
+        };
+        /* END : Add Row | ProductSub | data push grid   */
+
+
+        /*   START : grid api | ProductSub  */
+        $scope.gridOptionsProductSub = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi,
+                    $interval(function () {
+                        $scope.gridApi.core.handleWindowResize();
+                    }, 500, 10);
+            },
+            data: $scope.InvProductSubList
+            //, data: $scope.InvProductSubList
+        }
+        /*   END : grid api | ProductSub */
+
+
+        /*   START : grid Column | ProductSub */
+        $scope.gridOptionsProductSub.columnDefs = [
+         {
+             name: 'Brand', field: 'BrandId', width: 110, enableColumnMenu: false, cellTemplate: ' <div>' +
+                   ' <select ng-model="row.entity.BrandId" name="row.entity.BrandId" required="" style = "width:100%;" select2="" data-ng-options="d.BrandId as d.BrandName for d in grid.appScope.BrandList">' +
+                   '     <option value="" selected>--Select--</option> </select>' +
+                   ' </div>'
+         }
+        , {
+            name: 'Type', field: 'ProdType', width: 100, enableColumnMenu: false, cellTemplate: ' <div>' +
+                ' <select ng-model="row.entity.ProdType" required="" style = "width:100%;" select2="" ng-disabled="!row.entity.BrandId" data-ng-options="d.ProdType as d.ProdType for d in grid.appScope.ProdTypeList | filter:{BrandId: row.entity.BrandId}">' +
+                '     <option value="" selected>--Select--</option>' +
+                ' </select>' +
+                ' </div>'
+        }
+        , {
+            name: 'Product Name', field: 'ProductId', width: 200, enableColumnMenu: false, cellTemplate: ' <div>' +
+                ' <select ng-model="row.entity.ProductId" required="" style = "width:100%;" select2="" ng-change="grid.appScope.fncSellingPrice(row.entity)" ng-disabled="!row.entity.ProdType" data-ng-options="d.ProductId as d.ProductName for d in grid.appScope.ProductList | filter:{ProdType: row.entity.ProdType}">' +
+                '     <option value="" selected>--Select--</option>' +
+                ' </select>' +
+                ' </div>'
+        }
+        , {
+            name: 'Thickness', field: 'ThicknessId', width: 130, enableColumnMenu: false, cellTemplate: ' <div>' +
+                ' <select ng-model="row.entity.ThicknessId" required="" style = "width:100%;" select2="" ng-disabled="!row.entity.ProductId" data-ng-options="d.tId as d.Name for d in grid.appScope.ThicknessList | filter:{ProductId: row.entity.ProductId}">' +
+                '     <option value="" selected>--Select--</option>' +
+                ' </select>' +
+                ' </div>'
+        }
+        , {
+            name: 'Color', field: 'ColorId', width: 110, enableColumnMenu: false, cellTemplate: ' <div>' +
+                ' <select ng-model="row.entity.ColorId" required="" style = "width:100%;" select2="" ng-disabled="!row.entity.ProductId" data-ng-options="d.ColorId as d.ColorName for d in grid.appScope.ColorList">' +
+                '     <option value="" selected>--Select--</option>' +
+                ' </select>' +
+                ' </div>'
+        }
+        , {
+            name: 'Size(Cutting)', field: 'SizeList', width: 90, enableColumnMenu: false, cellTemplate: ' <div>' +
+                ' <select ng-model="row.entity.CuttingSizeId" required="" style = "width:100%;" select2="" data-ng-options="d.SizeId as d.SizeName for d in grid.appScope.SizeList">' +
+                '     <option value="" selected>--Select--</option>' +
+                ' </select>' +
+                ' </div>'
+        }
+        , {
+            name: 'Size', field: 'SizeList', width: 90, enableColumnMenu: false, cellTemplate: ' <div>' +
+                ' <select ng-model="row.entity.SizeId" required="" style = "width:100%;" select2="" ng-change="grid.appScope.fncGetStock(row.entity)" data-ng-options="d.SizeId as d.SizeName for d in grid.appScope.SizeList">' +
+                '     <option value="" selected>--Select--</option>' +
+                ' </select>' +
+                ' </div>'
+        }
+
+        , {
+            name: 'Qty', field: 'Qty', width: 70, enableColumnMenu: false,
+            cellTemplate: ' <div>' +
+                ' <input type="number" required="" ng-model="row.entity.Qty" ng-change="grid.appScope.fncSubtotal(row.entity)" class="pl-sm" />' +
+                ' </div>'
+        }
+        , {
+            name: 'Price', field: 'SellingPrice', width: 90, enableColumnMenu: false,
+            cellTemplate: ' <div>' +
+                ' <input type="number" required="" ng-model="row.entity.SellingPrice" ng-change="grid.appScope.fncSubtotal(row.entity)" class="pl-sm" />' +
+                ' </div>'
+        }
+        , {
+            name: 'Discount', field: 'Discount', width: 90, enableColumnMenu: false,
+            cellTemplate: ' <div>' +
+                ' <input type="number" required="" ng-model="row.entity.Discount" ng-change="grid.appScope.fncSubtotal(row.entity)" class="pl-sm" />' +
+                ' </div>'
+        }
+        , { name: 'Total', field: 'Subtotal', width: 70 }
+
+        , {
+            name: 'Del', enableColumnMenu: false, width: 40,
+            cellTemplate:
+                    '<a href="javascript:void(0)" class="ml-md black" ng-click="grid.appScope.removeItem(row)"><i class="fa fa-close fa-sm" aria-hidden="true"></i></a>'
+        }
+        ];
+        /*   END : grid Column | ProductSub */
+
+
+        /*   START : grid api  | gridOptionsModal     */
+        $rootScope.gridOptionsModal = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi,
+                    $interval(function () {
+                        $scope.gridApi.core.handleWindowResize();
+                    }, 500, 10);
+                $scope.gridApi.grid.registerRowsProcessor($scope.modalFilterByRowId, 200);
+            }
+        }
+        /*   END : grid api  | gridOptionsModal     */
+
+
+        /*  START : Load Combo  */
+        $scope.GetCombo = function () {
+            $http({ method: 'Post', url: '../SalesDealer/PrcLoadCombo' }).then(function (res) {
+                $scope.SizeList = res.data.Table;
+                $scope.UnitList = res.data.Table1;
+                $scope.CategoryList = res.data.Table2;
+                $scope.SubCategoryList = res.data.Table3;
+                $scope.BrandList = res.data.Table4;
+                $scope.ColorList = res.data.Table5;
+                $scope.ProdTypeList = res.data.Table6;
+                $scope.ThicknessList = res.data.Table7;
+
+                $scope.WireHouseList = res.data.Table8;
+
+                $scope.ClientList = res.data.Table10;
+                $scope.ProductList = res.data.Table11;
+                console.log(res.data);
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+
+        };
+
+        $scope.GetCombo();
+        /*  END : Load Combo  */
+         
+
+
+        /*  START : grid Modal Call | Open */
+        $scope.showModal = function (index) {
+            myModal.open();
+            $rootScope.RowId = index;
+            var check = 0;
+            for (let i = 0; i < $rootScope.gridOptionsModal.data.length; i++) {
+                $rootScope.rowIdCheck = $rootScope.gridOptionsModal.data[i].RowId;
+                if ($rootScope.rowIdCheck == index) {
+                    check = 1;
+                }
+            }
+
+            if (check == 0 && $rootScope.gridOptionsModal.data.length > 0) {
+                for (var j = 0; j < $scope.ColorList.length; j++) {
+                    $rootScope.gridOptionsModal.data.push({
+                        ColorId: $scope.ColorList[j].ColorId,
+                        ColorName: $scope.ColorList[j].ColorName,
+                        PriceOpening: 0,
+                        QtyOpening: 0,
+                        ROL: 0,
+                        ROQ: 0,
+                        RowId: index.toString()
+                    });
+                }
+
+            }
+
+        }
+        /*  END : grid Modal Call | Open */
+
+
+        /*  START : grid Column Modal  */
+        $rootScope.gridOptionsModal.columnDefs = [
+            {
+                name: 'Row',
+                enableColumnMenu: false, visible: false,
+                width: 20, cellTemplate: '<div>' + 'appscope{{grid.appScope.RowId}}' + 'row.entity{{row.entity.RowId}}' + '</div>'
+            }
+            , { name: 'ColorName', field: 'ColorName', width: 120 }
+            , {
+                name: 'QtyOpening', width: 120, enableColumnMenu: false, field: 'QtyOpening', cellTemplate: ' <div>' +
+                '<strong> <input type="number" required="" ng-model="row.entity.QtyOpening" class="pl-sm" /> </strong>' +
+                ' </div>'
+            }
+            , {
+                name: 'PriceOpening', width: 120, enableColumnMenu: false, field: 'PriceOpening', cellTemplate: ' <div>' +
+                '<strong> <input type="number" required="" ng-model="row.entity.PriceOpening" class="pl-sm" /> </strong>' +
+                ' </div>'
+            }
+            , {
+                name: 'ROL', width: 50, enableColumnMenu: false, field: 'ROL', cellTemplate: ' <div>' +
+                '<strong> <input type="number" required="" ng-model="row.entity.ROL" class="pl-sm" /> </strong>' +
+                ' </div>'
+            }
+            , {
+                name: 'ROQ', width: 70, enableColumnMenu: false, field: 'ROQ', cellTemplate: ' <div>' +
+                '<strong> <input type="number" required="" ng-model="row.entity.ROQ" class="pl-sm" /> </strong>' +
+                ' </div>'
+            }
+        ];
+        /*  END : grid Column Modal  */
+
+
+        /* START : fncSellingPrice */
+        $scope.fncSellingPrice = function (rowentity) { 
+            angular.forEach($scope.ProductList, function (item) {
+                if (rowentity.ProductId == item.ProductId) {
+                    rowentity.SellingPrice = item.SellingPrice;
+                }                    
+            });
+        } 
+        /* END : fncSellingPrice */
+
+
+        /* START : Sub Total Calculation fncSubtotal */
+        $scope.fncSubtotal = function (rowentity) {
+            //console.log(rowentity);
+            rowentity.Subtotal = rowentity.Qty * rowentity.SellingPrice;
+        }
+        /* END : Sub Total Calculation fncSubtotal*/
+
+
+        /* START : Grand Total Calculation fncGrandtotal*/
+        $scope.fncGrandtotal = function () {
+            var total = 0;
+            var countItem = 0;
+            var countQty = 0;
+            angular.forEach($scope.gridOptionsProductSub.data, function (item) {
+                    total += item.Subtotal;
+                    countItem += 1;
+                    countQty += item.Qty;
+
+            });
+            $scope.model.TotalAmount = total;
+            $scope.model.TotalItems = countItem;
+            $scope.model.TotalQty = countQty;
+
+            $scope.model.NetPayable = ((total + $scope.model.Tax + $scope.model.Shipping) - $scope.model.Discount);
+            //$scope.model.Paid = $scope.model.NetPayable;
+            $scope.model.Due = $scope.model.NetPayable - $scope.model.Paid;
+            //return total;
+        }
+
+        /* END : Grand Total Calculation fncGrandtotal*/
+
+
+        /* START : Remove GRID Item */
+        $scope.removeItem = function (row) {
+            var index = $scope.gridOptionsProductSub.data.indexOf(row.entity);
+            $scope.gridOptionsProductSub.data.splice(index, 1);
+        }
+        /* END : Remove GRID Item */
+
+         
+        /* START : Insert Item */
+        $scope.InsertItem = function (model) {
+            $scope.model.InvoiceSubList = $scope.gridOptionsProductSub.data;
+
+            $http.post("../POS/PrcDataSave", { model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.gridOptionsProductSub.data = [];// clearing grid after submit data
+
+                    $scope.model = { InvoiceSubList: [] }
+                    // default row add after submit data
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+
+                }
+            });
+        }
+        /* END : Insert Item */
+
+        //Form Validation
+        $scope.validatecheck = function () {
+            var flag = false;
+
+            angular.forEach($scope.gridOptionsProductSub.data,
+                function (item) {
+                    if (item.TotalQty == 0) {
+                        flag = true;
+                    }
+                });
+            //console.log(flag);
+            return flag;
+        }
+
+        // START : Modal Filter By RowId
+        $scope.modalFilterByRowId = function (renderableRows) {
+            var matcher = new RegExp($rootScope.RowId.toString());
+            renderableRows.forEach(function (row) {
+                var match = false;
+                ['RowId'].forEach(function (field) {
+                    if (row.entity[field] && row.entity[field].match(matcher)) {
+                        match = true;
+                    }
+                });
+                if (!match) {
+                    row.visible = false;
+                }
+            });
+            return renderableRows;
+        };
+        // END : Modal Filter By RowId
+    }]);
+
+
+    /* START : Modal Factory */
+    ngGridApp.factory('modal', ['$compile', '$rootScope', function ($compile, $rootScope) {
+        return function () {
+            var elm;
+            var modal = {
+                open: function () {
+
+                    var html = '' +
+                        '<div class="modal" ng-style="modalStyle">{{modalStyle}}' +
+                        '<div class="modal-dialog"><div class="modal-content">' +
+                        '<div class="modal-header pt-xs pb-xs"><strong>{{modalHeader}}</strong></div>' +
+                        '<div class="modal-body pt-xs pb-xs">' +
+                        /*'<button id="addrow" class="btn btn-primary btn-sm" ng-click="addDis()">Add<i class="fa fa-plus ml-xs"></i></button>' +*/
+                                '<div id="grid1" ui-grid="gridOptionsModal" class="gridmodal mt-xs"></div></div>' +
+                        '<div class="modal-footer pt-xs pb-xs">' +
+                        '<button id="buttonClose" class="btn btn-primary btn-sm" ng-click="close()">OK</button>' +
+                        '</div></div></div></div>';
+                    elm = angular.element(html);
+                    angular.element(document.body).prepend(elm);
+
+                    $rootScope.close = function () {
+                        modal.close();
+                    };
+                    $rootScope.modalStyle = { "display": "block" };
+                    $compile(elm)($rootScope);
+                },
+                close: function () {
+                    if (elm) {
+                        elm.remove();
+                    }
+                }
+            };
+
+            return modal;
+        };
+    }]);
+    /* END : Modal Factory */
+</script>

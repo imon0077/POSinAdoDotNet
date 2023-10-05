@@ -1,0 +1,80 @@
+﻿<!doctype html>
+<link rel="shortcut icon" type="image/ico" href="~/Content/assets/images/favicon.ico">
+<html class="fixed">
+
+<!-- start: header -->
+@Html.Partial("_Header")
+<!-- end: header -->
+
+
+@{
+    string classname = "";
+}
+@if (Session["DisplayName"] == null)
+{
+    classname = "bg-img";
+}
+
+
+<body class="@classname">
+
+
+    @if (Session["DisplayName"] == null)
+    {
+        @RenderSection("Jumbotron", false)
+        @RenderBody()
+    }
+    else
+    {
+        <section class="body">
+
+            <!-- start: topbar -->
+            @Html.Partial("_Topbar")
+            <!-- end: topbar -->
+
+            <div class="inner-wrapper">
+
+                <!-- start: leftSidebar -->
+                @if (Session["UserType"] != null && Session["UserType"].ToString() == "Applicant")
+                {
+                    @Html.Partial("_LeftSidebarApplicant")
+
+                }
+                else
+                {
+                    @Html.Partial("_LeftSidebar")
+                }
+                <!-- end: leftSidebar -->
+
+                <section role="main" class="content-body">
+
+                    @RenderBody()
+
+                </section>
+            </div>
+
+            <!-- right sidebar area if needed -->
+
+        </section>
+    }
+
+    @if (Session["DisplayName"] == null)
+    {
+
+    }
+    else
+    {
+        if (SoftifyFoodPOSNew.Models.clsCommon.ControllerNameP != "POS" && SoftifyFoodPOSNew.Models.clsCommon.ActionNameP != "Create")
+        {
+            @Html.Partial("_Footer")
+        }
+
+        @*@Html.Partial("_Footer")*@
+    }
+
+    @Html.Partial("_CommonJs")
+    @*@Html.Partial("_CommonJs")*@
+
+    @*@RenderSection("scripts", required: false)*@
+</body>
+</html>

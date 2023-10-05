@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServerConfigure>
+  <Server Type="Local">
+    <ServerName>.</ServerName>
+    <UserName>n</UserName>
+    <Password>==D</Password>
+  </Server>
+  <Server Type="Remote">
+    <ServerName>103.208.181.43</ServerName>
+    <UserName>1SrprQ</UserName>
+    <Password>1|svsM=svsM`N</Password>
+  </Server>
+  <dbDefault>ReportServerTemp</dbDefault>
+</ServerConfigure>

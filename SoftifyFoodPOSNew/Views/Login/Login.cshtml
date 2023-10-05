@@ -1,0 +1,90 @@
+﻿@model SoftifyFoodPOSNew.Models.Login
+
+@using System.Web.UI.WebControls
+@{
+    ViewBag.Title = "Login";
+}
+@using (Html.BeginForm())
+{
+
+    @Html.AntiForgeryToken()
+
+<!-- start: page -->
+<section class="body-sign">
+    <div class="center-sign">
+
+        <div class="panel panel-sign">
+            <div class="panel-title-sign ptbl-xlg text-right" style="background:#7462aa;padding-bottom: 75px !important;">
+                @*<h2 class="title text-uppercase text-bold m-none">
+                </h2>*@
+                <a href="/" class="logo pull-left" style="margin-top: 10px;">
+                    <span style="font-size:25px;">Ayaat Store</span>
+                    @*<img src="~/Content/assets/images/logo.png" height="54" alt="POS" />*@
+                </a>
+            </div>
+
+            <div class="panel-body">
+
+                <!--Error messages will shown here-->
+                @Html.ValidationSummary(true)
+                @if (ViewBag.Message != null)
+                {
+                    <label id="lblError" class="col-xs-offset-2 text-danger">@ViewBag.Message.ToString()</label>
+                }
+                @Html.HiddenFor(m => m.UserId)
+                @Html.HiddenFor(m => m.DisplayName)
+                    <div class="form-group mb-lg">
+                        @*<label>Username</label>*@
+                        @Html.LabelFor(m => m.UserName, new { @class = "" })
+                        <div class="input-group input-group-icon">
+
+                            @Html.TextBoxFor(m => m.UserName, new { @class = "form-control input-lg", @placeholder = "User Name" })
+                            @Html.ValidationMessageFor(m => m.UserName)
+
+                            <span class="input-group-addon">
+                                <span class="icon icon-lg">
+                                    <i class="fa fa-user"></i>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-lg">
+                        <div class="clearfix">
+                                
+                            @Html.LabelFor(m => m.Password, new { @class = "pull-left" })
+                            @*@Html.ActionLink("Lost Password?", null,null, new { @class = "pull-right black" })*@
+                        </div>
+
+                        <div class="input-group input-group-icon">
+                                
+                            @Html.PasswordFor(m => m.Password, new { @class = "form-control input-lg", @placeholder = "Password" })
+                            @Html.ValidationMessageFor(m => m.Password)
+
+                            <span class="input-group-addon">
+                                <span class="icon icon-lg">
+                                    <i class="fa fa-lock"></i>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        @*<div class="col-sm-8">
+                            <div class="checkbox-custom checkbox-default">
+                                <input id="RememberMe" name="rememberme" type="checkbox" />
+                                <label for="RememberMe">Remember Me</label>
+                            </div>
+                        </div>*@
+                        <div class="col-sm-4">
+                            <button type="submit" class="btn btn-danger hidden-xs">Login</button>
+                            <button type="submit" class="btn btn-danger btn-block btn-lg visible-xs mt-lg">Login</button>
+                        </div>
+                    </div>
+            </div>
+        </div>
+
+        <p class="text-center black mt-md mb-md">&copy; Copyright @DateTime.Today.Year.ToString(). All Rights Reserved.</p>
+    </div>
+</section>
+}

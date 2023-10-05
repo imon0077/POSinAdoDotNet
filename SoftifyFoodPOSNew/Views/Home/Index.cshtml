@@ -1,0 +1,116 @@
+﻿
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<script src="~/Content/assets/javascripts/ui-grid/angular1.7.0/angular.js"></script>
+<!--Error messages will be shown here-->
+<!-- start: page -->
+
+<div class="row" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <div class="col-md-8 col-md-offset-2">
+        <select class="form-control" ng-model="model.item" ng-change="getclick(item)" ng-options="sort.name as
+            sort.name for sort in item"></select>
+    </div>
+    
+    <div class="col-md-8 col-md-offset-2">
+        <div ui-grid="gridOptionsProductSub" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+             style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 60vh;" class="grid">
+        </div>
+    </div>
+</div>
+<script>
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$rootScope',  '$window', function ($scope, $http, $log, $filter, $timeout, $interval, $rootScope, $window) {
+
+        $scope.focuscall = function (row) {
+            var result = false;
+          
+            var index = $scope.gridOptionsProductSub.data.indexOf(row.entity);
+
+            if (index == ($scope.gridOptionsProductSub.data.length - 1)) {
+                result = true;
+
+            }
+            return result;
+        }
+        $scope.item = [
+            { "id": 1, "name": "volvo" },
+            { "id": 2, "name": "Saab" },
+            { "id": 3, "name": "Opel" },
+            { "id": 4, "name": "Audi" },
+        ];
+        
+        $scope.getclick = function () {
+            $scope.gridOptionsProductSub.data.push({ "ProductName": 'Item-123', "SellingPrice": '', "StockQty": '', "Qty": 1 })
+        }
+
+        /*   START : grid api | ProductSub  */
+        $scope.gridOptionsProductSub = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi,
+                    $interval(function () {
+                        //$scope.gridApi.core.handleWindowResize();
+                    }, 500, 10);
+            }
+            //, data: $scope.InvProductSubList
+            , enableColumnMenu: false,
+            enableFiltering: false,
+            enableSorting: false
+        }
+        $scope.gridOptionsProductSub.columnDefs = [
+
+          {
+              name: 'Product', field: 'ProductName', enableColumnMenu: false, width: 348,
+              cellTemplate: ' <div>' +
+             '<label class="pl-sm"> {{row.entity.ProductName}}</label> <span ng-show="row.entity.IsSerial==true"><a href="javascript:void(0)" style="color:red"><i class="fa fa-pencil ml-sm" aria-hidden="true" ng-click="grid.appScope.showModal(row.entity)"></i> </a></span>' +
+             ' </div>'
+          }
+        , {
+            name: 'Price', field: 'SellingPrice', width: 70, enableColumnMenu: false,
+            cellTemplate: ' <div>' +
+                ' <input type="number" ng-disabled="true" required="" ng-model="row.entity.SellingPrice"  class="pl-sm" />' +
+                ' </div>'
+        }
+        , {
+            name: 'Stock', field: 'StockQty', width: 70, enableColumnMenu: false,
+            cellTemplate: ' <div>' +
+                ' <input type="text" required="" ng-model="row.entity.StockQty" ng-disabled="true" class="pl-sm" />' +
+                ' </div>'
+        }
+        , {
+            name: 'Qty', field: 'Qty', width: 70, enableColumnMenu: false,
+            cellTemplate: ' <div>' +
+                ' <input type="number" required="" ng-model="row.entity.Qty" ng-disabled="row.entity.IsSerial==true"  focus-me="grid.appScope.focuscall(row)" class="pl-sm" />' +
+                ' </div>'
+        }
+
+        , {
+            name: 'x', enableColumnMenu: false, width: 45,
+            cellTemplate:
+                    '<a href="javascript:void(0)" class="ml-md black" ng-click="grid.appScope.removeItem(row)"><i class="fa fa-close fa-sm" aria-hidden="true"></i></a>'
+        },
+
+        ];
+    }
+        ]);
+
+    ngGridApp.directive('focusMe', function ($timeout, $parse) {
+    return {
+        link: function (scope, element, attrs) {
+            var model = $parse(attrs.focusMe);
+            scope.$watch(model, function (value) {
+                if (value === true) {
+                     element[0].focus();
+                    //$timeout(function () {
+                    //    scope.$apply(model.assign(scope, false));
+                    //    element[0].focus();
+                    //}, 30);
+                }
+            });
+        }
+    };
+});
+</script>
+
+
+<!-- end: page -->

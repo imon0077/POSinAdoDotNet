@@ -1,0 +1,113 @@
+﻿
+
+@using System.Data
+@{
+    ViewBag.Title = "Sales Statement Report (Invoice)";
+}
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+    <script src="~/Content/assets/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="~/Content/assets/vendor/bootstrap-datetimepicker/moment.min.js"></script>
+    <script src="~/Content/assets/vendor/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationMessage("CustomError")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+@using (Html.BeginForm("RptSalesStatementInvoice", "POS", FormMethod.Post, new { @class = "", target = "_blank" }))
+{
+    <section class="panel">
+
+        <div class="panel-body">
+
+            <header class="p-xs mr-lg">
+                <div class="row">
+
+                    <div class="col-md-3">
+                        @Html.Label("From Invoice", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.Editor("InvoiceFrom", new { htmlAttributes = new { @class = "form-control", @Required = "required", @Placeholder= "INV0", autocomplete = "off", id = "InvoiceFrom" } })
+                    </div>
+
+                    <div class="col-md-3">
+                        @Html.Label("To Invoice", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.Editor("InvoiceTo", new { htmlAttributes = new { @class = "form-control", @Required = "required", @Placeholder = "INV0", autocomplete = "off", id = "InvoiceTo" } })
+                    </div>
+
+                </div>
+                <hr />
+
+                <div class="row mt-md">
+                    <div class="col-md-10 pl-xs">
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                @Html.Label("Criteria", htmlAttributes: new { @class = "control-label text-bold" })
+                            </div>
+                            <div class="col-md-3">
+                                <span class="radio-custom radio-dark">
+                                    @Html.RadioButton("flag", "details", new { @class = "form-control", @checked = "checked" })
+                                    <label>Details</label>
+                                </span>
+                            </div>
+
+                            @*<div class="col-md-3">
+                                <span class="radio-custom radio-dark">
+                                    @Html.RadioButton("flag", "summary", new { @class = " " })
+                                    <label>Summary (Date Wise)</label>
+                                </span>
+                            </div>*@
+                         
+                        </div>
+                    </div>
+                </div>
+
+
+                <hr />
+
+                <div class="row mt-md">
+                    <div class="col-md-6 pl-xs">
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                @Html.Label("Report Format", htmlAttributes: new { @class = "control-label text-bold" })
+                            </div>
+                            <div class="col-md-2">
+                                <span class="radio-custom radio-dark">
+                                    @Html.RadioButton("rptFormat", "pdf", new { @class = " ", @checked = "checked" })
+                                    <label>Pdf</label>
+                                </span>
+                            </div>
+
+                            <div class="col-md-2">
+                                <span class="radio-custom radio-dark">
+                                    @Html.RadioButton("rptFormat", "Word", new { @class = "form-control" })
+                                    <label>Word</label>
+                                </span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <span class="radio-custom radio-dark">
+                                    @Html.RadioButton("rptFormat", "Excel", new { @class = " " })
+                                    <label>Excel</label>
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-sm-2 p-none mt-sm pull-left">
+                        <input type="submit" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger " value="Preview Report">
+                    </div>
+                </div>
+
+            </header>
+
+        </div>
+
+    </section>
+}
+
+

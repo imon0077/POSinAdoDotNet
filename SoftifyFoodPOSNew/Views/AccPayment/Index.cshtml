@@ -1,0 +1,215 @@
+﻿@{
+    ViewBag.Title = "Payment List";
+}
+<!-- start:  List page -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationMessage("CustomError")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    @using (Html.BeginForm())
+    {
+        <div class="panel-body">
+            <header class="p-xs mr-lg">
+                <div class="row mb-md">
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                            @Html.Label("From Date", htmlAttributes: new { @class = "control-label" })
+                            <div class="input-group">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+
+                                <input type="text" name="fromDate" id="" class="form-control" required="required" ng-model="dtFrom" datepicker autocomplete="off" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            @Html.Label("To Date", htmlAttributes: new { @class = "control-label" })
+                            <div class="input-group">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                                <input type="text" name="toDate" id="" class="form-control" required="required" ng-model="dtTo" datepicker autocomplete="off" />
+                            </div>
+                        </div>
+
+
+                        <div class="col-sm-3 p-none mt-md pl-md pull-left">
+                            <button type="button" class="mb-xs mt-xs mr-xs mt-sm btn btn-info" value="Load" ng-click="GetPaymentData()">
+                                <i class="fa fa-refresh" aria-hidden="true"></i> Load List
+                            </button>
+                            <a href="@Url.Action("Create", "AccPayment")" class="mb-xs mt-xs mr-xs mt-sm btn  btn-danger">
+                                <i class="fa fa-plus" aria-hidden="true"></i> Add New
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+
+            </header>
+
+
+
+            <div class="col-md-12">
+                <!-- : loading..... -->
+                <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                    <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                </div>
+
+                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;height:65vh;" class="grid"></div>
+            </div>
+
+        </div>
+    }
+
+
+</section>
+
+
+<script type="text/javascript">
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', 'uiGridConstants', '$interval', '$rootScope', function ($scope, $http, $log, $filter, $timeout, uiGridConstants, $interval) {
+        $scope.showLoader = false;
+        $scope.dtFrom = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+        $scope.dtTo = $filter("date")(Date.now(), 'dd-MMM-yyyy');
+
+        $scope.gridOptions = {
+            // EXPORT : START
+            enableGridMenu: true,
+            enableSelectAll: true,
+            enableColumnMenus: false,
+            enableAutoFitColumns: false,
+            exporterCsvFilename: 'myFile.csv',
+            exporterPdfDefaultStyle: { fontSize: 7 },
+            exporterPdfTableStyle: { margin: [05, 05, , 05] },
+            exporterPdfTableHeaderStyle: { fontSize: 8, bold: true, italics: false, color: 'black' },
+            exporterPdfHeader: { text: "Payment List", style: 'headerStyle', fontSize: 14, bold: true },
+            exporterPdfFooter: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount.toString(), style: 'footerStyle' };
+            },
+            exporterPdfCustomFormatter: function (docDefinition) {
+                docDefinition.styles.headerStyle = { margin: [20, 20, 20, 20], alignment: 'center' };
+                docDefinition.styles.footerStyle = { fontSize: 8, bold: false, alignment: 'center' };
+                return docDefinition;
+            },
+            exporterPdfOrientation: 'portrait',
+            exporterPdfPageSize: 'LETTER',
+            exporterPdfMaxGridWidth: 500,
+            exporterCsvLinkElement: angular.element(document.querySelectorAll(".custom-csv-link-location")),
+            exporterExcelFilename: 'myFile.xlsx',
+            exporterExcelSheetName: 'Sheet1',
+            // EXPORT : END
+            enableFiltering: true,
+            showGridFooter: true,
+            showColumnFooter: true,
+            enableColumnMenus: false,
+            // Default: End
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+            }
+        }
+
+        $scope.gridOptions.columnDefs = [
+            { name: 'Payment No', field: 'PaymentNo', width: 125 },
+            { name: 'Date', field: 'dtPayment', width: 120 },
+            {
+                name: 'Supplier Name', field: 'SupplierName', width: 200,
+                 footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: black">Total : </div>'
+            },
+            {
+                name: 'Amount', field: 'Amount', width: 100, aggregationType: uiGridConstants.aggregationTypes.sum,
+                 footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: red">{{col.getAggregationValue() | number:0 }}</div>'
+            },
+             {
+                 name: 'Discount', field: 'Discount', width: 100,
+                 aggregationType: uiGridConstants.aggregationTypes.sum,
+                 footerCellTemplate: '<div class="ui-grid-cell-contents" style="background-color: white;color: red">{{col.getAggregationValue() | number:0 }}</div>'
+             },
+
+            { name: 'Pay Mode', field: 'PayMode', width: 100 },
+            { name: 'Acc Head Name', field: 'HeadName', width: 150 },
+            {
+                name: 'Action', enableFiltering: false, width: 120,
+                cellTemplate:
+                    "<span ng-if=row.entity.IsAllowEdit==1>"+
+                            '<a href="../AccPayment/Edit/{{row.entity.PaymentId}}" class="ml-xs black"><i class="fa fa-edit fa-lg fa-md mr-md" aria-hidden="true" title="Edit"></i></a>'+
+                             ' <a href="javascript:void(0)" class="text-danger black" ng-click="grid.appScope.DeleteItem(row.entity.PaymentId)"><i class="fa fa-trash fa-lg text-danger" aria-hidden="true" title="delete item!!"></i></a>' +                            
+                    "</span>"
+                       
+                    
+            },
+            { name: 'Cheque No', field: 'ChequeNo', width: 140 },
+            { name: 'Cheque Date', field: 'dtCheque', width: 100 }
+        ];
+
+        /*   Load  : this area load date wise  */
+        $scope.GetPaymentData = function (fromDate, toDate) {
+            $scope.showLoader = true;
+            $scope.gridOptions.data = [];
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetPaymentList", "AccPayment")',
+                data: JSON.stringify({ dtFrom: $scope.dtFrom, dtTo: $scope.dtTo })
+            }).then(function (data) {
+                $scope.showLoader = false;
+                $scope.gridOptions.data = data.data;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+
+        $scope.GetPaymentData($scope.dtFrom, $scope.dtTo);
+
+        $scope.DeleteItem = function (PaymentId) {
+            $scope.showLoader = true;
+            if (confirm('Do you want to Delete ?')) {
+                var url = ""; var itemId = 0;
+                if (PaymentId > 0) { url = "prcDeleteData"; itemId = PaymentId; }
+
+                $http.post("@Url.Action("prcDeleteData", "AccPayment")", { ItemId: PaymentId }).then(function (data) {
+                    if (data.data == 1) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data Deleted Successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.showLoader = false;
+                        $scope.GetPaymentData($scope.dtFrom, $scope.dtTo);
+
+                    }
+                    else {
+                        $scope.showLoader = false;
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+                });
+            }
+            else {
+                $scope.showLoader = false;
+            }
+        }
+
+    }]);
+
+</script>

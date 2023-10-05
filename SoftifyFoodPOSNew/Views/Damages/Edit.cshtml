@@ -1,0 +1,535 @@
+﻿@using System.Data
+@model SoftifyFoodPOSNew.Models.Damages
+@{
+    ViewBag.Title = "Update Damages";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    @Html.AntiForgeryToken()
+    <form name="DesChangeForm">
+
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.SupplierId, "Supplier", htmlAttributes: new { @class = "control-label text-bold" })
+                            <select ng-model="model.SupplierId"
+                                    select2=""
+                                    ng-init="model.SupplierId='0'"
+                                    required=""
+                                    data-ng-options="d.SupplierId as d.SupplierName for d in SupplierList"
+                                    style="width: 100%"
+                                    ng-change="GetSupplierCombo()"
+                                    class="form-control">
+                                <option value="">--Please Select--</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.GrrId, "GRR No", htmlAttributes: new { @class = "control-label text-bold" })
+                            <select ng-model="model.GrrId"
+                                    ng-disabled="model.SupplierId==0"
+                                    select2=""
+                                    required=""
+                                    data-ng-options="d.GrrId as d.GrrNo for d in GrrList"
+                                    style="width: 100%" ng-change="DataLoad()"
+                                    class="form-control">
+                                <option value="">--Please Select--</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.TypeId, "Reason", htmlAttributes: new { @class = "control-label text-bold" })
+                            <select ng-model="model.TypeId"
+                                    select2=""
+                                    required=""
+                                    ng-init="model.TypeId='Damage'"
+                                    data-ng-options="d.Reason as d.Reason for d in ReturnType"
+                                    style="width: 100%"
+                                    class="form-control">
+                                @*<option value="">--Please Select--</option>*@
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            @Html.LabelFor(model => model.dtDamage, "Damage Date", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.EditorFor(model => model.dtDamage, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "model.dtDamage", datepicker = "" } })
+                            @Html.ValidationMessageFor(model => model.dtDamage, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="col-md-12">
+                            @Html.LabelFor(model => model.Remarks, "Remarks", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.TextAreaFor(model => model.Remarks, new { @class = "form-control", @placeholder = "", @rows = 4, ng_model = "model.Remarks" })
+                        </div>
+                    </div>
+                    <!-- end : row-->
+                </div>
+            </div>
+        </div>
+
+        <!-- end : row-->
+
+        <div class="row">
+            <div class="col-md-12">
+                <div ui-grid="gridOptions" ui-grid-selection ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 45vh;" class="grid">
+                </div>
+
+                <div class="col-md-4">
+                    <div class="row">
+                        <div class="col-md-12" readonly="" ng-model="Total">
+                            <label style="font-weight:bold; color:black">Total Amount:</label><strong style="color:red">{{GetSum()|currency:" Tk ":2}}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!---Grid Option-->
+
+        <footer class="panel-footer mt-md">
+            <div class="row">
+                <div class="col-sm-9 col-sm-offset-3">
+                    <button class="btn btn-danger btn-wide" type="button" name="btnSubmit" ng-disabled="DesChangeForm.$invalid||dataForPost==false||validatecheck()==true" ng-click="InsertItem(model)">
+                        Submit <i class="fa fa-arrow-circle-right"></i>
+                        @*||!ReturnQtyCheck()*@
+                    </button>
+                    @*<strong><small style="color:red;">{{message}}</small></strong>*@
+
+                    <a href="@Url.Action("Index","Damages")" class="btn btn-default" @*style="background-color:#ff8000;color:black">*@
+                        <i class="fa fa-arrow-circle-left"></i> Back to list
+                    </a>
+                    <strong><small style="color:red;">{{message}}</small></strong>
+                    <span ng-if="hasDuplicate()==true">
+                        <small style="color:red"> same item already exist</small>
+                    </span>
+                </div>
+            </div>
+        </footer>
+    </form>
+</section>
+
+
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$rootScope', '$interval', 'modal', function ($scope, $http, $log, $filter, $timeout, $rootScope, $interval, modal) {
+
+
+
+        $scope.SupplierList = [];
+        $scope.GrrList = [];
+        $scope.SupplierId = 0;
+        $scope.message = '';
+        $scope.GrrId = 0;
+        $scope.ReturnType = [];
+        $rootScope.SerialList = [];
+        var myModal = new modal();
+        $rootScope.ProductId = 0;
+        $scope.ProductList = [];
+        $scope.dataForPost = [];
+        $rootScope.dataForSerialPost = [];
+
+        $scope.data = [
+         { ProductName: '', Qty: '',PrevQty:'',ReturnQty:'', Rate: '', Amount: '' }
+        ];
+        $scope.model = { DamagesSubList: $scope.dataForPost, dtDamage: $filter("date")(Date.now(), 'dd-MMM-yyyy'), ProductId: '', Qty: '', SellingPrice: '', Amount: '' }
+
+        $scope.LoadCombo = function () {
+            $http({
+                method: 'Post',
+                url: '../PurchaseReturn/GetComboLoad'
+            }).then(function (result) {
+                $scope.SupplierList = result.data.Table;
+                $scope.ReturnType = result.data.Table1;
+            }, function (error) {
+
+                console.log(error);
+            });
+        }
+        $scope.LoadCombo();
+
+        //   1.:  grid api
+        $scope.gridOptions = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 200, 10);
+
+                gridApi.selection.on.rowSelectionChanged($scope, function (row) {
+                    $scope.countSelectRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                    console.log($scope.dataForPost);
+                });
+
+                gridApi.selection.on.rowSelectionChangedBatch($scope, function (row) {
+                    $scope.countAllRows = $scope.gridApi.selection.getSelectedRows().length;
+                    $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                    console.log($scope.dataForPost);
+                });
+            },
+            data: $scope.data
+        }
+
+        $scope.GetSum = function () {
+            var total = 0;
+            if ($scope.dataForPost.length > 0) {
+                for (var i = 0; i < $scope.dataForPost.length; i++) {
+                    total = total + $scope.dataForPost[i].Qty * $scope.dataForPost[i].Rate;
+                }
+                $scope.model.Total = total;
+            }
+
+            return total;
+        }
+
+        $scope.InvoiceNo = function (model) {
+            for (var i = 0; i < $scope.InvoiceList.length; i++) {
+                if ($scope.InvoiceList[i].ClientId == model.ClientId) {
+                    model.InvoiceId = $scope.InvoiceList[i].InvoiceId;
+                    console.log($scope.InvoiceList[i].InvoiceNo);
+                    console.log($scope.InvoiceList[i].InvoiceId);
+                }
+            }
+        }
+
+        /* START : Sub Total Calculation fncSubtotal */
+        $scope.fncSubtotal = function (rowentity) {
+            console.log(rowentity);
+            rowentity.Amount = rowentity.ReturnQty * rowentity.Rate;
+        }
+        /* END : Sub Total Calculation fncSubtotal*/
+
+        $scope.GetSupplierCombo = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../PurchaseReturn/GetGrrCombo',
+                data: JSON.stringify({ Id: $scope.model.SupplierId})
+            }).then(function (result) {
+                $scope.GrrList = result.data.Table;
+                $scope.showLoader = false;
+            }, function (error) {
+                console.log(error);
+            });
+        }
+
+        $scope.DataLoad = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '../PurchaseReturn/GetSupplierCombo',
+                data: JSON.stringify({ GrrId: $scope.model.GrrId })
+            }).then(function (result) {
+                $scope.gridOptions.data = result.data.Table;
+                $rootScope.gridOptionsModal1.data = result.data.Table1;
+                console.log(result);
+                $scope.showLoader = false;
+            }, function (error) {
+
+                console.log(error);
+            });
+        }
+        //2.:  grid Column
+        $scope.gridOptions.columnDefs = [
+                          , { name: 'Name', field: 'ProductName', width: 230, enableColumnMenu: false }
+                           , { name: 'Damages Qty', field: 'Qty', width: 120, enableColumnMenu:false }
+                           , { name: 'Previous Qty', field: 'PrevQty', width: 120,enableColumnMenu: false }
+                            ,
+                          {
+                              name: 'Qty', width: 65, enableColumnMenu: false,
+                              cellTemplate:
+                                  ' <div> <input type="number" ng-model="row.entity.Qty" ng-change= "grid.appScope.CalcAmount(row.entity)"  class="pl-sm" />' +
+                                  ' </div>'
+                          },
+                             {
+                            name: 'Rate', width: 75, enableColumnMenu: false,
+                            cellTemplate:
+                                ' <div>' +
+                                ' <input type="number" ng-model="row.entity.Rate" ng-disabled="row.isSelected===false" ng-change="grid.appScope.CalcAmount(row.entity)" class="pl-sm" ng-disabled=""/>' +
+                                ' </div>'
+                        },
+                        { name: 'Amount', field: 'Amount', width: 110, enableColumnMenu: false }
+        ];
+
+        /* START : P Return Item Amount Calculation */
+        $scope.CalcAmount = function (rowEntity) {
+            var rate = 0, amount = 0, qty = 0;
+            rate = rowEntity.Rate;
+            qty = rowEntity.Qty;
+            amount = (rate * qty);
+            rowEntity.Amount = amount;
+                }
+           // End
+
+
+        $rootScope.gridOptionsModal1 = {
+            onRegisterApi: function (gridmodalApi) {
+                $rootScope.gridmodalApi = gridmodalApi,
+                    $interval(function () {
+                        $rootScope.gridmodalApi.core.handleWindowResize();
+                    }, 500, 10);
+                $rootScope.gridmodalApi.grid.registerRowsProcessor($rootScope.modalFilterByRowId, 200);
+
+            },
+
+            data: [],
+            enableFiltering: true,
+            showGridFooter: true,
+            enableSelectAll: false
+        }
+
+        $scope.ClearForm = function () {
+            $scope.gridOptions.data = [];
+            $scope.gridOptions.data = [{ ProductName: '', Qty: '', PrevQty: '', Qty: '', Rate: '', Amount: '' }]
+
+            $scope.model = { DamagesSubList: $scope.dataForPost, dtDamage: $filter("date")(Date.now(), 'dd-MMM-yyyy'), productId: '', Qty: '', Rate: '', Amount: '' }
+
+        }
+
+        $scope.GetEditdata = function () {
+            $http({
+                method: 'Post',
+                url: '../GetEditdata'
+            }).then(function (result) {
+                $scope.model = result.data.Table[0];
+                $scope.gridOptions.data = result.data.Table1;
+                $rootScope.gridOptionsModal1.data = result.data.Table2;
+                $timeout(function () {
+                    for (var i = 0; i < $scope.gridOptions.data.length; i++) {
+                        if ($scope.gridOptions.data[i].isCheck === 1) {
+                            $scope.gridApi.selection.selectRow($scope.gridOptions.data[i]);
+                        }
+                    }
+                });
+                for (var i = 0; i < result.data.Table2.length; i++) {
+                    result.data.Table2[i].IsSelect = Boolean(result.data.Table2[i].IsSelect);
+                }
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+        $scope.GetEditdata();
+
+
+        $scope.InsertItem = function () {
+            $scope.model.DamagesSubList = $scope.dataForPost;
+
+            console.log($scope.model);
+            $http.post("../Damages/Edit", { model: $scope.model }).then(function (data) {
+                if (data.data == 1) {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    //$rootScope.gridOptionsModal.data = [];
+                    $scope.ClearForm();
+                }
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+
+                }
+            });
+        }
+
+        $scope.validatecheck = function () {
+            var flag = false; $scope.message = '';
+            angular.forEach($scope.gridOptions.data,
+                function (item) {
+                    if (item.Qty < item.ReturnQty) {
+                        flag = true; $scope.message = 'Damage Qty and Qty is not valid !! ';
+                    }
+                });
+            return flag;
+        }
+        // START : Modal Filter By RowId
+        $rootScope.modalFilterByRowId = function (renderableRows) {
+            renderableRows.forEach(function (row) {
+                var match = false;
+                ['ProductId'].forEach(function (field) {
+                    if (row.entity[field] == $rootScope.ProductId) {
+                        match = true;
+                    }
+                });
+                if (!match) {
+                    row.visible = false;
+                }
+            });
+            return renderableRows;
+        };
+        // END : Modal Filter By RowId
+    }]);
+
+    /* START : Modal Factory */
+    ngGridApp.factory('modal', ['$compile', '$rootScope', function ($compile, $rootScope) {
+        return function () {
+            var elm;
+            var modal = {
+                open: function () {
+
+                    var html = '' +
+                        '<div class="modal" ng-style="modalStyle">{{modalStyle}}' +
+                        '<div class="modal-dialog"><div class="modal-content">' +
+                        '<div class="modal-header pt-xs pb-xs"><strong>{{modalHeader}}</strong></div>' +
+                        '<div class="modal-body pt-xs pb-xs">' +
+                        '<div id="grid1" ui-grid="gridOptionsModal1" class="gridmodal mt-xs"></div></div>' +
+                        '<div class="modal-footer pt-xs pb-xs">' +
+                        '<button id="buttonClose" class="btn btn-primary btn-sm" ng-click="close()">OK</button>' +
+                        '</div></div></div></div>';
+                    elm = angular.element(html);
+                    angular.element(document.body).prepend(elm);
+
+                    $rootScope.close = function () {
+                        modal.close();
+                    };
+                    $rootScope.modalStyle = { "display": "block" };
+                    $compile(elm)($rootScope);
+                },
+                close: function () {
+                    if (elm) {
+                        elm.remove();
+                    }
+                }
+            };
+
+            return modal;
+        };
+    }]);
+    /* END : Modal Factory */
+    ngGridApp.directive("select2", function ($timeout, $parse) {
+        return {
+            restrict: 'AC',
+            require: 'ngModel',
+            link: function (scope, element, attrs) {
+                $timeout(function () {
+                    element.select2();
+                    element.select2Initialized = true;
+                });
+
+                var refreshSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.trigger('change');
+                    });
+                };
+
+                var recreateSelect = function () {
+                    if (!element.select2Initialized) return;
+                    $timeout(function () {
+                        element.select2('destroy');
+                        element.select2();
+                    });
+                };
+
+                scope.$watch(attrs.ngModel, refreshSelect);
+
+                if (attrs.ngOptions) {
+                    var list = attrs.ngOptions.match(/ in ([^ ]*)/)[1];
+                    // watch for option list change
+                    scope.$watch(list, recreateSelect);
+                }
+
+                if (attrs.ngDisabled) {
+                    scope.$watch(attrs.ngDisabled, refreshSelect);
+                }
+            }
+        };
+    });
+
+    // this datepicker also work chcnge event in angular js
+    ngGridApp.directive('datepicker', function ($filter) {
+        return {
+            restrict: 'A',
+            require: 'ngModel',
+            compile: function () {
+                return {
+                    pre: function (scope, element, attrs, ngModelCtrl) {
+                        var format, dateObj;
+                        format = (!attrs.dpFormat) ? 'dd-M-yyyy' : attrs.dpFormat;
+                        if (!attrs.initDate && !attrs.dpFormat) {
+                            // If there is no initDate attribute than we will get todays date as the default
+                            dateObj = new Date();
+
+                            //scope[attrs.ngModel] = dateObj.getDate() + '/' + (dateObj.getMonth() + 1) + '/' + dateObj.getFullYear();
+                            scope[attrs.ngModel] = $filter("date")(dateObj, 'dd-MMM-yyyy')
+
+                        } else if (!attrs.initDate) {
+                            // Otherwise set as the init date
+                            scope[attrs.ngModel] = attrs.initDate;
+                        } else {
+                            // I could put some complex logic that changes the order of the date string I
+                            // create from the dateObj based on the format, but I'll leave that for now
+                            // Or I could switch case and limit the types of formats...
+                        }
+                        // Initialize the date-picker
+                        $(element).datepicker({
+                            format: format,
+                        }).on('changeDate', function (ev) {
+                            // To me this looks cleaner than adding $apply(); after everything.
+                            scope.$apply(function () {
+                                ngModelCtrl.$setViewValue(ev.format(format));
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    ngApp.directive('datetimez', function () {
+        return {
+            require: '?ngModel',
+            restrict: 'A',
+            link: function (scope, element, attrs, ngModel) {
+                if (!ngModel) return;
+
+                ngModel.$render = function () {
+                    element.val(ngModel.$viewValue || '');
+                };
+
+                function read() {
+                    var value = element.val();
+                    ngModel.$setViewValue(value);
+                    //console.log(scope.dueDate);
+                }
+
+                var options = scope.$eval(attrs.datetimez) || { format: 'DD-MMM-YYYY hh:mm A', defaultDate: new Date(), sideBySide: true, };
+                if (element.next().is('.input-group-addon')) {
+                    var parentElm = $(element).parent();
+                    parentElm.datetimepicker(options);
+
+                    parentElm.on('dp.change', function () {
+                        scope.$apply(read);
+                    });
+                } else {
+                    element.datetimepicker(options);
+
+                    element.on('dp.change', function () {
+                        scope.$apply(read);
+                    });
+                }
+
+                read();
+            }
+        };
+    });
+
+</script>

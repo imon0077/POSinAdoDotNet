@@ -1,0 +1,293 @@
+﻿@model SoftifyFoodPOSNew.Models.SalesCollection
+@{
+    ViewBag.Title = "Edit Collection";
+}
+
+<header class="page-header">
+    <h2> @ViewBag.Title </h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!-- start:  Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    @using (Html.BeginForm("Edit", "SalesCollection", FormMethod.Post, new { @class = "", name = "frmCollection" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="panel-body">
+
+            <div class="form-group">
+                <div class="col-md-4 col-sm-12">
+                    @Html.LabelFor(model => model.ClientId, new { @class = "control-label" })
+                    <select ng-model="model.ClientId"
+                            select2=""
+                            required=""
+                            data-ng-options="d.ClientId as d.shortName for d in ClientList"
+                            ng-change="LoadClientData()"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                </div>
+
+                @*<div class="col-md-3">
+                    @Html.LabelFor(model => model.PayMode, "Invoice No.", htmlAttributes: new { @class = "control-label text-bold" })                  
+                    @Html.TextBoxFor(model => model.ClientAddress, new { @class = "form-control", @ng_model = "model.InvoiceNo", @readonly = "readonly" })
+                </div>*@
+
+                <div class="col-md-3 col-sm-12">
+                    @Html.Label("", "Receive Date", htmlAttributes: new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.dtCollection, new { @class = "form-control", @ng_model = "model.dtCollection",  @required = "", @data_plugin_datepicker = "", autocomplete = "off" })
+                    @Html.ValidationMessageFor(model => model.dtCollection)
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-4 col-sm-12">
+                    @Html.LabelFor(model => model.ClientAddress, new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.ClientAddress, new { @class = "form-control", @ng_model = "model.ClientAddress", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(model => model.ClientAddress)
+                </div>
+
+                <div class="col-md-3 col-sm-12">
+                    @Html.LabelFor(model => model.PayMode, "Method", htmlAttributes: new { @class = "control-label" })
+                    <select ng-model="model.PayMode"
+                            select2=""
+                            required=""
+                            ng-init="model.PayMode='Bank'"
+                            data-ng-options="d.ExpType as d.ExpType for d in PayTypeList"
+                            style="width: 100%"
+                            class="form-control"></select>
+                </div>
+
+                <div class="col-md-3 col-sm-12">
+                    @Html.LabelFor(model => model.BankId, "Source", htmlAttributes: new { @class = "control-label text-bold" }) <span class="text-danger"> * </span>
+                    <select ng-model="model.BankId"
+                            select2=""
+                            required=""
+                            ng-if="model.PayMode=='Bank'"
+                            data-ng-options="d.HeadId as d.HeadName for d in BankList"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+
+                    <select ng-model="model.BankId"
+                            select2=""
+                            ng-if="model.PayMode=='Cash'"
+                            required=""
+                            data-ng-options="d.HeadId as d.HeadName for d in CashList"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                    
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+                <div class="col-md-2 col-sm-12">
+                    @Html.LabelFor(model => model.ChequeNo, "Cheque No", htmlAttributes: new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.ChequeNo, new { @class = "form-control", @ng_model = "model.ChequeNo", @ng_disabled = "model.PayMode=='Cash'" })
+                    @Html.ValidationMessageFor(model => model.ChequeNo)
+                </div>
+                <div class="col-md-2 col-sm-12">
+                    @Html.LabelFor(model => model.dtCheque, "Cheque Date", htmlAttributes: new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.dtCheque, new { @class = "form-control", @ng_model = "model.dtCheque", @ng_disabled = "model.PayMode=='Cash'", @data_plugin_datepicker = "", autocomplete = "off" })
+                    @Html.ValidationMessageFor(model => model.dtCheque)
+                </div>
+
+                <div class="col-md-3 col-sm-12">
+                    @Html.LabelFor(model => model.Amount, "Amount", htmlAttributes: new { @class = "control-label text-bold" }) <span class="text-danger"> * </span>
+                    @Html.TextBoxFor(model => model.Amount, new { @class = "form-control", @required = "", @ng_model = "model.Amount", @type = "number", @autocomplete = "off" })
+                    @Html.ValidationMessageFor(model => model.Amount)
+                </div>
+
+                <div class="col-md-3 col-sm-12">
+                    @Html.LabelFor(model => model.Discount, "Discount", htmlAttributes: new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.Discount, new { @class = "form-control", @ng_model = "model.Discount", @type = "number", @autocomplete = "off" })
+                    @Html.ValidationMessageFor(model => model.Discount)
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-7 col-sm-12">
+                    @Html.LabelFor(model => model.Remarks, new { @class = "control-label" })
+                    @Html.TextAreaFor(model => model.Remarks, new { @class = "form-control", @rows = "3", @id = "Remark", @ng_model = "model.Remarks" })
+                    @Html.ValidationMessageFor(model => model.Remarks)
+                </div>
+            </div>
+            <!-- : loading..... -->
+            <div ng-show="showLoader" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(102, 102, 102); z-index: 30001; opacity: 0.8;">
+                <img src="~/Content/assets/images/demo_wait.gif" alt="loading" style="position: absolute; top: 50%; left: 45%;" /> Loading..
+            </div>
+
+        </div>
+
+
+        <footer class="panel-footer">
+            <div class="form-group">
+                <div class="col-sm-9 col-sm-offset-3">
+
+                    <button class="btn btn-danger btn-wide mr-md" type="button" name="btnSubmit" id="btnSubmit" ng-click="InsertItem(model)" ondblclick="this.disabled = 'true'; this.value = 'please wait..';" ng-disabled="frmCollection.$invalid">
+                        Submit <i class="fa fa-arrow-circle-right"></i>
+                    </button>
+
+                    <a href="@Url.Action("Index", "SalesCollection")" class="btn btn-primary">
+                        <i class="fa fa-arrow-circle-left"></i> Back to list
+                    </a>
+
+                </div>
+            </div>
+        </footer>
+
+    }
+</section>
+
+
+<script type="text/javascript">
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$filter', '$timeout', '$interval', function ($scope, $http, $filter, $timeout, $interval) {
+        $scope.showLoader = false;
+
+        $scope.model = { dtCollection: $filter("date")(Date.now(), 'dd-MMM-yyyy'), BankId: 1, PayMode: 'Cash' }
+        $scope.ClientList = [];
+        $scope.InvoiceList = [];
+        $scope.PayTypeList = [];
+        $scope.BankList = [];
+        $scope.CashList = [];
+
+        /*  START : Load Combo  */
+        $scope.GetCombo = function () {
+            $http({ method: 'Post', url: '@Url.Action("prcLoadCombo", "SalesCollection")' }).then(function (res) {
+                $scope.ClientList = res.data.Table;
+                //$scope.PayTypeList = res.data.Table1;
+                //$scope.BankList = res.data.Table2;
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+
+        };
+        $scope.GetCombo();
+
+
+        //----------------------------------------------
+        $scope.LoadAccCombo = function () {
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetComboLoad", "Expenses")' //'../Expenses/GetComboLoad'
+            }).then(function (result) {
+                $scope.PayTypeList = result.data.Table;
+                $scope.BankList = result.data.Table1;
+                $scope.CashList = result.data.Table2;
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+
+        $scope.LoadAccCombo();
+
+
+        $scope.LoadClientData = function () {
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetClientData", "SalesCollection")',
+                data: JSON.stringify({ id: $scope.model.ClientId })
+            }).
+            then(function (res) {
+                //$scope.model.ClientAddress = res.data[0]["ClientAddress"];
+                $scope.model.ClientAddress = res.data.Table[0]["ClientAddress"];
+                $scope.InvoiceList = res.data.Table1;
+            });
+        };
+
+        //LOad collection date to edit
+        $scope.GetCollectionById = function () {
+            $scope.showLoader = true;
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetCollectionById", "SalesCollection")',
+                data: JSON.stringify({ id: @Model.CollectionId })
+            }).
+            then(function (data) {                
+                $interval(function(){
+                    $scope.model = data.data[0];
+                    $scope.showLoader = false;
+                },1000,1)
+
+                $interval(function(){
+                    //load client data
+                    $scope.LoadClientData();
+                },1500,1)
+
+                //$scope.model.InvoiceId = data.data[0].InvoiceId;
+
+                
+
+            });
+        };
+        $scope.GetCollectionById();
+
+        //Form submit
+        $scope.InsertItem = function (model) {
+            if ($scope.model.PayMode == 'Bank' && ($scope.model.ChequeNo == '' || $scope.model.ChequeNo == undefined || $scope.model.ChequeNo == null || $scope.model.dtCheque == '' || $scope.model.dtCheque == undefined || $scope.model.dtCheque == null || $scope.model.dtCheque == '01 Jan 1900')) {
+                new PNotify({
+                    title: 'Notification',
+                    text: 'Please Provide Cheque Number & Cheque date ',
+                    type: 'custom',
+                    addclass: 'notification-danger',
+                    icon: 'fa fa-exclamation-triangle'
+                });
+                $scope.showLoader = false;
+                $("#btnSubmit").text("Submit");
+                $("#btnSubmit").removeAttr('disabled');
+            }
+            else{
+                $("#btnSubmit").attr('disabled', 'disabled');
+                $("#btnSubmit").text("Processing");
+
+                $http.post("@Url.Action("Edit", "SalesCollection")", { model: $scope.model }).then(function (data) {
+                    var res = data.data.match(/updated/g);
+                    if (res != null) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data updated successfully',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+
+                        $scope.model = {};
+                        $("#btnSubmit").text("Submit");
+                        $("#btnSubmit").removeAttr('disabled');
+                        window.setTimeout(function(){
+                            window.location.href= '@Url.Action("Index", "SalesCollection")' ;
+                        },2000,1)
+
+                    }
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                        $scope.showLoader = false;
+                        $("#btnSubmit").text("Submit");
+                        $("#btnSubmit").removeAttr('disabled');
+                    }
+                });
+            }
+        };
+
+    }]);
+
+
+</script>

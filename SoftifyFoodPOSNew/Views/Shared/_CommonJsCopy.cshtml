@@ -1,0 +1,94 @@
+﻿
+
+<script src="~/Content/assets/vendor/jquery/jquery.js"></script>
+<script src="~/Content/assets/vendor/jquery-browser-mobile/jquery.browser.mobile.js"></script>
+<script src="~/Content/assets/vendor/bootstrap/js/bootstrap.js"></script>
+<script src="~/Content/assets/vendor/nanoscroller/nanoscroller.js"></script>
+<script src="~/Content/assets/vendor/magnific-popup/magnific-popup.js"></script>
+<script src="~/Content/assets/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+<script src="~/Content/assets/vendor/jquery-placeholder/jquery.placeholder.js"></script>
+
+<!-- Specific Page Vendor -->
+<script src="~/Content/assets/vendor/jquery-ui/js/jquery-ui-1.10.4.custom.js"></script>
+<script src="~/Content/assets/vendor/jquery-ui-touch-punch/jquery.ui.touch-punch.js"></script>
+<script src="~/Content/assets/vendor/jquery/jquery.unobtrusive-ajax.min.js"></script>
+
+<script src="~/Content/assets/vendor/jquery-appear/jquery.appear.js"></script>
+<script src="~/Content/assets/vendor/bootstrap-multiselect/bootstrap-multiselect.js"></script>
+
+
+
+@if (SoftifyGarmentsERP.Models.clsCommon.ControllerNameP == "Dashboard")
+{
+    <script src="~/Content/assets/vendor/jquery-easypiechart/jquery.easypiechart.js"></script>
+    <script src="~/Content/assets/vendor/flot/jquery.flot.js"></script>
+    <script src="~/Content/assets/vendor/flot-tooltip/jquery.flot.tooltip.js"></script>
+    <script src="~/Content/assets/vendor/flot/jquery.flot.pie.js"></script>
+    <script src="~/Content/assets/vendor/flot/jquery.flot.categories.js"></script>
+    <script src="~/Content/assets/vendor/flot/jquery.flot.resize.js"></script>
+    <script src="~/Content/assets/vendor/jquery-sparkline/jquery.sparkline.js"></script>
+    <script src="~/Content/assets/vendor/raphael/raphael.js"></script>
+    <script src="~/Content/assets/vendor/morris/morris.js"></script>
+    <script src="~/Content/assets/vendor/gauge/gauge.js"></script>
+    <script src="~/Content/assets/vendor/snap-svg/snap.svg.js"></script>
+    <script src="~/Content/assets/vendor/liquid-meter/liquid.meter.js"></script>
+    <script src="~/Content/assets/vendor/chartist/chartist.js"></script>
+}
+
+@if (SoftifyGarmentsERP.Models.clsCommon.ActionNameP == "Create" || SoftifyGarmentsERP.Models.clsCommon.ActionNameP == "Edit" || SoftifyGarmentsERP.Models.clsCommon.ActionNameP == "SampleForm" || (SoftifyGarmentsERP.Models.clsCommon.ControllerNameP != null && SoftifyGarmentsERP.Models.clsCommon.ControllerNameP.EndsWith("Report")) || (SoftifyGarmentsERP.Models.clsCommon.ActionNameP == "Applicants"))
+{
+    <script src="~/Content/assets/vendor/bootstrap-timepicker/js/bootstrap-timepicker.js"></script>
+    <script src="~/Content/assets/vendor/select2/select2.js"></script>
+    <script src="~/Content/assets/vendor/summernote/summernote.js"></script>
+    <script src="~/Content/assets/vendor/bootstrap-maxlength/bootstrap-maxlength.js"></script>
+    <script src="~/Content/assets/vendor/bootstrap-confirmation/bootstrap-confirmation.js"></script>
+    <script src="~/Content/assets/vendor/bootstrap-multiselect/bootstrap-multiselect.js"></script>
+    <script src="~/Content/assets/vendor/jquery/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Content/assets/vendor/jquery-validation/jquery.validate.js"></script>
+    <script src="~/Content/assets/vendor/bootstrap-wizard/jquery.bootstrap.wizard.js"></script>
+    <script src="~/Content/assets/vendor/dropzone/dropzone.js"></script>
+}
+else if (SoftifyGarmentsERP.Models.clsCommon.ControllerNameP != "Dashboard" && SoftifyGarmentsERP.Models.clsCommon.ActionNameP == "Index")
+{
+    <script src="~/Content/assets/vendor/bootstrap-timepicker/js/bootstrap-timepicker.js"></script>
+    <script src="~/Content/assets/vendor/bootstrap-confirmation/bootstrap-confirmation.js"></script>
+    <script src="~/Content/assets/vendor/select2/select2.js"></script>
+    <script src="~/Content/assets/vendor/jquery-datatables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/vendor/jquery-datatables-bs3/assets/js/datatables.js"></script>
+}
+@if (SoftifyGarmentsERP.Models.clsCommon.ActionNameP == "SampleList")
+{
+    <script src="~/Content/assets/vendor/select2/select2.js"></script>
+    <script src="~/Content/assets/vendor/jquery-datatables/media/js/jquery.dataTables.js"></script>
+    <script src="~/Content/assets/vendor/jquery-datatables-bs3/assets/js/datatables.js"></script>
+}
+
+@if (SoftifyGarmentsERP.Models.clsCommon.ControllerNameP == "Employee" && SoftifyGarmentsERP.Models.clsCommon.ActionNameP == "Details")
+{
+    <script src="~/Content/assets/vendor/jquery-easypiechart/jquery.easypiechart.js"></script>
+}
+<script src="~/Content/assets/vendor/pnotify/pnotify.custom.js"></script>
+<script src="~/Content/assets/vendor/fuelux/js/spinner.js"></script>
+<!-- Theme Base, Components and Settings -->
+<script src="~/Content/assets/javascripts/theme.js"></script>
+<!-- Theme Initialization Files -->
+<script src="~/Content/assets/javascripts/theme.init.js"></script>
+<!-- Flash messages -->
+<script src="~/Content/assets/javascripts/jquery.cookie.js"></script>
+<script src="~/Content/assets/javascripts/flashMessage.js"></script>
+
+@if (SoftifyGarmentsERP.Models.clsCommon.ControllerNameP == "Dashboard" || SoftifyGarmentsERP.Models.clsCommon.ControllerNameP == "Employee" && SoftifyGarmentsERP.Models.clsCommon.ActionNameP == "Details")
+{
+    <script src="~/Content/assets/javascripts/dashboard/examples.dashboard.js"></script>
+}
+else if (SoftifyGarmentsERP.Models.clsCommon.ControllerNameP != "Dashboard" && SoftifyGarmentsERP.Models.clsCommon.ActionNameP == "Index")
+{
+    <script src="~/Content/assets/javascripts/tables/examples.datatables.default.js"></script>
+}
+<script src="~/Content/assets/javascripts/ui-elements/modals.js"></script>
+<script src="~/Content/assets/javascripts/custom.js"></script>
+
+
+
+
+

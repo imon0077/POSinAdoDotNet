@@ -1,0 +1,39 @@
+﻿@{
+    ViewBag.Title = "Error Page";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+<link href="~/Content/assets/stylesheets/404.css" rel="stylesheet" />
+
+<section class="panel">
+    <div class="panel-body" >
+        <div class="row">
+            <div class="col-md-12">
+                <div class="error-message-container">
+                    <div class="error-message">
+                        <p class="title">Error Occurred...</p>
+                        <p class="message">Something went wrong while processing your request. </p>
+                        <p class="small"><span style="color: #000">Exception is :</span> @ViewBag.exMessage </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+        <div class="row mt-lg">
+            <div class="col-md-12">                                 
+                 <p class="footermsg text-center">Please visit the <a href="/">HOME PAGE</a> or <a href="#" title="">CONTACT</a> with the Softify Team to solve this problem.</p>  
+            </div>
+        </div>
+    
+</section>
+
+
+
+

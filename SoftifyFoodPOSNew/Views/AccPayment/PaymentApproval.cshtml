@@ -1,0 +1,128 @@
+﻿@{
+    ViewBag.Title = "Payment Approval List";
+}
+<!-- start:  List page -->
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+
+    @using (Html.BeginForm())
+    {
+        <div class="panel-body">
+
+            <div class="col-md-12">
+                <!-- : loading..... -->
+                <div ng-show="showLoader" class="loading" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; z-index: 30001;">
+                    <img src="~/Content/assets/images/loadinghr.gif" alt="loading" style="position: absolute; top: 45%; left: 45%; width: 8%;">
+                </div>
+
+                <div ui-grid="gridOptions" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns
+                     style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important;height:65vh;" class="grid"></div>
+            </div>
+
+        </div>
+    }
+
+
+</section>
+
+
+<script type="text/javascript">
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $interval) {
+        $scope.showLoader = false;
+
+        $scope.gridOptions = {            
+            enableFiltering: true,
+            showGridFooter: true,
+            enableColumnMenus: false,
+            // Default: End
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 500, 10);
+            }
+        }
+
+        $scope.gridOptions.columnDefs = [
+            { name: 'Payment No', field: 'PaymentNo', width: 135 },
+            { name: 'Payment Date', field: 'dtPayment', width: 120 },
+            { name: 'Supplier Name', field: 'SupplierName', width: 200 },
+            {
+                name: 'Amount', field: 'Amount', width: 100,
+                cellTemplate: ' <div class="text-right text-bold mr-sm" >{{row.entity.Amount}}</div>'
+            },
+
+            { name: 'Bank Name', field: 'BankName', width: 200 },
+            { name: 'Cheque No', field: 'ChequeNo', width: 110 },
+            {
+                name: 'Cheque Date', width: 120, field: 'dtCheque', enableColumnMenu: false,
+                cellTemplate: ' <div>' +
+                    ' <input type="datetime"  datepicker = "" ng-model="row.entity.dtCheque" class="pl-sm" />' +
+                    ' </div>'
+            },
+            {
+                name: 'Action', enableFiltering: false, width: 80,
+                cellTemplate:
+                    '<a href="javascript:void(0)" ng-click="grid.appScope.PaymentApproved(row.entity)" class="btn btn-danger btn-xs ml-md">Clear</a>'
+            },
+
+
+        ];
+
+        /*   Load  : this area load date wise  */
+        $scope.GetPaymentAppList = function () {
+            $scope.showLoader = true;
+            $scope.gridOptions.data = [];
+            $http({
+                method: 'Post',
+                url: '@Url.Action("GetPaymentApproval", "AccPayment")'
+            }).then(function (data) {
+                $scope.showLoader = false;
+                $scope.gridOptions.data = data.data;
+                console.log(data.data);
+            }, function (error) {
+                alert(error);
+                console.log(error);
+            });
+        }
+
+        $scope.GetPaymentAppList();
+
+        $scope.PaymentApproved = function (rowEntity) {
+            if (confirm("Are you sure cleared this Cheque??")) {
+                $http({
+                    method: 'Post',
+                    url: '@Url.Action("prcApprovedPaymentData", "AccPayment")',
+                    data: JSON.stringify({ Id: rowEntity.PaymentId, dtCheque: rowEntity.dtCheque })
+                }).then(function (data) {
+                    if (data.data == '1') {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Cleared Successfully.',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+                        $scope.GetPaymentAppList();
+                    }
+                    else {
+                        $scope.showLoader = false;
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+                    }
+                });
+            }
+        }
+
+    }]);
+
+</script>

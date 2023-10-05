@@ -1,0 +1,302 @@
+﻿
+@using System.Data
+@model IEnumerable<SoftifyFoodPOSNew.Models.AvailableJobs>
+@{
+    Layout = "~/Views/Shared/_WebLayout.cshtml";
+    int i = 0;
+}
+
+
+<!--
+<div class="row m-top-30">
+    <div class="col-md-12">
+        <div class="promo-info">
+            <h4>Currently no <span class="theme-color">Jobs</span> are available at
+                <span class="theme-color">SOFTIFY</span>
+            </h4>
+        </div>
+    </div>
+</div>
+-->
+@{
+    foreach (var item in Model)
+    {
+        if (i > 1)
+        { <hr />}
+        <div class="row m-bot-30">
+            <div class="col-md-7">
+                <h4 class="text-uppercase"><a href="#" class="btn btn-info btn-rounded bg-default" target="_blank">@item.JobTitle</a></h4>
+
+                <div class="featured-item feature-outline">
+                    <div class="icon theme-color">
+                        <i class="icon-browser2"></i>
+                    </div>
+                    <div class="title text-uppercase">
+                        <h4>Job Responsibilities</h4>
+                    </div>
+                    <div class="desc">
+                        @Html.Raw(item.JobResponsibilities)
+                    </div>
+                </div>
+
+
+                <div class="featured-item feature-outline">
+                    <div class="icon theme-color">
+                        <i class="icon-browser2"></i>
+                    </div>
+                    <div class="title text-uppercase">
+                        <h4>Deadline : <span>@item.dtDeadLine</span></h4>
+                    </div>
+                </div>
+
+                <div class="featured-item feature-outline">
+                    <div class="icon theme-color">
+                        <i class="icon-browser2"></i>
+                    </div>
+                    <div class="title text-uppercase">
+                        <h4>No. of Vacancies : @item.Vacancy </h4>
+                    </div>
+                </div>
+
+                <div class="featured-item feature-outline">
+                    <div class="icon theme-color">
+                        <i class="icon-browser2"></i>
+                    </div>
+                    <div class="title text-uppercase">
+                        <h4>Salary : @item.SalaryRange </h4>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-md-5">
+                <div class="post-desk p-top-0">
+                    <h4 class="text-uppercase">
+                        Department : <a href="#">@item.deptName</a>
+                    </h4>
+
+                    <!--  accordion time line start-->
+                    <dl class="accordion time-line">
+                        <dt>
+                            <a href="" class="active">Additional Requirement</a>
+                        </dt>
+                        <dd style="display: block;">
+                            @Html.Raw(item.AddiRequirements)
+                        </dd>
+                        <dt>
+                            <a href="">Educational Requirement</a>
+                        </dt>
+                        <dd style="display: none;">
+                            @Html.Raw(item.EduQualification)
+                        </dd>
+                        <dt>
+                            <a href="">Age Limit</a>
+                        </dt>
+                        <dd style="display: none;">
+                            @item.AgeMin to @item.AgeMax
+                        </dd>
+                    </dl>
+                    <!-- accordion time line end-->
+
+                </div>
+            </div>
+        </div>
+
+
+
+        i++;
+    }
+
+}
+@*
+<div class="row m-bot-30">
+    <div class="col-md-7">
+        <h4 class="text-uppercase"><a href="#">Software Engineer Required (C# .NET)</a></h4>
+
+        <div class="featured-item feature-outline">
+            <div class="icon theme-color">
+                <i class="icon-browser2"></i>
+            </div>
+            <div class="title text-uppercase">
+                <h4>Job Responsibilities</h4>
+            </div>
+            <div class="desc">
+                <ul class="circle-list inline-block">
+                    <li>
+                        Scaling up of Integrated Child Centered Climate Change Adaptation
+                        Project (ICCCCA) in Bangladesh' of Community Participation and
+                        Development (CPD is running with the financial support of Save the
+                        Children. The implementing organization CPD is seeking to fill the above
+                        position for its Dhaka Office.
+                    </li>
+                    <li>Job summary: The Person will be responsible for handling all financial transaction and prepare financial periodic report</li>
+                    <li>The person will be responsible to maintain accounts transaction system.</li>
+                    <li>Update day to day relevant cash book, ledger book, stock register, Asset register</li>
+                    <li>Handle petty cash and banking transaction</li>
+                    <li>Prepare periodical finance report </li>
+                    <li>Maintain record keeping of financial activities.</li>
+                    <li>Assist financial auditing.</li>
+                </ul>
+
+            </div>
+        </div>
+
+
+        <div class="featured-item feature-outline">
+            <div class="icon theme-color">
+                <i class="icon-browser2"></i>
+            </div>
+            <div class="title text-uppercase">
+                <h4>Deadline : <span>12 December, 2016 </span></h4>
+            </div>
+        </div>
+
+        <div class="featured-item feature-outline">
+            <div class="icon theme-color">
+                <i class="icon-browser2"></i>
+            </div>
+            <div class="title text-uppercase">
+                <h4>No. of Vacancies : 5 </h4>
+            </div>
+        </div>
+
+        <div class="featured-item feature-outline">
+            <div class="icon theme-color">
+                <i class="icon-browser2"></i>
+            </div>
+            <div class="title text-uppercase">
+                <h4>Salary : 10,000 - 20,000 BDT </h4>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-md-5">
+        <div class="post-desk p-top-0">
+            <h4 class="text-uppercase">
+                Department : <a href="#">Software Development</a>
+            </h4>
+
+            <!--  accordion time line start-->
+            <dl class="accordion time-line">
+                <dt>
+                    <a href="" class="active">Additional Requirement</a>
+                </dt>
+                <dd style="display: block;">
+                    Age 25 to 30 year(s) Only males are allowed to apply. Company has dormitory facility; applicants who will stay in dormitory will get priority. Strong interpersonal communication skills, including judgment, courtesy and patience.
+                </dd>
+                <dt>
+                    <a href="">Educational Requirement</a>
+                </dt>
+                <dd style="display: none;">
+                    BSC in CSE from any reputed University
+                </dd>
+                <dt>
+                    <a href="">Age Limit</a>
+                </dt>
+                <dd style="display: none;">
+                    20 to 30 years
+                </dd>
+            </dl>
+            <!-- accordion time line end-->
+
+        </div>
+    </div>
+</div>
+
+<hr />
+
+<div class="row m-top-50">
+    <div class="col-md-7">
+        <h4 class="text-uppercase"><a href="#">Software Engineer Required (C# .NET)</a></h4>
+
+        <div class="featured-item feature-outline">
+            <div class="icon theme-color">
+                <i class="icon-browser2"></i>
+            </div>
+            <div class="title text-uppercase">
+                <h4>Job Responsibilities</h4>
+            </div>
+            <div class="desc">
+                <ul class="circle-list inline-block">
+                    <li>
+                        Scaling up of Integrated Child Centered Climate Change Adaptation
+                        Project (ICCCCA) in Bangladesh' of Community Participation and
+                        Development (CPD is running with the financial support of Save the
+                        Children. The implementing organization CPD is seeking to fill the above
+                        position for its Dhaka Office.
+                    </li>
+                    <li>Job summary: The Person will be responsible for handling all financial transaction and prepare financial periodic report</li>
+                    <li>The person will be responsible to maintain accounts transaction system.</li>
+                    <li>Update day to day relevant cash book, ledger book, stock register, Asset register</li>
+                    <li>Handle petty cash and banking transaction</li>
+                    <li>Prepare periodical finance report </li>
+                    <li>Maintain record keeping of financial activities.</li>
+                    <li>Assist financial auditing.</li>
+                </ul>
+
+            </div>
+        </div>
+
+
+        <div class="featured-item feature-outline">
+            <div class="icon theme-color">
+                <i class="icon-browser2"></i>
+            </div>
+            <div class="title text-uppercase">
+                <h4>Deadline : <span>12 December, 2016 </span></h4>
+            </div>
+        </div>
+
+        <div class="featured-item feature-outline">
+            <div class="icon theme-color">
+                <i class="icon-browser2"></i>
+            </div>
+            <div class="title text-uppercase">
+                <h4>No. of Vacancies : 5 </h4>
+            </div>
+        </div>
+
+        <div class="featured-item feature-outline">
+            <div class="icon theme-color">
+                <i class="icon-browser2"></i>
+            </div>
+            <div class="title text-uppercase">
+                <h4>Salary : 10,000 - 20,000 BDT </h4>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-md-5">
+        <div class="post-desk p-top-0">
+            <h4 class="text-uppercase">
+                Department : <a href="#">Software Development</a>
+            </h4>
+
+            <!--  accordion time line start-->
+            <dl class="accordion time-line">
+                <dt>
+                    <a href="" class="active">Additional Requirement</a>
+                </dt>
+                <dd style="display: block;">
+                    Age 25 to 30 year(s) Only males are allowed to apply. Company has dormitory facility; applicants who will stay in dormitory will get priority. Strong interpersonal communication skills, including judgment, courtesy and patience.
+                </dd>
+                <dt>
+                    <a href="">Educational Requirement</a>
+                </dt>
+                <dd style="display: none;">
+                    BSC in CSE from any reputed University
+                </dd>
+                <dt>
+                    <a href="">Age Limit</a>
+                </dt>
+                <dd style="display: none;">
+                    20 to 30 years
+                </dd>
+            </dl>
+            <!-- accordion time line end-->
+
+        </div>
+    </div>
+</div>*@

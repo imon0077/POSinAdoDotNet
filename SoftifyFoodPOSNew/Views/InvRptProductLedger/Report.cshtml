@@ -1,0 +1,470 @@
+﻿@using System.Data
+@{
+    ViewBag.Title = "Product Ledger Report";
+}
+@{//Page code section
+    #region Radio Criteria
+    bool chkAll = false;
+    bool chkProduct = false;
+
+
+    if (ViewBag.Criteria != null)
+    {
+        if (ViewBag.Criteria.Equals("ProductWise"))
+        {
+            chkProduct = true;
+        }
+        else
+        {
+            chkAll = true;
+        }
+    }
+    else
+    {
+        chkAll = true;
+    }
+
+    #endregion
+    #region Radio Report Type
+    bool chkPdf = false;
+    bool chkExcel = false;
+    bool chkWord = false;
+
+
+    if (ViewBag.RptType != null)
+    {
+        if (ViewBag.RptType.Equals("Excel"))
+        {
+            chkExcel = true;
+        }
+
+        else if (ViewBag.RptType.Equals("Word"))
+        {
+            chkWord = true;
+        }
+        else
+        {
+            chkPdf = true;
+        }
+    }
+    else
+    {
+        chkPdf = true;
+    }
+    #endregion
+}
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+
+@using (Html.BeginForm("Report", "InvRptProductLedger", FormMethod.Post, new { target = "_blank" }))
+
+{
+    <!--Start Report Filtering Section-->
+    <div class="row">
+        <div class="col-lg-3">
+            <section class="panel">
+                <header class="panel-heading">
+                    <div class="panel-actions">
+                        <a href="#" class="panel-action panel-action-toggle" data-panel-toggle></a>
+                    </div>
+
+                    <h2 class="panel-title">Select Criteria</h2>
+                    <p class="panel-subtitle">@Html.ValidationMessage("Criteria", "", new { @class = "text-danger" })</p>
+                </header>
+
+                <div class="panel-body">
+
+                    <div class="form-inline">
+                        <div class="form-group">
+                            <span class="radio-custom radio-dark">
+                                @Html.RadioButton("Criteria", "All", @chkAll, new { @class = "", @id = "radAll", @Required = "required" })
+                                <label for="radAll">All Product </label>
+                            </span>
+                        </div>
+                        <div class="form-group">
+                            <span class="radio-custom radio-dark">
+                                @Html.RadioButton("Criteria", "ProductWise", @chkProduct, new { @class = "", @id = "radProduct", @Required = "required" })
+                                <label for="radProduct">Product Wise</label>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-lg-3">
+            <section class="panel">
+                <header class="panel-heading">
+                    <div class="panel-actions">
+                        <a href="#" class="panel-action panel-action-toggle" data-panel-toggle></a>
+                    </div>
+                    <h2 class="panel-title">Select Date</h2>
+                    <p class="panel-subtitle">
+                        @Html.ValidationMessage("dtFrom", "", new { @class = "text-danger" })
+                        @Html.ValidationMessage("dtTo", "", new { @class = "text-danger" })
+                    </p>
+                </header>
+                <div class="panel-body" style="padding: 15px 5px;">
+                    <div class="form-inline">
+                        <div class="form-group">
+                            <div class="input-daterange input-group" data-plugin-datepicker>
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                                @Html.Editor("dtFrom", new { htmlAttributes = new { @class = "form-control  app-date", @Required = "required", data_plugin_datepicker = "", @Value = DateTime.Now.ToString("dd-MMM-yyyy"),@Style= "font-size:11px;padding: 6px 3px;" } })
+                                <span class="input-group-addon"> To </span>
+                                @Html.Editor("dtTo", new { htmlAttributes = new { @class = "form-control  app-date", @Required = "required", data_plugin_datepicker = "", @Value = DateTime.Now.ToString("dd-MMM-yyyy"), @Style = "font-size:11px;padding: 6px 3px;" } })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-lg-3">
+            <section class="panel">
+                <header class="panel-heading">
+                    <div class="panel-actions">
+                        <a href="#" class="panel-action panel-action-toggle" data-panel-toggle></a>
+                    </div>
+
+                    <h2 class="panel-title">Report Format</h2>
+                    <p class="panel-subtitle">
+                    </p>
+                </header>
+                <div class="panel-body">
+                    <div class="form-inline">
+                        <div class="form-group">
+                            <span class="col-xs-4 radio-custom radio-dark">
+                                @Html.RadioButton("RptType", "PDF", @chkPdf, new { @class = " ", @id = "radPDF", @Required = "required" })
+                                <label for="radPDF">PDF</label>
+                            </span>
+                        </div>
+                        <div class="form-group">
+                            <span class="col-xs-4 radio-custom radio-dark">
+                                @Html.RadioButton("RptType", "Excel", @chkExcel, new { @class = " ", @id = "radExcel", @Required = "required" })
+                                <label for="radExcel">Excel</label>
+                            </span>
+                        </div>
+                        <div class="form-group">
+                            <span class="col-xs-4 radio-custom radio-dark">
+                                @Html.RadioButton("RptType", "Word", @chkWord, new { @class = " ", @id = "radWord", @Required = "required" })
+                                <label for="radWord">Word</label>
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+    <!--End Report Filtering Section-->
+      <!--Start Section List-->
+    <div class="row">
+        <div class="col-lg-3">
+            <section class="panel">
+                <header class="panel-heading">
+                    <div class="panel-actions">
+                        <a href="#" class="panel-action panel-action-toggle" data-panel-toggle></a>
+                    </div>
+                    <h2 class="panel-title">Category</h2>
+                </header>
+
+                <div class="panel-body p-xs" id="divCatList">
+                    <div class="scrollable visible-slider colored-slider" data-plugin-scrollable style="height: 200px;">
+                        <div class="scrollable-content" style="">
+                            @{
+                                DataTable dtCetegory = ViewBag.CetegoryList as DataTable;
+                                <table class="table table-bordered  table-condensed table-responsive table-hover table-striped" style="margin: 5px">
+                                    <thead>
+                                        <tr>
+                                            <th class="hidden">
+                                                Select
+                                            </th>
+                                            <th>
+                                                Category
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon" id="basic-addon1"><i class="fa fa-search"></i></span>
+                                                    <input type="text" class="form-control searchTable" placeholder="search...." aria-describedby="basic-addon1">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        @if (dtCetegory != null)
+                                        {
+                                            int k = 0;
+                                            foreach (DataRow rowCat in dtCetegory.Rows)
+                                            {
+                                                <tr>
+                                                    <td class="hidden">
+                                                        @Html.Editor("[" + k + "].prodCatId", new { htmlAttributes = new { @class = "form-control", @Readonly = "readonly", @Value = @rowCat["prodCatId"].ToString() } })
+                                                    </td>
+                                                    <td>
+                                                        <span class="checkbox-custom checkbox-text-dark checkbox-default">
+                                                            <input type="checkbox" id="ChkCat@{@k}">
+                                                            <label for="ChkCat@{@k}">@rowCat["prodCatName"].ToString()</label>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+            k++;
+        }
+    }
+    else
+    {
+        <tr>
+            <td>No data found</td>
+        </tr>
+    }
+
+                                    </tbody>
+                                </table>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!--End Category List-->
+        <!--Start Sub-Category List-->
+
+        <div class="col-lg-3">
+            <section class="panel">
+                <header class="panel-heading">
+                    <div class="panel-actions">
+                        <a href="#" class="panel-action panel-action-toggle" data-panel-toggle></a>
+                    </div>
+
+                    <h2 class="panel-title">Sub- Category</h2>
+                </header>
+                <div class="panel-body p-xs" id="divSCatList">
+                    <div class="scrollable visible-slider colored-slider" data-plugin-scrollable style="height: 200px;">
+                        <div class="scrollable-content" style="">
+                            @{
+                                DataTable dtSCat = ViewBag.SubCetegorytList as DataTable;
+                            <table class="table table-bordered  table-condensed table-responsive table-hover table-striped mb-none" style="margin: 5px">
+                                <thead>
+                                    <tr>
+                                        <th class="hidden">
+                                            Select
+                                        </th>
+                                        <th>
+                                            Sub-Category
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="input-group">
+                                                <span class="input-group-addon" id="basic-addon1"><i class="fa fa-search"></i></span>
+                                                <input type="text" class="form-control searchTable" placeholder="search...." aria-describedby="basic-addon1">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                    @if (dtSCat != null)
+                                    {
+                                        int k = 0;
+                                        foreach (DataRow rowSCat in dtSCat.Rows)
+                                        {
+                                                <tr>
+                                                    <td class="hidden">
+                                                        @Html.Editor("[" + k + "].prodSCatId", new { htmlAttributes = new { @class = "form-control", @Readonly = "readonly", @Value = @rowSCat["prodSCatId"].ToString() } })
+                                                    </td>
+                                                    <td>
+                                                        <span class="checkbox-custom checkbox-text-dark checkbox-default">
+                                                            <input type="checkbox" id="ChkSCat@{@k}">
+                                                            <label for="ChkSCat@{@k}">@rowSCat["prodSCatName"].ToString()</label>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+            k++;
+        }
+    }
+    else
+    {
+                                            <tr>
+                                                <td>No data found</td>
+                                            </tr>
+    }
+
+                                </tbody>
+                            </table>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!--Start Product Arate-->
+
+        <div class="col-lg-3">
+            <section class="panel">
+                <header class="panel-heading">
+                    <div class="panel-actions">
+                        <a href="#" class="panel-action panel-action-toggle" data-panel-toggle></a>
+                    </div>
+
+                    <h2 class="panel-title">Product List</h2>
+                </header>
+                <div class="panel-body p-xs" id="divProductList">
+                    <div class="scrollable visible-slider colored-slider" data-plugin-scrollable style="height: 200px;">
+                        <div class="scrollable-content" style="">
+                            @{
+                                DataTable dtProd = ViewBag.ProducttList as DataTable;
+                                <table class="table table-bordered  table-condensed table-responsive table-hover table-striped mb-none" style="margin: 5px">
+                                    <thead>
+                                        <tr>
+                                            <th class="hidden">
+                                                Select
+                                            </th>
+                                            <th>
+                                                Product Name
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon" id="basic-addon1"><i class="fa fa-search"></i></span>
+                                                    <input type="text" class="form-control searchTable" placeholder="search...." aria-describedby="basic-addon1">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        @if (dtProd != null)
+                                        {
+                                            int k = 0;
+                                            foreach (DataRow rowProd in dtProd.Rows)
+                                            {
+                                                <tr>
+                                                    <td class="hidden">
+                                                        @Html.Editor("[" + k + "].PrdID", new { htmlAttributes = new { @class = "form-control", @Readonly = "readonly", @Value = @rowProd["PrdID"].ToString() } })
+                                                    </td>
+                                                    <td>
+                                                        <span class="checkbox-custom checkbox-text-dark checkbox-default">
+                                                            <input type="checkbox" id="ChkSpec@{@k}">
+                                                            <label for="ChkSpec@{@k}">@rowProd["Spec"].ToString()</label>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+            k++;
+        }
+    }
+    else
+    {
+        <tr>
+            <td>No data found</td>
+        </tr>
+    }
+
+                                    </tbody>
+                                </table>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+    <div class="row">
+        <footer class="panel-footer">
+            <button class="btn btn-primary btn-block btn-lg" type="submit" id="Late" name="contentType" value="">Preview</button>
+        </footer>
+    </div>
+        <!--Start ID Hidden Section-->
+    <div class="hidden">
+        @Html.Hidden("Category")
+        @Html.Hidden("SubCategory")
+        @Html.Hidden("Product")
+    </div>
+        <!--End ID Hidden Section-->
+    }
+
+<script src="~/Scripts/jquery-3.1.1.min.js"></script>
+<script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+<script src="~/Scripts/moment.min.js"></script>
+<script type="text/javascript" async="">
+    $(function () {
+        $('#divCatList tbody td').click(function () {
+            $(':checkbox').prop("checked", false);
+            var data = $(this).parent().find(':input[name$="].prodCatId"]').val();
+            $(this).find(':checkbox').prop("checked", true);
+            $('#Category').val(data);
+        });
+        $('#divSCatList tbody td').click(function () {
+            $(':checkbox').prop("checked", false);
+            var data = $(this).parent().find(':input[name$="].prodSCatId"]').val();
+            $(this).find(':checkbox').prop("checked", true);
+            $('#SubCategory').val(data);
+        });
+        $('#divProductList tbody td').click(function () {
+            $(':checkbox').prop("checked", false);
+            var data = $(this).parent().find(':input[name$="].PrdID"]').val();
+            $(this).find(':checkbox').prop("checked", true);
+            $('#Product').val(data);
+        });
+
+        $(':radio[name="Criteria"]')
+            .change(function () {
+                pageLoad($(this).val());
+            });
+
+        function pageLoad(e) {
+
+            if (e == "ProductWise") {
+                $('section div[id$="List"]').css('pointer-events', 'none');
+                $('section div[id$="List"] .scrollable').removeClass('colored-slider');
+                $('#divProductList').css('pointer-events', 'auto');
+                $('#divProductList .scrollable').addClass('colored-slider');
+
+                $('#divCatList').css('pointer-events', 'auto');
+                $('#divCatList .scrollable').addClass('colored-slider');
+
+                $('#divSCatList').css('pointer-events', 'auto');
+                $('#divSCatList .scrollable').addClass('colored-slider');
+            } 
+            else {
+                $('section div[id$="divProductList"]').css('pointer-events', 'none');
+                $('section div[id$="divProductList"] .scrollable').removeClass('colored-slider');
+            }
+            $(':checkbox').prop("checked", false);
+        }
+
+        function searchParameter(value, target) {
+            $("#" + target + " tbody tr").each(function (index) {
+                //if (!index) return;
+                $(this).find("td").each(function () {
+                    var id = $(this).text().toLowerCase().trim();
+                    var not_found = (id.indexOf(value) === -1);
+                    $(this).closest('tr').toggle(!not_found);
+                    return not_found;
+                });
+            });
+        };
+        $(':input.searchTable').on('keyup change', function () {
+            var target = $(this).parent().parent().parent().parent().parent().parent().parent().parent().attr("id");
+            searchParameter($(this).val().toLowerCase().trim(), target);
+        });
+        $('form').submit(function (e) {
+            if ($(':radio[name="RptType"]:checked').val() == 'PDF') {
+                $(this).prop('target', "_blank");
+            }
+        });
+    });
+
+</script>

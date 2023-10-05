@@ -1,0 +1,1040 @@
+﻿@using System.Data
+@model SoftifyFoodPOSNew.Models.InvGRR
+@{
+    ViewBag.Title = "Purchase Create";
+}
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+<style>
+    .gridmodal1 {
+        height: 160px;
+    }
+
+    .gridmodal2 {
+        height: 180px;
+    }
+</style>
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationMessage("CustomError", new { @class = "text-danger" })
+
+<!-- start: Client Add Create page -->
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <form name="InvGRRForm">
+        <div class="panel-body">
+            <span ng-init="IsSerialWarrantyTrue(@Session["IsSerial"].ToString().ToLower(),@Session["IsWarranty"].ToString().ToLower());
+                  IsWarranty=@Session["IsWarranty"].ToString().ToLower();
+                  IsSerial=@Session["IsSerial"].ToString().ToLower()"></span>
+            <div class="row">
+                <div class="col-md-9">
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.SupplierId, "Supplier Name", htmlAttributes: new { @class = "control-label text-bold" })
+                        <div class="form-group">
+                            <select ng-model="model.SupplierId" 
+                                    ng-disabled="SupplierList.length == 0" 
+                                    name="SupplierId"
+                                    ng-change="GetSupplierDue(model)"
+                                    ng-options="obj.SupplierId as obj.SupplierName for obj in SupplierList"
+                                    style="width: 100%" required="" class="form-control Category" select2="">
+                                <option value="">---Please Select ---</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.ChallanNo, "Challan No", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.ChallanNo, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.ChallanNo", @Required = "required" } })
+                    </div>
+
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.dtChallan, "Challan Date", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.dtChallan, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "model.dtChallan", datepicker = "" } })
+                        @Html.ValidationMessageFor(model => model.dtChallan, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.PayMode, "Payment Mode", htmlAttributes: new { @class = "control-label text-bold" })
+                        <div class="form-group">
+                            <select ng-model="model.PayMode"
+                                    ng-disabled="PaymodeCombo.length == 0" name="PayMode"
+                                    ng-init="model.PayMode='Not Payment'"
+                                    ng-options="obj.varName as obj.varName for obj in PaymodeCombo"
+                                    style="width: 100%" class="form-control Category" select2="">
+                                <option value="">---Please Select ---</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.HeadId, "Account Name", htmlAttributes: new { @class = "control-label text-bold" })
+                        <span ng-if="model.PayMode=='Not Payment'">
+                            <input class="form-control" type="text" ng-disabled="model.PayMode=='Not Payment'" />
+                        </span>
+                        <span ng-if="model.PayMode=='Cash'">
+                            <select ng-model="model.HeadId"
+                                    select2=""
+                                    ng-disabled="model.PayMode.length==0"
+                                    data-ng-options="d.HeadId as d.HeadName for d in CashCombo"
+                                    style="width: 100%"
+                                    class="form-control">
+                                <option value="">--Please Select--</option>
+                            </select>
+                        </span>
+                        <span ng-if="model.PayMode=='Bank'">
+                            <select ng-model="model.HeadId"
+                                    select2=""
+                                    ng-disabled="model.PayMode.length==0"
+                                    data-ng-options="d.HeadId as d.HeadName for d in BankCombo"
+                                    style="width: 100%"
+                                    class="form-control">
+                                <option value="">--Please Select--</option>
+                            </select>
+                        </span>
+
+                    </div>
+
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.ChequeNo, "Cheque No", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.ChequeNo, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.ChequeNo", ng_disabled= "model.PayMode=='Cash'|| model.PayMode=='Not Payment'" } })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.dtRecv, "Cheque Receive Date", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.dtRecv, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.dtRecv", datepicker = "",ng_disabled = "model.PayMode=='Cash'|| model.PayMode=='Not Payment'" } })
+                        @Html.ValidationMessageFor(model => model.dtRecv, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.ReceivedBy, "Received By", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.ReceivedBy, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.ReceivedBy"  } })
+                    </div>
+
+                    <div class="col-md-4">
+                        @Html.LabelFor(model => model.dtGrr, "Date", htmlAttributes: new { @class = "control-label text-bold" })
+                        @Html.EditorFor(model => model.dtGrr, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "required", ng_model = "model.dtGrr", datepicker = "" } })
+                        @Html.ValidationMessageFor(model => model.dtGrr, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    @Html.LabelFor(model => model.Notes, "Notes", htmlAttributes: new { @class = "control-label text-bold" })
+                    @Html.TextAreaFor(model => model.Notes, new { @class = "form-control", ng_model = "model.Notes", @placeholder = "", @rows = 3 })
+                    @Html.ValidationMessageFor(model => model.Notes, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="row">
+                @*<hr />*@
+                <div class="col-md-12">
+                    <button class="mb-xs btn-sm btn-primary pull-right" type="button" ng-click="addProductSub()">
+                        Add<i class="fa fa-plus ml-sm"></i>
+                    </button>
+
+                </div>
+                <div class="col-md-12">
+                    <div ui-grid="gridOptionsProductSub" ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                         style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 35vh;" class="grid">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel End -->
+        <div class="panel-footer mt-none pt-xs pb-xs">
+            <!-- TotalPayable ROW -->
+            <div class="row" style="padding: 0px 0px; font-weight: bold; background: #f4f4f4; color: #000; border-bottom: 1px solid #ccc;">
+                <div class="col-md-4">
+                    <span class="text-bold">Total Amount : </span>
+                    <span class="text-bold" ng-init="model.TotalAmount"> {{model.TotalAmount}}{{fncGrandtotal()|currency:" Tk ":2}}</span>
+                </div>
+
+                <div class="col-md-4 ">
+                    <span class="text-bold">Due : </span>
+                    <span class="text-bold"  ng-init="model.DueAmount=0"> {{model.DueAmount}}{{fncGrandtotal()}}</span>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group mb-xs">
+                        <div class="col-md-5">
+                            <span class="text-bold" style="padding: 5px 10px; font-size: 14px;">Paid: </span>
+                        </div>
+
+                        <div class="col-md-7 pull-right">
+                            <input class="form-control pos-input" id="Paid" ng-disabled="model.PayMode=='Not Payment'" ng-init="model.PaidAmount=0" ng-model="model.PaidAmount" type="number" ng-required="0">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row mt-xs">
+                <div class="row">
+                    <div class="col-sm-9 col-sm-offset-3">
+                        <button class="btn btn-danger btn-wide mr-md" type="button" name="btnSubmit" ng-disabled="InvGRRForm.$invalid||GetValidationCheck()==true" ng-click="InsertItem(model)">
+                            Submit <i class="fa fa-arrow-circle-right"></i>
+                        </button>
+                        <a href="@Url.Action("IndexCommon", "InvGRR")" c class="btn btn-default">
+                            <i class="fa fa-arrow-circle-left"></i> Back to list
+                        </a>
+                        <label hidden>{{GetValidationCheck()}}</label>
+
+                        <small style="color:red;font-weight:bold">{{message}}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </form>
+</section>
+<script>
+
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$rootScope', 'modal', function ($scope, $http, $log, $filter, $timeout, $interval, $rootScope, modal) {
+
+        $scope.SupplierList = [];
+        $scope.PrdTypeList = [];
+        $scope.PrdBrandList = [];
+        $scope.ProductList = [];
+        $rootScope.BinList = [];
+        $rootScope.SerialList = [];
+        $scope.dataForPost = [];
+        $scope.WarrantyList = [];
+        var myModal = new modal();
+        $scope.message = '';
+        $rootScope.ProductId = '0';
+        $rootScope.modalHeader = "";
+        $rootScope.gridOptionsModal2 = [];
+        $scope.PaymodeCombo = [];
+        $scope.CashCombo = [];
+        $scope.BankCombo = [];
+
+
+        // arrray ininialized:
+        $scope.InvGRRSubList = [{
+            BrandId: '',
+            ProdType: '',
+            ProductId: '0',
+            ProductId: '',
+            BinQty: 0,
+            IsSerial: false,
+            IsWarranty: false,
+            Warranty: 'No Warranty',
+            ChallanQty: 0,
+            QtyRcv: 0,
+            Price: 0,
+            Amount: 0,
+        }];
+
+        // arrray ininialized:
+        $scope.GrrSubColorList = [];
+
+        // Main Array
+        $scope.model = { dtRecv: $filter("date")(Date.now(), 'dd-MMM-yyyy'), dtGrr: $filter("date")(Date.now(), 'dd-MMM-yyyy'), InvGRRSubList: [], GrrSubColorList: [], GrrSerialList: [], dtChallan: $filter("date")(Date.now(), 'dd-MMM-yyyy') }
+        $rootScope.modaldata = [];
+
+        $scope.getCombo = function () {
+            $http({ method: 'Post', url: '../InvGRR/prcLoadCombo' }).then(function (result) {
+                $scope.SupplierList = result.data.Table;
+                $scope.PrdBrandList = result.data.Table1;
+                $scope.PrdTypeList = result.data.Table2;
+                $scope.ProductList = result.data.Table3;
+                $rootScope.BinList = result.data.Table6;
+                $scope.WarrantyList = result.data.Table7;
+                $rootScope.SerialList = result.data.Table8;
+                $scope.PaymodeCombo = result.data.Table9;
+                $scope.CashCombo = result.data.Table10;
+                $scope.BankCombo = result.data.Table11;
+
+
+            },
+            function (ex) {
+                console.log("Error !!!");
+                console.log(ex);
+            });
+
+        }
+        $scope.getCombo(); // call Combo Data
+
+        /// data push grid
+        $scope.addProductSub = function () {
+            $scope.gridOptionsProductSub.data.push({
+                BrandId: '',
+                ProdType: '',
+                ProductId: '',
+                BinQty: 0,
+                IsSerial: false,
+                IsWarranty: false,
+                Warranty: 'No Warranty',
+                ChallanQty: 0,
+                QtyRcv: 0,
+                Price: 0,
+                Amount: 0,
+
+            });
+        };
+        /* END : Add Row | ProductSub | data push grid   */
+
+        $scope.GetSupplierDue = function (model) {
+                $http({
+                    method: 'Post',
+                    url: '../ReceiptPayment/GetSupDueAmount',
+                    data: JSON.stringify({ SupplierId: $scope.model.SupplierId })
+                }).then(function (result) {
+                    $scope.model.DueAmount = result.data.Table[0].Due;
+                    console.log(result.data)
+                });
+        };
+
+        //   1.:  grid api
+        $scope.gridOptionsProductSub = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi;
+                $interval(function () {
+                    $scope.gridApi.core.handleWindowResize();
+                }, 100, 10);
+            },
+
+            data: $scope.InvGRRSubList
+        }
+
+        $scope.model.InvGRRSubList = $scope.gridOptionsProductSub.data;
+
+        $scope.IsSerialWarrantyTrue = function (serial, warranty) {
+            //   2.:  grid Column
+            $scope.gridOptionsProductSub.columnDefs = [
+             {
+                 name: 'Brand', field: 'BrandId', width: 150, enableColumnMenu: false, cellTemplate: ' <div>' +
+                       ' <select ng-model="row.entity.BrandId" name="row.entity.BrandId" required="" style = "width:100%;" select2="" data-ng-options="d.BrandId as d.BrandName for d in grid.appScope.PrdBrandList">' +
+                       '     <option value="" selected>--Select--</option> </select>' +
+                       ' </div>'
+             }
+            , {
+                name: 'Model', field: 'ProdType', width: 160, enableColumnMenu: false, cellTemplate: ' <div>' +
+                    ' <select ng-model="row.entity.ProdType" required="" ng-disabled="!row.entity.BrandId" style = "width:100%;" select2="" data-ng-options="d.ProdType as d.ProdType for d in grid.appScope.PrdTypeList | filter:{BrandId: row.entity.BrandId}:true">' +
+                    '     <option value="" selected>--Select--</option>' +
+                    ' </select>' +
+                    ' </div>'
+            }
+            , {
+                name: 'Product Name', field: 'ProductId', width: 200, enableColumnMenu: false, cellTemplate: ' <div>' +
+                     ' <select ng-model="row.entity.ProductId" required="" style = "width:100%;" select2="" ng-disabled="!row.entity.ProdType" ng-change= grid.appScope.SetUnit(row.entity) data-ng-options="d.ProductId as d.ProductName for d in grid.appScope.ProductList | filter:{ProdType: row.entity.ProdType, BrandId: row.entity.BrandId}:true" >' +
+                     '     <option value="" selected>--Select--</option>' +
+                     ' </select>' +
+                     ' </div>'
+            },
+             { name: 'Unit', field: 'Unit', width: 60, enableColumnMenu: false },
+               {
+                   name: 'Warranty', width: 100, enableColumnMenu: false, visible: warranty, cellTemplate: '' +
+                ' <select ng-model="row.entity.Warranty" ng-disabled="row.entity.IsWarranty==false||!row.entity.ProductId" required=""  style = "width:100%;" select2="" data-ng-options="d.WarName as d.WarName for d in grid.appScope.WarrantyList">' +
+                ' </select>'
+               },
+              , {
+                  name: 'Chal.Qty', width: 80, enableColumnMenu: false, field: 'ChallanQty', cellTemplate: ' <div>' +
+                  '<strong> <input type="number" required="" ng-model="row.entity.ChallanQty" class="pl-sm"/> </strong>' +
+                  ' </div>'
+              }
+               , {
+                   name: 'QtyRcv', width: 80, enableColumnMenu: false, cellTemplate: '<div>' +
+                     '<strong class=""> ' + '<button type="button" class="" ng-click="grid.appScope.showModal(row)" style="width:100%" >{{ grid.appScope.totalQty(row.entity)}} </button>' +
+                 '</div>'
+               }
+                , {
+                    name: 'Price', width: 80, enableColumnMenu: false, field: 'Price', cellTemplate: ' <div>' +
+                    '<strong> <input type="number" required="" ng-model="row.entity.Price" class="pl-sm" ng-change="grid.appScope.totalPrice(row.entity)"/> </strong>' +
+                    ' </div>'
+                }
+                , {
+                    name: 'Amount', width: 80, enableColumnMenu: false, cellTemplate: '<div>' +
+                         '<strong><input type="number" ng-model="row.entity.Amount" class="pl-sm" disabled="" ng-init="grid.appScope.totalPrice(row.entity)"/></strong>' +
+                    '</div>'
+                },
+
+                //{
+                //    name: 'Sl No', width: 100, enableColumnMenu: false, visible: serial, cellTemplate: '' +
+                //         '<button type="button" class="btn-warning" ng-click="grid.appScope.showModalSerial(row)" ng-disabled="row.entity.IsSerial==false||!row.entity.ProductId" style="width:100%" >Click </button>'
+                //},
+            {
+                name: 'Del', enableColumnMenu: false, width: 40,
+                cellTemplate:
+                '<a href="javascript:void(0)" class="ml-md black" ng-click="grid.appScope.removeItem(row)"><i class="fa fa-close fa-sm" aria-hidden="true"></i></a>'
+            }
+            ];
+
+        };
+
+        //   1.:  grid api
+        $rootScope.gridOptionsModal1 = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridApi = gridApi,
+                // call resize every 500 ms for 5 s after modal finishes opening - usually only necessary on a bootstrap modal
+                    $interval(function () {
+                        $scope.gridApi.core.handleWindowResize();
+                    }, 500, 10);
+                $scope.gridApi.grid.registerRowsProcessor($scope.modal1FilterByRowId, 200);
+            },
+            data: []
+        };
+        /*   END : grid api  | gridOptionsModal1     */
+
+
+        //   1.:  grid api
+        $rootScope.gridOptionsModal2 = {
+            onRegisterApi: function (gridApi) {
+                $scope.gridModal2Api = gridApi,
+                // call resize every 500 ms for 5 s after modal finishes opening - usually only necessary on a bootstrap modal
+                    $interval(function () {
+                        $scope.gridModal2Api.core.handleWindowResize();
+                    }, 500, 10);
+                $scope.gridModal2Api.grid.registerRowsProcessor($scope.modal2FilterByRowId, 200);
+            },
+            data: []
+        };
+        /*   END : grid api  | gridOptionsModal1     */
+
+
+
+
+        $rootScope.SerialGenerate = function (row) {
+            var check = 0; var count = 0;
+
+            if (row.entity.IsSerial == true) {
+                if ($rootScope.gridOptionsModal2.data.length == 0) {
+                    for (var k = 0; k < $rootScope.gridOptionsModal1.data.length; k++) {  // Bin length
+                        if ($rootScope.gridOptionsModal1.data[k].IsSerial == true) {
+                            for (var l = 0; l < $rootScope.gridOptionsModal1.data[k].BinQty; l++) {  // total Qty
+                                $rootScope.gridOptionsModal2.data.push({
+                                    BinId: $rootScope.gridOptionsModal1.data[k].BinId,
+                                    BinName: '',
+                                    SerialNo: '',
+                                    ProductId: $rootScope.gridOptionsModal1.data[k].ProductId
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // SERIAL CHECK  =   0
+                for (let index = 0; index < $rootScope.gridOptionsModal2.data.length; index++) {
+                    $scope.ProductIdCheck = $rootScope.gridOptionsModal2.data[index].ProductId;
+                    $scope.BinIdCheck = $rootScope.gridOptionsModal2.data[index].BinId;
+                    if ($scope.ProductIdCheck == row.entity.ProductId && $scope.BinIdCheck == row.entity.BinId) {
+                        count = count + 1
+                    }
+                }
+
+                /* SERIAL GENERATE AUTO */
+                if (row.entity.BinQty > 0 && $rootScope.gridOptionsModal2.data.length > 0) {
+                    var realvalue = row.entity.BinQty - count;
+                    if (realvalue > 0) {
+                        for (let j = count; j < row.entity.BinQty; j++) {
+                            $rootScope.gridOptionsModal2.data.push({
+                                BinId: row.entity.BinId,
+                                BinName: '',
+                                SerialNo: '',
+                                ProductId: row.entity.ProductId
+                            });
+                        }
+                    }
+                    else if (realvalue < 0) {
+                        var del = count - row.entity.BinQty
+                        for (var k = del - 1; k >= 0; k--) {
+                            $rootScope.gridOptionsModal2.data.splice(k, 1);
+                        }
+                    }
+                }
+            } // End : Is Serial
+
+        }
+        /// Modal: Credit Amount
+        $scope.showModal = function (row) {
+            myModal.open(Boolean(row.entity.IsSerial)); // 1 = modal1
+            var ProductId = row.entity.ProductId; $rootScope.modalHeader = "Procuct Distribution";
+            $rootScope.ProductId = row.entity.ProductId;
+            var check = 0;
+            if ($rootScope.gridOptionsModal1.data.length == 0) {
+                $rootScope.gridOptionsModal1.data.push({
+                    BinId: $rootScope.BinList[0].BinId,
+                    BinQty: 0,
+                    ProductId: row.entity.ProductId,
+                    IsSerial: row.entity.IsSerial,
+                });
+            }
+
+            for (let index = 0; index < $rootScope.gridOptionsModal1.data.length; index++) {
+                $scope.ProductIdCheck = $rootScope.gridOptionsModal1.data[index].ProductId;
+                if ($scope.ProductIdCheck == row.entity.ProductId) {
+                    check = 1;
+                }
+            }
+
+            if (check == 0 && $rootScope.gridOptionsModal1.data.length > 0) {
+                $rootScope.gridOptionsModal1.data.push({
+                    BinId: $rootScope.BinList[0].BinId,
+                    BinQty: 0,
+                    ProductId: row.entity.ProductId,
+                    IsSerial: row.entity.IsSerial,
+                });
+            }
+
+            //$scope.CreditAmount(row);
+
+        }  //modal End
+
+
+
+        /// Modal: Credit Amount
+        //$scope.showModalSerial = function (row) {
+        //    myModal.open(2); // 1 = modal1
+        //    $rootScope.modalHeader = "Procuct Serial";
+        //    var ProductId = row.entity.ProductId;
+        //    $rootScope.ProductId = row.entity.ProductId;
+        //    var check = 0; var count = 0;
+        //    console.log($rootScope.gridOptionsModal1.data)
+
+        //    // SERIAL ADD IF LENGTH =   0
+        //    if ($rootScope.gridOptionsModal2.data.length == 0) {
+        //        for (var k = 0; k < $rootScope.gridOptionsModal1.data.length; k++) {  // Bin length
+        //            for (var l = 0; l < $rootScope.gridOptionsModal1.data[k].BinQty; l++) {  // total Qty
+        //                if ($rootScope.gridOptionsModal1.data[k].IsSerial == true) {
+        //                    $rootScope.gridOptionsModal2.data.push({
+        //                        BinId: $rootScope.gridOptionsModal1.data[k].BinId,
+        //                        BinName: '',
+        //                        SerialNo: '',
+        //                        ProductId: $rootScope.gridOptionsModal1.data[k].ProductId
+        //                    });
+        //                }
+        //            }
+        //        }
+        //    }
+        //    // SERIAL CHECK  =   0
+        //    for (let index = 0; index < $rootScope.gridOptionsModal2.data.length; index++) {
+        //        $scope.ProductIdCheck = $rootScope.gridOptionsModal2.data[index].ProductId;
+        //        if ($scope.ProductIdCheck == row.entity.ProductId) {
+        //            check = 1; count = count + 1
+        //        }
+        //    }
+
+        //    // IF SERIAL CHECK  =   1 AND LENGTH OF SERIAL GREATER OF 1
+        //    if (check == 0 && $rootScope.gridOptionsModal2.data.length > 0) {
+        //        for (var k = 0; k < $rootScope.gridOptionsModal1.data.length; k++) {  // Bin length
+        //            for (var l = 0; l < $rootScope.gridOptionsModal1.data[k].BinQty; l++) {  // total Qty
+        //                if ($rootScope.gridOptionsModal1.data[k].ProductId == row.entity.ProductId) {
+        //                    if ($rootScope.gridOptionsModal1.data[k].IsSerial == true) {
+        //                        $rootScope.gridOptionsModal2.data.push({
+        //                            BinId: $rootScope.gridOptionsModal1.data[k].BinId,
+        //                            BinName: '',
+        //                            SerialNo: '',
+        //                            ProductId: $rootScope.gridOptionsModal1.data[k].ProductId
+        //                        });
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    //$scope.CreditAmount(row);
+        //}
+
+        //   2.: MOdal 1 grid Column
+        $rootScope.gridOptionsModal1.columnDefs = [
+           {
+               name: 'Row',
+               enableColumnMenu: false, visible: false,
+               width: 20, cellTemplate: '<div>' + 'appscope{{grid.appScope.ProductId}}' + 'row.entity{{row.entity.ProductId}}' + '</div>'
+           },
+            //, { name: 'Bin No', field: 'BinNo', width: 200 },
+        {
+            name: 'Bin', field: 'BinId', width: 300, enableColumnMenu: false, cellTemplate:
+                ' <div>' +
+                 ' <select ng-model="row.entity.BinId"  required="" style = "width:100%;" select2="" data-ng-options="d.BinId as d.BinNo for d in grid.appScope.BinList">' +
+                ' </div>'
+        },
+        , {
+            name: 'BinQty', width: 150, enableColumnMenu: false, field: 'QtyRcv', cellTemplate: ' <div>' +
+            '<strong> <input type="number" required="" ng-model="row.entity.BinQty" class="pl-sm" ng-change="grid.appScope.SerialGenerate(row)"> </strong>' +
+            ' </div>'
+        },
+              {
+                  name: 'Del', enableColumnMenu: false, width: 40,
+                  cellTemplate:
+                          '<a href="javascript:void(0)" class="ml-md black" ng-click="grid.appScope.removeModal1Item(row)"><i class="fa fa-close fa-sm" aria-hidden="true"></i></a>'
+              }
+        ];
+
+
+        //   2.: Modal 2 grid Column
+        $rootScope.gridOptionsModal2.columnDefs = [
+           {
+               name: 'Row',
+               enableColumnMenu: false, visible: false,
+               width: 20, cellTemplate: '<div>' + 'appscope{{grid.appScope.ProductId}}' + 'row.entity{{row.entity.ProductId}}' + '</div>'
+           },
+              {
+                  name: 'Bin', field: 'BinId', width: 250, enableColumnMenu: false, cellTemplate: ' <div>' +
+                      ' <select ng-model="row.entity.BinId"  required="" style = "width:100%;" select2="" data-ng-options="d.BinId as d.BinNo for d in grid.appScope.BinList">' +
+                      ' </div>'
+              },
+            , {
+                name: 'SerialNo', width: 250, enableColumnMenu: false, field: 'SerialNo', cellTemplate: ' <div>' +
+                '<strong> <input type="text" required="" ng-model="row.entity.SerialNo" class="pl-sm"/> </strong>' +
+                ' </div>'
+            },
+        {
+            name: 'Del', enableColumnMenu: false, width: 40,
+            cellTemplate:
+            '<a href="javascript:void(0)" class="ml-md black" ng-click="grid.appScope.removeModal2Item(row)"><i class="fa fa-close fa-sm" aria-hidden="true"></i></a>'
+        }
+
+
+        ];
+        /*   For  total op Qty */
+        $scope.totalQty = function (entity) {
+            var total = 0;
+            angular.forEach($rootScope.gridOptionsModal1.data,
+                function (item) {
+                    if (item.ProductId == entity.ProductId) {
+                        total += item.BinQty;
+                    }
+                });
+            entity.QtyRcv = total;
+            $rootScope.totalPrice(entity);
+            return total;
+        }
+
+        /*   For  total op Price */
+        $rootScope.totalPrice = function (rowentity) {
+            rowentity.Amount = 0;
+            rowentity.Amount = rowentity.QtyRcv * rowentity.Price;
+            return rowentity.Amount;
+        };
+
+        /* Serial Status */
+        $rootScope.IsSerialhas = function (ProductId) {
+            var IsSerial = false;
+            if (angular.isDefined(ProductId)) {
+                for (var i = 0; i < $scope.ProductList.length; i++) {
+                    if (ProductId == $scope.ProductList[i].ProductId) {
+                        IsSerial = Boolean($scope.ProductList[i].IsSerial);
+                        break;
+                    };
+                }
+            }
+            return IsSerial;
+        }
+
+        //$scope.GetTotal = function (RowEntity) {
+        //    var Total = 0;
+        //    for (i = 0; i < $scope.gridOptionsProductSub.data.length; i++) {
+        //        Total = Total + $scope.gridOptionsProductSub.data[i].Amount;
+        //    }
+        //    //console.log(Total);
+        //    return Total;
+        //}
+
+
+        $scope.fncGrandtotal = function () {
+            var total = 0;
+            var MainTotal = 0;
+            angular.forEach($scope.gridOptionsProductSub.data, function (item) {
+                total += item.Amount;
+            });
+            $scope.model.TotalAmount = total;
+
+        }
+
+        /* Set unit name on change product */
+        $scope.SetUnit = function (rowEntity) {
+            rowEntity.Unit = '';
+            rowEntity.IsSerial = false;
+            rowEntity.IsWarranty = false;
+            rowEntity.Warranty = ''
+            //Set unit
+            if (angular.isDefined(rowEntity.ProductId)) {
+                for (var i = 0; i < $scope.ProductList.length; i++) {
+                    if (rowEntity.ProductId == $scope.ProductList[i].ProductId) {
+                        rowEntity.Unit = $scope.ProductList[i].unitName;
+                        rowEntity.IsSerial = Boolean($scope.ProductList[i].IsSerial);
+                        rowEntity.IsWarranty = Boolean($scope.ProductList[i].IsWarranty);
+                        rowEntity.Warranty = $scope.ProductList[i].Warranty;
+
+                    };
+                }
+            }
+
+            // Check duplicate
+            if (angular.isDefined(rowEntity.ProductId)) {
+                for (var i = 0; i < $scope.gridOptionsProductSub.data.length; i++) {
+                    for (var j = i + 1; j < $scope.gridOptionsProductSub.data.length; j++) {
+                        if (parseInt($scope.gridOptionsProductSub.data[i].ProductId) == parseInt($scope.gridOptionsProductSub.data[j].ProductId)) {
+                            alert('Sorry!! This item already selected. try with another one.');
+                            $scope.gridOptionsProductSub.data[j].ProductId = 0;
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Validattion Code here...
+        $rootScope.GetValidationCheck = function () {
+            var BinQtyCount = 0; var count = 0; var flag = false; var totalBinQty = 0; $scope.message = ''; var totalSerial = 0; var totalBinqty = 0;
+            var counts = 0;
+            //Validation: 1
+            if (flag != true) {
+                for (var i = 0; i < $scope.gridOptionsProductSub.data.length; i++) {
+                    if ($scope.gridOptionsProductSub.data[i].ChallanQty == 0) {
+                        flag = true; $scope.message = 'Challan qty must be greater than 0 !!';
+                        break;
+                    } if ($scope.gridOptionsProductSub.data[i].Price == 0) {
+                        flag = true; $scope.message = 'Price  must be greater than 0 !!';
+                        break;
+                    }
+                    if ($scope.gridOptionsProductSub.data[i].QtyRcv == 0) {
+                        flag = true; $scope.message = 'Receive qty must be greater than 0 !!';
+                        break;
+                    }
+                    if ($scope.gridOptionsProductSub.data[i].QtyRcv > $scope.gridOptionsProductSub.data[i].ChalanQty) {
+                        flag = true; $scope.message = 'Receive qty is  bigger than challan qty !! ';
+                        break;
+                    }
+                }
+            }
+            // Validation : 2
+            if (flag != true) {
+                for (var i = 0; i < $rootScope.gridOptionsModal1.data.length; i++) {
+                    if ($rootScope.gridOptionsModal1.data[i].IsSerial == true) {
+                        for (var j = 0; j < $rootScope.gridOptionsModal2.data.length; j++) {
+                            if (($rootScope.gridOptionsModal1.data[i].ProductId == $rootScope.gridOptionsModal2.data[j].ProductId) &&
+                               ($rootScope.gridOptionsModal1.data[i].BinId == $rootScope.gridOptionsModal2.data[j].BinId)) {
+                                if (angular.isUndefined($rootScope.gridOptionsModal2.data[j].SerialNo) || $rootScope.gridOptionsModal2.data[j].SerialNo == "") {
+                                    flag = true; $scope.message = 'Input Serial No ';
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // Validation : 3
+            if (flag != true) {
+                for (var i = 0; i < $rootScope.gridOptionsModal1.data.length; i++) {
+                    if ($rootScope.gridOptionsModal1.data[i].BinQty == 0 || $rootScope.gridOptionsModal1.data[i].BinQty == '' || $rootScope.gridOptionsModal1.data[i].BinQty == null) {
+                        flag = true; $scope.message = 'Bin Qty Must Greater than 0 ';
+                        break;
+                    }
+                }
+            }
+            // Validation : 4
+            if (flag != true) {
+                for (var i = 0; i < $rootScope.gridOptionsModal1.data.length; i++) {
+                    for (var x = i + 1; x < $rootScope.gridOptionsModal1.data.length; x++) {
+                        if ($rootScope.gridOptionsModal1.data[i].BinId == $rootScope.gridOptionsModal1.data[x].BinId &&
+                            $rootScope.gridOptionsModal1.data[i].ProductId == $rootScope.gridOptionsModal1.data[x].ProductId) {
+                            flag = true; $scope.message = 'Bin Already Exist';
+                            break;
+                        }
+                    }
+                }
+            }
+            // Validation : 5
+            if (flag != true) {
+                for (var i = 0; i < $rootScope.gridOptionsModal1.data.length; i++) {
+                    if ($rootScope.gridOptionsModal1.data[i].IsSerial == true) {
+                        BinQtyCount = $rootScope.gridOptionsModal1.data[i].BinQty; count = 0;
+                        for (var j = 0; j < $rootScope.gridOptionsModal2.data.length; j++) {
+                            if (($rootScope.gridOptionsModal1.data[i].ProductId == $rootScope.gridOptionsModal2.data[j].ProductId) &&
+                                ($rootScope.gridOptionsModal1.data[i].BinId == $rootScope.gridOptionsModal2.data[j].BinId)) {
+                                count = count + 1
+                            }
+                        }
+                        if (BinQtyCount != count) {
+                            flag = true; $scope.message = 'Not match Bin wise Product Distribution  !!';
+                            //break;
+                        }
+                    }
+                }
+                console.log(flag);
+            }
+
+            // Validation : 6 Total Bin And Serial Compare
+            if (flag != true) {
+                for (var i = 0; i < $rootScope.gridOptionsModal1.data.length; i++) {
+                    if ($rootScope.gridOptionsModal1.data[i].IsSerial == true && $rootScope.gridOptionsModal1.data[i].ProductId == $rootScope.ProductId) {
+                        totalBinqty += $rootScope.gridOptionsModal1.data[i].BinQty
+                    }
+                }
+                console.log('totalbin' + totalBinqty);
+                for (var j = 0; j < $rootScope.gridOptionsModal2.data.length; j++) {
+                    if ($rootScope.gridOptionsModal2.data[j].ProductId == $rootScope.ProductId) {
+                        totalSerial += 1;
+                    }
+                }
+                if (totalSerial != totalBinqty) { flag = true; $scope.message = 'Not match Bin wise Product Distribution  !!'; }
+            }
+            return flag;
+        }
+
+        /*   For Remove Item */
+        $scope.removeItem = function (row) {
+            var index = $scope.gridOptionsProductSub.data.indexOf(row.entity);
+            console.log(index);
+            if ($scope.gridOptionsProductSub.data.length == 1) {
+                //minimum fill one row
+            } else {
+                // Bin Delete
+                for (var i = $rootScope.gridOptionsModal1.data.length - 1; i >= 0; i--) {
+                    if ($rootScope.gridOptionsModal1.data[i].ProductId == row.entity.ProductId) {
+                        $rootScope.gridOptionsModal1.data.splice(i, 1);
+                    }
+                }
+                // Serial Delete
+                for (var i = $rootScope.gridOptionsModal2.data.length - 1; i >= 0; i--) {
+                    if ($rootScope.gridOptionsModal2.data[i].ProductId == row.entity.ProductId) {
+                        $rootScope.gridOptionsModal2.data.splice(i, 1);
+                    }
+                }
+                // Sub Data Delete
+                $scope.gridOptionsProductSub.data.splice(index, 1);
+            }
+        } // Delete : End
+
+
+        $rootScope.removeModal2Item = function (row) {
+            var index = $rootScope.gridOptionsModal2.data.indexOf(row.entity);
+            if (index == 0) {
+            } else {
+                $rootScope.gridOptionsModal2.data.splice(index, 1);
+
+            }
+            $rootScope.GetValidationCheck();
+        }
+
+        $rootScope.removeModal1Item = function (row) {
+            var flag = false; var count = 0;
+            var index = $rootScope.gridOptionsModal1.data.indexOf(row.entity);
+            if ($rootScope.gridOptionsModal1.data.length == 1) {
+                //minimum fill one row
+            } else {
+                $rootScope.gridOptionsModal1.data.splice(index, 1);
+
+            }
+            $rootScope.GetValidationCheck();
+            //if (flag != true) {
+            //    for (var i = 0; i < $rootScope.gridOptionsModal1.data.length; i++) {
+            //        if ($rootScope.gridOptionsModal1.data[i].IsSerial == true) {
+            //            BinQtyCount = $rootScope.gridOptionsModal1.data[i].BinQty; count = 0;
+            //            for (var j = 0; j < $rootScope.gridOptionsModal2.data.length; j++) {
+            //                if (($rootScope.gridOptionsModal1.data[i].ProductId == $rootScope.gridOptionsModal2.data[j].ProductId) &&
+            //                    ($rootScope.gridOptionsModal1.data[i].BinId == $rootScope.gridOptionsModal2.data[j].BinId)) {
+            //                    count = count + 1
+            //                }
+            //            }
+            //            if (BinQtyCount != count) {
+            //                flag = true; $scope.message = 'Not match Bin wise Product Distribution  !!';
+            //                //break;
+            //            }
+            //        }
+            //    }
+            //    console.log(flag);
+            //}
+            //return flag;
+
+        }
+
+        $scope.InsertItem = function (model) {
+            $scope.model.InvGRRSubList = $scope.gridOptionsProductSub.data;
+            $scope.model.GrrSubColorList = $scope.gridOptionsModal1.data;
+            $scope.model.GrrSerialList = $scope.gridOptionsModal2.data;
+            console.log(model);
+
+
+            $http.post("../InvGRR/CreateCommon", { model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data Saved Successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.getCombo();
+
+
+                    $scope.gridOptionsProductSub.data = [];
+                    $scope.model = { dtGrr: $filter("date")(Date.now(), 'dd-MMM-yyyy'), InvGRRSubList: [] }
+                    $rootScope.gridOptionsModal1 = [];
+                    window.setTimeout(function () {
+                        window.location.href = '../InvGRR/CreateCommon';
+                    }, 2000);
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $scope.getCombo();
+
+                    //$scope.gridOptionsProductSub.data = [];
+                    //$scope.model = { dtGrr: $filter("date")(Date.now(), 'dd-MMM-yyyy'), InvGRRSubList: [] }
+                    //$rootScope.gridOptionsModal1 = [];
+                }
+            });
+        }
+
+        /* MOdal 1 : Distribution Add*/
+        $rootScope.addDis = function () {
+            $rootScope.gridOptionsModal1.data.push({
+                BinId: $rootScope.BinList[0].BinId,
+                BinNo: '',
+                ChallanQty: 0,
+                BinQty: 0,
+                Price: 0,
+                Amount: 0,
+                ProductId: $rootScope.ProductId,
+                IsSerial: $rootScope.IsSerialhas($rootScope.ProductId)
+            });
+        };
+
+        /* Modal 2 : Serial Add*/
+
+        $rootScope.addSerial = function () {
+            $rootScope.gridOptionsModal2.data.push({
+                BinId: $rootScope.BinList[0].BinId,
+                BinName: '',
+                SerialNo: '',
+                ProductId: $rootScope.ProductId,
+            });
+        };
+
+
+        // Modal 1 Filter By RowId
+        $scope.modal1FilterByRowId = function (renderableRows) {
+            renderableRows.forEach(function (row) {
+                var match = false;
+                ['ProductId'].forEach(function (field) {
+                    if (row.entity[field] == $rootScope.ProductId) {
+                        match = true;
+                    }
+                });
+                if (!match) {
+                    row.visible = false;
+                }
+            });
+            return renderableRows;
+        };
+
+        // Modal 2 Filter By RowId
+        $scope.modal2FilterByRowId = function (renderableRows) {
+            renderableRows.forEach(function (row) {
+                var match = false;
+                ['ProductId'].forEach(function (field) {
+                    if (row.entity[field] == $rootScope.ProductId) {
+                        match = true;
+                    }
+                });
+                if (!match) {
+                    row.visible = false;
+                }
+            });
+            return renderableRows;
+        };
+
+    }]);
+
+
+    ngGridApp.factory('modal', ['$compile', '$rootScope', function ($compile, $rootScope) {
+        return function () {
+
+            var elm;
+            var modal = {
+                open: function (e) {
+
+                    var html = '';
+                    var gridHtml = '';
+                    var gridHtml2 = '';
+
+
+                    gridHtml = '' +
+
+                    '<div id="grid1" ui-grid="gridOptionsModal1" class="gridmodal1 mt-xs"></div> '
+                    //'<button id="addrow" class="btn btn-primary btn-sm mt-sm" ng-click="addSerial()">Add<i class="fa fa-plus ml-xs"></i></button>' +
+                    //GRID Distribution
+                    if (e !== false) {
+                        gridHtml2 = '' +
+                        //'<button id="addrow" class="btn btn-primary btn-sm" ng-click="addSerial()">Add<i class="fa fa-plus"></i></button>' +
+                        '<div id="grid2" ui-grid="gridOptionsModal2" class="gridmodal2 mt-xs"></div>';  //GRID Colorlist
+                    }
+
+
+                    html = '' +
+                            '<div class="modal" ng-style="modalStyle">{{modalStyle}}' +
+
+                                //START : modal-dialog
+                                '<div class="modal-dialog">' +
+                                    //START : modal-content
+                                    '<div class="modal-content">' +
+                                        //START : modal-header
+                                        '<div class="modal-header pt-xs pb-xs">' +
+                                        '<div class="col-sm-10">' +
+                                          '<strong>{{modalHeader}}</strong>' +
+                                        '</div>' +
+                                         '<div class="col-sm-2">' +
+                                         '<button id="addrow" class="btn btn-primary btn-xs" ng-click="addDis()">Add<i class="fa fa-plus ml-xs"></i></button>' +
+                                        '</div>' +
+
+
+                                        '</div>' +
+                                        //END : modal-header
+                                        //START : modal-body
+                                        '<div class="modal-body pt-xs pb-xs">' +
+                                            gridHtml +
+                                            gridHtml2 +
+                                            //'<button id="addrow2" class="btn btn-primary btn-sm" ng-click="addDisModal2()">Add<i class="fa fa-plus ml-xs"></i></button>' +
+                                            //    '<div id="grid2" ui-grid="gridOptionsModal12" class="gridmodal mt-xs"></div>' +  //GRID Colorlist
+                                        '</div>' +
+                                        //END : modal-body
+                                        //START : modal-footer
+                                        '<div class="modal-footer pt-xs pb-xs">' +
+                                            '<button id="buttonClose" class="btn btn-primary btn-sm" ng-click="close()">OK</button>' +
+                                        '</div>' +
+                                        //END : modal-footer
+                                    '</div>' +
+                                    //END : modal-content
+                                '</div>' +
+                                //END : modal-dialog
+                            '</div>';
+
+                    elm = angular.element(html);
+                    angular.element(document.body).prepend(elm);
+
+                    $rootScope.close = function () {
+                        var flag = true;
+                        for (var i = 0; i < $rootScope.gridOptionsModal2.data.length; i++) {
+                            for (var j = 0; j < $rootScope.SerialList.length; j++) {
+                                if ($rootScope.gridOptionsModal2.data[i].SerialNo == $rootScope.SerialList[j].SerialNo) {
+                                    flag = false;
+                                    alert('This Serial No "' + $rootScope.gridOptionsModal2.data[i].SerialNo + '" Already Exist !!!');
+                                }
+                            }
+
+                        }
+                        if(flag != false){
+                            modal.close();
+                        }
+                    };
+                    $rootScope.modalStyle = { "display": "block" };
+                    $compile(elm)($rootScope);
+                },
+                close: function () {
+                    if (elm) {
+                        elm.remove();
+                    }
+                }
+            };
+
+            return modal;
+        };
+    }]);
+
+</script>

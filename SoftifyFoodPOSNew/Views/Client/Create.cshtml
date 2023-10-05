@@ -1,0 +1,192 @@
+﻿@model SoftifyFoodPOSNew.Models.Client
+@{
+    ViewBag.Title = "Add Client ";
+}
+
+<header class="page-header">
+    <h2>@ViewBag.Title</h2>
+</header>
+
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<section class="panel" ng-app="ngGridApp" ng-controller="ngGridCtrl">
+    <form name="frmClient">
+        <div class="panel-body">
+            <div class="form-group">
+                <div class="col-md-3">
+                    @Html.LabelFor(model => model.ClientName, "Client Name", htmlAttributes: new { @class = "control-label" })<span class="text-danger">*</span>
+                    @Html.EditorFor(model => model.ClientName, new { htmlAttributes = new { @class = "form-control", @placeholder = "", @Required = "", ng_model = "model.ClientName" } })
+                    @Html.ValidationMessageFor(model => model.ClientName, "", new { @class = "text-danger" })
+                </div>
+
+                @*<div class="col-md-2">
+                    @Html.LabelFor(model => model.ClientType, "Client Type", htmlAttributes: new { @class = "control-label" })
+                    <select ng-model="model.ClientType"
+                            select2=""
+                            required=""
+                            data-ng-options="d.CTypeName as d.CTypeName for d in TypeCombp"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                </div>*@
+                
+
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.shortName, "Short Name", htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.ClientName, new { htmlAttributes = new { @class = "form-control", @placeholder = "", ng_model = "model.shortName" } })
+                    @Html.ValidationMessageFor(model => model.shortName, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.OPBalance, "Opening Balance", htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.OPBalance, new { htmlAttributes = new { @class = "form-control", @type = "number", ng_model = "model.OPBalance" } })
+                    @Html.ValidationMessageFor(model => model.OPBalance, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-3">
+                    @Html.LabelFor(model => model.dateOP, "Opening Date", htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.dateOP, new { htmlAttributes = new { @class = "form-control", ng_model = "model.dateOP", datepicker = "" } })
+                    @Html.ValidationMessageFor(model => model.dateOP, "", new { @class = "text-danger" })
+                </div>
+
+                @*<div class="col-md-2">
+                    @Html.LabelFor(model => model.AreaId, "Area", htmlAttributes: new { @class = "control-label" })
+                    <select ng-model="model.AreaId"
+                            select2=""
+                            data-ng-options="d.AreaId as d.AreaName for d in AreaCombo"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.ZoneId, "Zone", htmlAttributes: new { @class = "control-label" })
+                    <select ng-model="model.ZoneId"
+                            select2=""
+                            data-ng-options="d.ZoneId as d.Zonename for d in ZoneCombo"
+                            style="width: 100%"
+                            class="form-control">
+                        <option value="">--Please Select--</option>
+                    </select>
+                </div>*@
+
+                @*<div class="col-md-2">
+                    @Html.LabelFor(model => model.Phone, "Phone", htmlAttributes: new { @class = "control-label " })
+                    @Html.EditorFor(model => model.Phone, new { htmlAttributes = new { @class = "form-control", ng_model = "model.Phone" } })
+                    @Html.ValidationMessageFor(model => model.Phone, "", new { @class = "text-danger" })
+                </div>*@
+               
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-3">
+                    @Html.LabelFor(model => model.Mobile, "Mobile", htmlAttributes: new { @class = "control-label " })
+                    @Html.EditorFor(model => model.Mobile, new { htmlAttributes = new { @class = "form-control", ng_model = "model.Mobile" } })
+                    @Html.ValidationMessageFor(model => model.Mobile, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.Email, "Email", htmlAttributes: new { @class = "control-label " })
+                    @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", ng_model = "model.Email" } })
+                    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                </div>
+                @*<div class="col-md-2">
+                    @Html.LabelFor(model => model.Web, "Web", htmlAttributes: new { @class = "control-label " })
+                    @Html.EditorFor(model => model.Web, new { htmlAttributes = new { @class = "form-control", ng_model = "model.Web" } })
+                    @Html.ValidationMessageFor(model => model.Web, "", new { @class = "text-danger" })
+                </div>*@
+
+            </div>
+            <div class="form-group">
+                <div class="col-md-5">
+                    @Html.LabelFor(model => model.ClientAddress, "Address", htmlAttributes: new { @class = "control-label" })
+                    @Html.TextAreaFor(model => model.ClientAddress, new { @class = "form-control", @rows = "2", ng_model = "model.ClientAddress" })
+                    @Html.ValidationMessageFor(model => model.ClientAddress, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="panel-footer">
+            <div class="row">
+                <div class="col-sm-9 col-sm-offset-2">
+                    <button class="btn btn-danger btn-wide mr-md" type="submit" id="btnSubmit" name="btnSubmit" ng-disabled="frmClient.$invalid" ng-click="InsertItem(model)">Submit <i class="fa fa-arrow-circle-right"></i>
+                    </button>
+
+                    <a href="@Url.Action("Index", "Client")" class="btn btn-default">
+                        <i class="fa fa-arrow-circle-left"></i> Back to list
+                    </a>
+
+                </div>
+            </div>
+        </footer>
+    </form>
+</section>
+
+<script>
+    ngGridApp.controller('ngGridCtrl', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', function ($scope, $http, $log, $filter, $timeout, $interval) {
+
+        $scope.TypeCombp = [];
+        $scope.AreaCombo = [];
+        $scope.ZoneCombo = [];
+        $scope.model = { dateOP: $filter("date")(Date.now(), 'dd-MMM-yyyy'), ClientType: '== N/A ==' }
+
+        $scope.getCombo = function () {
+            // Product List
+            $http({
+                method: 'POST',
+                url: '@Url.Action("GetComboLoad", "Client")'
+            }).
+            then(function (result) {
+                $scope.TypeCombp = result.data.Table;
+                $scope.AreaCombo = result.data.Table1;
+                $scope.ZoneCombo = result.data.Table2;
+                //console.log(result.data);
+            });
+        }
+        $scope.getCombo();
+
+        $scope.InsertItem = function (model) {
+            $("#btnSubmit").attr('disabled', 'disabled');
+            $("#btnSubmit").text("Processing");
+
+            $http.post("@Url.Action("Create", "Client")", { model: $scope.model }).then(function (data) {
+                if (data.data == "1") {
+                    new PNotify({
+                        title: 'Notification',
+                        text: 'Data saved successfully.',
+                        type: 'custom',
+                        addclass: 'notification-success',
+                        icon: 'fa fa-check'
+                    });
+                    $scope.model = { dateOP: $filter("date")(Date.now(), 'dd-MMM-yyyy'), ClientType: '== N/A ==' }
+
+                    $("#btnSubmit").text("Submit");
+                    $("#btnSubmit").removeAttr('disabled');
+                }
+
+                else {
+                    new PNotify({
+                        title: 'Notification',
+                        text: '!! Failure : ' + data.data,
+                        type: 'custom',
+                        addclass: 'notification-danger',
+                        icon: 'fa fa-exclamation-triangle'
+                    });
+                    $("#btnSubmit").text("Submit");
+                    $("#btnSubmit").removeAttr('disabled');
+                }
+            
+            });
+        }
+    }]);
+
+</script>
+

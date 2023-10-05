@@ -1,0 +1,96 @@
+﻿@model IEnumerable<SoftifyFoodPOSNew.Models.LoginMenu>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+
+<header class="page-header">
+    <h2>Menu List</h2>
+</header>
+
+<!--Error messages will be shown here-->
+@Html.Partial("_FlashMessage")
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<!-- start: Dapartment List page -->
+
+<section class="panel">
+    <header class="panel-heading">
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="pull-left">
+                    <a href="@Url.Action("Create", "LoginMenu")" class="btn btn-primary">
+                        Add New <i class="fa fa-plus" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-sm-6">
+
+            </div>
+        </div>
+
+    </header>
+
+    <div class="panel-body">
+        @*<table class="table table-bordered table-striped mb-none" id="datatable-tabletools" data-swf-path="~/Content/assets/vendor/jquery-datatables/extras/TableTools/swf/copy_csv_xls_pdf.swf">*@
+        <table class="table table-bordered table-striped mb-none" id="datatable-default">
+            <thead>
+                <tr>
+                    <th>Menu Name</th>
+                    <th>Controller Name</th>
+                    <th>Action Name</th>
+                    <th>Is Parent</th>
+                    <th>Is Inactive</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.MenuName)
+                        </td>
+                        <td class="hidden-phone hidden-xs hidden-sm">
+                            @Html.DisplayFor(modelItem => item.MenuController)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.MenuLink)
+                        </td>
+
+                        <td>
+                            @Html.CheckBoxFor(model => item.IsParent)
+                        </td>
+                        <td>
+                            @Html.CheckBoxFor(modelItem => item.IsInactive)
+                        </td>
+
+                        <td class="hidden-phone hidden-xs hidden-sm text-center">
+
+                            <a href="@Url.Action("Edit", "LoginMenu", new {id = item.MenuId})" class="btn btn-success btn-sm">
+                                <i class="fa fa-pencil" aria-hidden="true"></i> Edit
+                            </a>
+
+                            @*<a href="@Url.Action("Details", "LoginMenu", new {id = item.MenuId})" class="btn btn-danger btn-sm">
+                                <i class="fa fa-trash" aria-hidden="true"></i> Details
+                            </a>*@
+                            @*<a href="@Url.Action("Delete", "LoginMenu", new { id = item.MenuId })" class="btn btn-danger btn-sm">
+                                <i class="fa fa-trash" aria-hidden="true"></i> Delete
+                            </a>*@
+                            <a href="javascript:void(0)" class="btn btn-danger btn-sm DeleteData" data-value="@item.MenuId">
+                                <i class="fa fa-trash" aria-hidden="true"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                }
+                
+
+            </tbody>
+        </table>
+    </div>
+</section>
+

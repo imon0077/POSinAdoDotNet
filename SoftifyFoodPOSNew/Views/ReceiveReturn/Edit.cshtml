@@ -1,0 +1,190 @@
+﻿@model SoftifyFoodPOSNew.Models.ReceiveReturn
+    @{
+        ViewBag.Title = "Received Return Edit";
+    }
+    <header class="page-header">
+        <h2>@ViewBag.Title</h2>
+    </header>
+
+    <!--Error messages will be shown here-->
+    @Html.Partial("_FlashMessage")
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+    <!-- start: Comparitive Statement Add page -->
+    <section class="panel" ng-app="ngApp" ng-controller="ReceiveReturnController">
+
+        @Html.AntiForgeryToken()
+        <form name="ReceiveReturnListFrom">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-12 mb-lg">
+                        <div class="col-md-3">
+                            @Html.LabelFor(model => model.dtRcvReturn, "Date", htmlAttributes: new { @class = "control-label text-bold" })
+                            @Html.TextBoxFor(model => model.dtRcvReturn, new { @class = "form-control", @id = "date", @ng_equired = "", @Value = "datepicker", @ReadOnly = "true", ng_model = "model.dtRcvReturn" })
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="col-md-12">
+                    <div ui-grid="gridOptions" ui-grid-selection ui-grid-exporter ui-grid-auto-fit-columns ui-grid-resize-columns ui-grid-auto-resize
+                         style="font-family: 'Open Sans', Arial, sans-serif; color: #252222 !important; height: 60vh;" class="grid">
+                    </div>
+
+                </div>
+
+            </div>
+            <div ng-show="showLoader" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(102, 102, 102); z-index: 30001; opacity: 0.8;">
+                <img src="~/Content/assets/images/demo_wait.gif" alt="loading" style="position: absolute; top: 50%; left: 45%;" /> Loading..
+            </div>
+
+
+
+            <footer class="panel-footer">
+                <div class="row">
+                    <div class="col-sm-9 col-sm-offset-3">
+                        <button class="btn btn-danger btn-wide mr-md" type="button" name="btnSubmit" ng-disabled="ReceiveReturnListFrom.$invalid || dataForPost.length==0" ng-click="InsertItem(model)">
+                            Submit <i class="fa fa-arrow-circle-right"></i>
+                        </button>
+                        <a href="@Url.Action("Index", "ReceiveReturn")" class="btn btn-info">
+                            <i class="fa fa-arrow-circle-left"></i> Back to list
+                        </a>
+                    </div>
+                </div>
+            </footer>
+        </form>
+
+    </section>
+    <script type="text/javascript">
+
+        var ngApp = angular.module('ngApp', ['ngTouch', 'ui.grid', 'ui.grid.expandable', 'ui.grid.selection',
+             'ui.grid.pinning', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.autoResize', 'ui.grid.saveState', 'ui.grid.cellNav']);
+
+        //start : angular controller
+        ngApp.controller('ReceiveReturnController', ['$scope', '$http', '$log', '$filter', '$timeout', '$interval', '$templateCache', function ($scope, $http, $log, $filter, $timeout, $interval, $templateCache) {
+
+            $scope.showLoader = false;
+            $scope.dataForPost = [];
+            $scope.model = { dtRcvReturn: $filter("date")(Date.now(), 'dd-MMM-yyyy'), ReceiveReturnSubList: [] }
+            //  start :  grid api gridOptions
+            $scope.gridOptions = {
+                // EXPORT : END
+                enableFiltering: true,
+                showGridFooter: true,
+                onRegisterApi: function (gridApi) {
+                    $scope.gridApi = gridApi;
+                    $interval(function () {
+                        $scope.gridApi.core.handleWindowResize();
+                    }, 500, 10);
+
+                    gridApi.selection.on.rowSelectionChanged($scope, function (row) {
+                        $scope.countSelectRows = $scope.gridApi.selection.getSelectedRows().length;
+                        $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                        console.log($scope.dataForPost);
+                    });
+
+                    gridApi.selection.on.rowSelectionChangedBatch($scope, function (row) {
+                        $scope.countAllRows = $scope.gridApi.selection.getSelectedRows().length;
+                        $scope.dataForPost = $scope.gridApi.selection.getSelectedRows();
+                        console.log($scope.dataForPost);
+                    });
+                },
+                data: []
+            }
+
+            // start : grid Column columnDefs
+            $scope.gridOptions.columnDefs = [
+              , { name: 'ItemCode', field: 'BarCode', width: 100, enableColumnMenu: false }
+                , { name: 'Alice Code', field: 'AliceCode', width: 110, enableColumnMenu: false }
+                , { name: 'Product Name', field: 'ProductName', width: 300, enableColumnMenu: false }
+                , { name: 'Category Name', field: 'prodCatName', width: 250, enableColumnMenu: false }
+                 , {
+                     name: 'MRP', width: 110, enableColumnMenu: false, field: "MRP", cellTemplate: ' <div style="width:120px">' +
+                               ' <input type="number"  ng-model="row.entity.MRP" ng-disabled="row.isSelected == false"   class="pl-sm" />' +
+                               ' </div>'
+                 }
+                , {
+                    name: 'Return Qty', width: 110, enableColumnMenu: false, field: "Qty", cellTemplate: ' <div style="width:120px">' +
+                            ' <input type="number" required="" ng-model="row.entity.Qty" ng-disabled="row.isSelected == false"   class="pl-sm" />' +
+                            ' </div>'
+                }
+
+            ];
+            //start : Data Load | loadData
+            $scope.loadData = function () {
+                $scope.showLoader = true
+                $http({
+                    method: 'Post',
+                    url: '../GetMainData',
+                }).
+                    then(function (data) {
+                        $scope.model = data.data.Table[0];
+                        $scope.gridOptions.data = data.data.Table1;
+                        $timeout(function () {
+                            for (var i = 0; i < $scope.gridOptions.data.length; i++) {
+                                if ($scope.gridOptions.data[i].isCheck === 1) {
+                                    $scope.gridApi.selection.selectRow($scope.gridOptions.data[i]);
+                                }
+                            };
+                        })
+                        $scope.showLoader = false
+                    }, function (error) {
+                        alert(error);
+                        console.log(error);
+                    });
+            }
+            //end : Data Load | loadData
+
+            $scope.loadData()
+            //start : Submit | SaveDODelivery | Insert | Post
+            $scope.InsertItem = function (model) {
+                $scope.model.ReceiveReturnSubList = $scope.dataForPost;
+
+                $scope.showLoader = true
+
+                $http.post("../DataUpdate", { model: model, Flag: "edit" }).then(function (data) {
+                    console.log(data.data);
+
+                    if (data.data == 1) {
+                        new PNotify({
+                            title: 'Notification',
+                            text: 'Data Update Successfully',
+                            type: 'custom',
+                            addclass: 'notification-success',
+                            icon: 'fa fa-check'
+                        });
+
+                        $scope.showLoader = false
+                        $scope.loadData();
+                        window.setTimeout(function () {
+                            window.location.href = "../Index";
+                        }, 2000);
+                    }
+
+                    else {
+                        new PNotify({
+                            title: 'Notification',
+                            text: '!! Failure : ' + data.data,
+                            type: 'custom',
+                            addclass: 'notification-danger',
+                            icon: 'fa fa-exclamation-triangle'
+                        });
+
+                    }
+                    $scope.showLoader = false
+                    $scope.loadData();
+                    $scope.dataForPost = [];
+                },
+                    function (responseData) {
+                        console.log("Error !" + responseData);
+                    });
+                $scope.gridApi.selection.clearSelectedRows();
+            };
+
+
+        }]);
+        //end : angular controller
+
+    </script>
